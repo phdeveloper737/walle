@@ -106,12 +106,14 @@ class Saude extends Component
     /** @return array{nome: string, icone: string, ok: bool, detalhe: string} */
     private function agendador(): array
     {
-        $batida = Cache::get('walle:agendador:batida');
+        $timestamp = Cache::get('walle:agendador:batida');
 
-        if (! $batida instanceof Carbon) {
+        // O Valkey devolve número como texto ("1792..."), por isso is_numeric e não is_int
+        if (! is_numeric($timestamp)) {
             return ['nome' => 'Agendador', 'icone' => 'schedule', 'ok' => false, 'detalhe' => 'Sem batida ainda — o contêiner walle-scheduler está rodando?'];
         }
 
+        $batida = Carbon::createFromTimestamp((int) $timestamp, config('app.timezone'));
         $segundos = (int) $batida->diffInSeconds(now());
 
         return [
