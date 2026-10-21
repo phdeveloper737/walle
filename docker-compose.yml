@@ -1,0 +1,97 @@
+# walle: site + filas + agendador + MySQL + Valkey
+# As variáveis (portas, banco, senhas) vêm do .env do Laravel, na mesma pasta.
+name: walle
+
+x-php: &php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: walle-php
+  volumes:
+    - .:/var/www/html
+  depends_on:
+    mysql:
+      condition: service_healthy
+    valkey:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *php
+    container_name: walle-app
+
+  # Filas e agendador rodam como www-data, o mesmo usuário do site: os arquivos que um cria o outro consegue gravar
+  horizon:
+    <<: *php
+    container_name: walle-horizon
+    user: www-data
+    command: php artisan horizon
+
+  scheduler:
+    <<: *php
+    container_name: walle-scheduler
+    user: www-data
+    command: php artisan schedule:work
+
+  web:
+    image: nginx:stable-alpine
+    container_name: walle-web
+    ports:
+      - "${WALLE_PORTA:-8080}:80"
+    volumes:
+      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:9.7
+    container_name: walle-mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    ports:
+      - "${WALLE_PORTA_MYSQL:-3309}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WALLE_MYSQL_ROOT_SENHA}
+      TZ: America/Sao_Paulo
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  valkey:
+    image: valkey/valkey:9
+    container_name: walle-valkey
+    command: valkey-server --appendonly yes
+    volumes:
+      - valkey:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # Front em desenvolvimento (Vite com recarga automática): docker compose --profile dev up -d
+  vite:
+    image: node:24-alpine
+    container_name: walle-vite
+    working_dir: /var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/var/www/html
+    profiles: ["dev"]
+
+volumes:
+  mysql:
+  valkey:
