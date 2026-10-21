@@ -1,0 +1,61 @@
+# walle: confere formatação, análise estática e testes em todo push na main e em todo PR
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:9.7
+        env:
+          MYSQL_DATABASE: walle_testes
+          MYSQL_USER: walle
+          MYSQL_PASSWORD: walle
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      valkey:
+        image: valkey/valkey:9
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="valkey-cli ping"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: walle
+      DB_PASSWORD: walle
+      DB_COLLATION: utf8mb4_general_ci
+      REDIS_HOST: 127.0.0.1
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: pdo_mysql, redis, pcntl, intl, zip, bcmath, gd
+          coverage: none
+
+      - name: Dependências
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Ambiente
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Formatação (Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Análise estática (PHPStan)
+        run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Testes (Pest)
+        run: ./vendor/bin/pest

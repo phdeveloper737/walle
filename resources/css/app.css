@@ -1,9 +1,103 @@
-@import 'tailwindcss';
+@import '@fontsource-variable/roboto';
+@import 'material-symbols/outlined.css' layer(components);
+/* source(none): o Tailwind só procura classes nas pastas abaixo (varrer o projeto todo na pasta do Windows leva 25 s) */
+@import 'tailwindcss' source(none);
 
+@source '../views';
+@source '../js';
+@source '../../app';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
 
+/*
+ * walle-ui — Material Design 3, tema escuro, com a paleta do walle:
+ * #000706 · #00272D · #134647 · #0C7E7E · #BFAC8B
+ *
+ * As telas usam só os PAPÉIS abaixo (bg-surface, text-on-surface, bg-primary-container...),
+ * nunca o hexadecimal: trocar uma cor do tema é mudar uma linha aqui.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+
+    /* Superfícies (do mais escuro ao mais claro) */
+    --color-surface-container-lowest: #000706; /* moldura: barra lateral e barra do topo */
+    --color-surface: #00272d; /* fundo da área de conteúdo */
+    --color-surface-container-low: #063035;
+    --color-surface-container: #0a373a;
+    --color-surface-container-high: #134647; /* cards, tabelas, campos */
+    --color-surface-container-highest: #215152; /* realce ao passar o mouse */
+
+    /* Texto e contornos sobre as superfícies */
+    --color-on-surface: #e2ecea;
+    --color-on-surface-variant: #9db5b2;
+    --color-outline: #6f9695;
+    --color-outline-variant: #1f4f50;
+
+    /* Primária (teal): texto/ícone usa o tom claro; botão cheio usa o #0C7E7E com texto branco */
+    --color-primary: #85bebe;
+    --color-on-primary: #00272d;
+    --color-primary-container: #0c7e7e;
+    --color-on-primary-container: #ffffff;
+
+    /* Secundária (areia): destaques, etiquetas, item ativo do menu */
+    --color-secondary: #bfac8b;
+    --color-on-secondary: #000706;
+    --color-secondary-container: #30302a;
+    --color-on-secondary-container: #e8dcc6;
+
+    /* Status, nos mesmos tons apagados */
+    --color-error: #f2a39b;
+    --color-on-error: #3b0b08;
+    --color-error-container: #5c1f1c;
+    --color-on-error-container: #ffdad6;
+    --color-success: #9ed4a6;
+    --color-success-container: #1f4a2c;
+    --color-on-success-container: #cdefd2;
+
+    /* Formas do Material 3 */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 28px;
+}
+
+@layer base {
+    html {
+        color-scheme: dark;
+    }
+
+    body {
+        @apply bg-surface font-sans text-on-surface antialiased;
+    }
+
+    ::selection {
+        @apply bg-primary-container text-on-primary-container;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-primary;
+    }
+}
+
+/* Ícones: Material Symbols Outlined (24px padrão do Material; utilitários como text-[18px] mudam o tamanho) */
+@layer components {
+    .material-symbols-outlined {
+        font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24;
+    }
+
+    .material-symbols-outlined.icone-cheio {
+        font-variation-settings:
+            'FILL' 1,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
 }

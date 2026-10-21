@@ -83,7 +83,8 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    // "auth": quem não está logado vai para a tela de entrar em vez de receber 403
+    'middleware' => ['web', 'auth'],
 
     /*
     |--------------------------------------------------------------------------

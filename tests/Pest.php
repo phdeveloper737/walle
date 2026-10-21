@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /*
@@ -8,43 +8,30 @@ use Tests\TestCase;
 | Test Case
 |--------------------------------------------------------------------------
 |
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind different classes or traits.
+| Os testes de Feature usam o Tests\TestCase: banco walle_testes zerado e a conexão "help"
+| apontando para ele (nunca para o Help Desk de verdade).
 |
 */
 
-pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
-    ->in('Feature');
+pest()->extend(TestCase::class)->in('Feature');
 
 /*
 |--------------------------------------------------------------------------
-| Expectations
+| Funções de apoio
 |--------------------------------------------------------------------------
-|
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
-|
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
-
-/*
-|--------------------------------------------------------------------------
-| Functions
-|--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
-*/
-
-function something()
+/**
+ * Cria um usuário na imitação do a_user do Help Desk e devolve o id.
+ *
+ * @param  array<string, mixed>  $dados
+ */
+function criarUsuarioHelpDesk(array $dados = []): int
 {
-    // ..
+    return (int) DB::connection('help')->table('a_user')->insertGetId(array_merge([
+        'name' => 'Maria da Silva',
+        'user' => 'maria',
+        'tx_senha' => 'segredo',
+        'deletado' => 'N',
+    ], $dados));
 }

@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // API do Help Desk (192.168.10.251) que entrega a senha do banco do Help
+    'help' => [
+        'api_url' => env('HELP_API_URL', 'http://192.168.10.251/api'),
+        'api_token' => env('HELP_API_TOKEN'),
+        // Por quanto tempo a senha fica guardada no cache antes de perguntar de novo à API
+        'senha_cache_minutos' => 10,
+    ],
+
 ];

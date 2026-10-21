@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\User;
-
 return [
 
     /*
@@ -62,9 +60,9 @@ return [
     */
 
     'providers' => [
+        // Usuários do Help Desk (a_user do 192.168.10.254) — ver App\Auth\UsuariosHelpDesk
         'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'driver' => 'helpdesk',
         ],
 
         // 'users' => [

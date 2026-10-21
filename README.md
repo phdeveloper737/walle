@@ -1,58 +1,71 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# walle
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Reescrita do sistema **newsuporte** (servidor 220) com tecnologia atual, aberta e gratuita.
 
-## About Laravel
+| Peça | Versão |
+|---|---|
+| PHP | 8.5 (FPM) |
+| Laravel | 13 |
+| Livewire | 4 (com Alpine) |
+| Tailwind CSS | 4 + **walle-ui** (Material Design 3, componentes em `resources/views/components/ui`) |
+| MySQL | 9.7 LTS — banco `walle` |
+| Valkey | 9 (compatível com Redis): sessão, cache e filas |
+| Horizon / Scheduler | filas e agendador do Laravel |
+| Pest · PHPStan (Larastan) · Pint | testes, análise estática e formatação |
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Login: usuários do **Help Desk** (`a_user` do 192.168.10.254), com a mesma regra do sistema antigo.
+Tabelas que vêm do banco `suporte` mantêm exatamente o mesmo nome de tabela e de coluna.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Rodar no seu PC (Docker Desktop)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```powershell
+cd C:\docker\walle
+docker compose up -d
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+| Endereço | O quê |
+|---|---|
+| http://localhost:8080 | walle |
+| http://localhost:8080/saude | saúde do sistema (banco, Valkey, Help Desk, filas, agendador) |
+| http://localhost:8080/horizon | painel das filas |
+| `localhost:3309` | MySQL do walle (usuário e senha no `.env`) |
 
-## Contributing
+Front em desenvolvimento, com recarga automática: `docker compose --profile dev up -d` (Vite em `localhost:5173`).
+Sem isso, depois de mudar CSS/JS rode o build:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build
+```
 
-## Code of Conduct
+## Comandos do dia a dia
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Tudo roda dentro do contêiner (não é preciso PHP, Composer ou Node no Windows):
 
-## Security Vulnerabilities
+```powershell
+docker exec walle-app php artisan migrate
+docker exec walle-app composer require pacote/nome
+docker exec walle-app ./vendor/bin/pest            # testes
+docker exec walle-app ./vendor/bin/pint            # formatação
+docker exec walle-app ./vendor/bin/phpstan analyse # análise estática
+docker exec walle-app php artisan optimize:clear   # depois de mudar .env ou config/
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Contêineres
 
-## License
+| Contêiner | O que faz |
+|---|---|
+| `walle-app` | PHP 8.5-FPM (Laravel) |
+| `walle-web` | nginx na porta 8080 |
+| `walle-mysql` | MySQL 9.7 (volume `walle_mysql`) |
+| `walle-valkey` | Valkey 9 (volume `walle_valkey`) |
+| `walle-horizon` | processa as filas |
+| `walle-scheduler` | roda o agendador a cada minuto |
+| `walle-vite` | Vite (só com `--profile dev`) |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Para quem programa (Claude Code e Codex)
+
+As regras do projeto ficam em `.ai/guidelines/walle.md` e entram no `CLAUDE.md` e no `AGENTS.md`
+pelo Laravel Boost (`docker exec walle-app php artisan boost:update`). O MCP do Boost roda com
+`docker exec -i walle-app php artisan boost:mcp` (já configurado em `.mcp.json` e `.codex/config.toml`).
+
+O sistema antigo continua no contêiner `testes220` (http://localhost:8074) como referência.

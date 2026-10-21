@@ -64,6 +64,27 @@ return [
             ]) : [],
         ],
 
+        // Help Desk (192.168.10.254): login (a_user) e base de consulta. SOMENTE LEITURA.
+        // A senha real vem da API do Help (App\Support\HelpDesk\SenhaHelpDesk); a reserva só se a API falhar.
+        'help' => [
+            'driver' => 'mysql',
+            'host' => env('HELP_DB_HOST', '192.168.10.254'),
+            'port' => env('HELP_DB_PORT', '3306'),
+            'database' => env('HELP_DB_DATABASE', 'suporte'),
+            'username' => env('HELP_DB_USERNAME', 'root'),
+            'password' => env('HELP_DB_SENHA_RESERVA', ''),
+            // O MySQL do .254 é anterior ao 5.5.3 e não conhece utf8mb4 (o sistema antigo também usa utf8)
+            'charset' => 'utf8',
+            'collation' => null,
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => [
+                PDO::ATTR_TIMEOUT => 5,
+            ],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
