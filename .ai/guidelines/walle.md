@@ -1,0 +1,49 @@
+# walle — regras do projeto
+
+O walle é a reescrita do sistema "newsuporte" (servidor 220) em Laravel. Responda e escreva textos de tela em português do Brasil.
+
+## Ambiente: tudo roda no Docker (não instale PHP, Composer nem Node no Windows)
+
+| Contêiner | O que é |
+|---|---|
+| `walle-app` | PHP 8.5-FPM (Laravel) |
+| `walle-web` | nginx — http://localhost:8080 |
+| `walle-mysql` | MySQL 9.7, banco `walle` — no Windows `localhost:3309` |
+| `walle-valkey` | Valkey 9 (compatível com Redis): sessão, cache e filas |
+| `walle-horizon` | filas (`php artisan horizon`) |
+| `walle-scheduler` | agendador (`php artisan schedule:work`) |
+| `walle-vite` | Vite em desenvolvimento (`docker compose --profile dev up -d`) |
+
+Comandos sempre dentro do contêiner:
+
+- Artisan: `docker exec walle-app php artisan <comando>`
+- Composer: `docker exec walle-app composer <comando>`
+- Testes: `docker exec walle-app ./vendor/bin/pest` (filtrar: `--filter=nome`)
+- Formatação: `docker exec walle-app ./vendor/bin/pint --dirty`
+- Análise estática: `docker exec walle-app ./vendor/bin/phpstan analyse`
+- npm: `docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm <comando>`
+
+Depois de mudar `.env` ou `config/`, rode `docker exec walle-app php artisan optimize:clear`.
+O OPcache revalida arquivos a cada 2 s: uma edição pode levar até 2 s para aparecer.
+
+## Banco de dados
+
+- Tabelas que vêm do banco legado `suporte` mantêm **exatamente** o mesmo nome de tabela e de coluna (`c_cliente`, `s_atendimento`, `fk_c_cliente`...). Nunca renomeie. Pode acrescentar colunas e tabelas novas.
+- Models com nome em português apontando para a tabela legada: `protected $table = 'c_cliente';` e `public $timestamps = false;` quando a tabela não tiver `created_at`/`updated_at`.
+- Collation padrão: `utf8mb4_general_ci` (a mesma das tabelas legadas; evita "Illegal mix of collations").
+- Datas são hora local (`America/Sao_Paulo`), sem fuso.
+- Conexão `help`: banco `suporte` do servidor 192.168.10.254 (Help Desk), **somente leitura**. É de lá que vem o login (`a_user`).
+
+## Front-end (walle-ui)
+
+- Visual Material Design 3 implementado com Tailwind 4 e componentes Blade próprios em `resources/views/components/ui/`.
+- Telas usam só os componentes `<x-ui.*>`; não escreva botões, campos ou tabelas soltos com classes Tailwind repetidas. Faltou componente, crie um em `components/ui`.
+- Cores só pelos tokens do tema (`bg-surface`, `text-on-surface`, `bg-primary`...), nunca hexadecimal solto na tela.
+- Ícones: Material Symbols (`<x-ui.icone nome="..."/>`). Fonte: Roboto. Tudo servido localmente, sem CDN.
+- Interatividade com Livewire 4 (e Alpine, que vem junto).
+
+## Fluxo de trabalho
+
+- Um branch por tarefa e PR no GitHub. O Claude implementa, o Codex revisa e o usuário aprova.
+- Antes de concluir: Pint, PHPStan e Pest passando.
+- O sistema antigo roda no contêiner `testes220` (http://localhost:8074, código em `C:\docker\testes220\newsuporte`) e serve de referência: o walle deve devolver os mesmos resultados com os mesmos dados.

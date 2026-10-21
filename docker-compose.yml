@@ -17,21 +17,23 @@ x-php: &php
   restart: unless-stopped
 
 services:
+  # Em desenvolvimento o PHP-FPM roda como root (ver docker/php/fpm-dev.conf)
   app:
     <<: *php
     container_name: walle-app
+    command: ["php-fpm", "-R"]
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/fpm-dev.conf:/usr/local/etc/php-fpm.d/zz-dev.conf:ro
 
-  # Filas e agendador rodam como www-data, o mesmo usuário do site: os arquivos que um cria o outro consegue gravar
   horizon:
     <<: *php
     container_name: walle-horizon
-    user: www-data
     command: php artisan horizon
 
   scheduler:
     <<: *php
     container_name: walle-scheduler
-    user: www-data
     command: php artisan schedule:work
 
   web:
