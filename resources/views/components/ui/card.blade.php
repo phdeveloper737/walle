@@ -4,7 +4,7 @@
     'icone' => null,
 ])
 
-<section {{ $attributes->class('rounded-lg bg-surface-container-high p-6 [--fundo-campo:var(--color-surface-container-high)]') }}>
+<section {{ $attributes->class('rounded-lg bg-surface-container-high p-4 [--fundo-campo:var(--color-surface-container-high)]') }}>
     @if ($titulo || isset($acoes))
         <header class="mb-4 flex items-center gap-2">
             @if ($icone)

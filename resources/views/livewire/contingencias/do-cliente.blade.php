@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-3">
     @if ($this->busca['erro'])
         <x-ui.aviso tipo="erro">{{ $this->busca['erro'] }}</x-ui.aviso>
         <div>
@@ -46,7 +46,7 @@
             @if ($aba === 'pendentes')
                 @forelse ($itensDaPagina as $contingencia)
                     <article wire:key="cont-{{ $contingencia->identificador() }}" class="overflow-hidden rounded-md bg-surface-container-high">
-                        <header class="flex flex-col gap-2 px-4 pt-3 pb-2">
+                        <header class="flex flex-col gap-1.5 px-3 pt-2.5 pb-2">
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <x-ui.etiqueta cor="secundaria">Loja {{ $contingencia->loja }}</x-ui.etiqueta>
                                 <x-ui.etiqueta cor="secundaria">PDV {{ $contingencia->pdv }}</x-ui.etiqueta>
@@ -67,11 +67,11 @@
                         </header>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[1100px] text-left text-xs">
+                            <table class="w-full min-w-[980px] text-left text-xs">
                                 <thead class="bg-surface-container-highest/50 text-on-surface-variant">
                                     <tr>
                                         @foreach (['#', 'Cód barras', 'Id prod', 'Nome', 'Un', 'Alíq', 'Redução', 'Alíq red', 'NCM', 'CEST', 'cBenef', 'CFOP', 'CST', 'CST IBS/CBS', 'ClassTrib'] as $coluna)
-                                            <th class="px-3 py-2 font-medium whitespace-nowrap">{{ $coluna }}</th>
+                                            <th class="px-2 py-1.5 font-medium whitespace-nowrap">{{ $coluna }}</th>
                                         @endforeach
                                     </tr>
                                 </thead>
@@ -80,21 +80,21 @@
                                         @php $problemas = $item->inconsistencias(); @endphp
                                         <tr @class(['border-t border-outline-variant', 'bg-error-container/50 text-on-error-container' => $problemas])
                                             @if ($problemas) title="{{ implode(' ', $problemas) }}" @endif>
-                                            <td class="px-3 py-1.5">{{ $indice + 1 }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->codigoBarras }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->idProduto }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->nome }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->unidade }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->aliquota }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->reducao }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->aliquotaReduzida }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->ncm }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->cest }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->cbenef ?: '—' }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->cfop }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->cst }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->cstIbsCbs }}</td>
-                                            <td class="px-3 py-1.5">{{ $item->classTribIbs }}</td>
+                                            <td class="px-2 py-1">{{ $indice + 1 }}</td>
+                                            <td class="px-2 py-1">{{ $item->codigoBarras }}</td>
+                                            <td class="px-2 py-1">{{ $item->idProduto }}</td>
+                                            <td class="px-2 py-1">{{ $item->nome }}</td>
+                                            <td class="px-2 py-1">{{ $item->unidade }}</td>
+                                            <td class="px-2 py-1">{{ $item->aliquota }}</td>
+                                            <td class="px-2 py-1">{{ $item->reducao }}</td>
+                                            <td class="px-2 py-1">{{ $item->aliquotaReduzida }}</td>
+                                            <td class="px-2 py-1">{{ $item->ncm }}</td>
+                                            <td class="px-2 py-1">{{ $item->cest }}</td>
+                                            <td class="px-2 py-1">{{ $item->cbenef ?: '—' }}</td>
+                                            <td class="px-2 py-1">{{ $item->cfop }}</td>
+                                            <td class="px-2 py-1">{{ $item->cst }}</td>
+                                            <td class="px-2 py-1">{{ $item->cstIbsCbs }}</td>
+                                            <td class="px-2 py-1">{{ $item->classTribIbs }}</td>
                                         </tr>
                                         @if ($problemas)
                                             <tr class="bg-error-container/50 text-on-error-container">
@@ -127,20 +127,20 @@
                             <thead class="text-on-surface-variant">
                                 <tr>
                                     @foreach (['Chave de acesso', 'Loja', 'PDV', 'Cupom', 'Emissão', 'Software', 'Consulta do robô'] as $coluna)
-                                        <th class="px-3 py-2 font-medium whitespace-nowrap">{{ $coluna }}</th>
+                                        <th class="px-2 py-1.5 font-medium whitespace-nowrap">{{ $coluna }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($itensDaPagina as $autorizada)
                                     <tr wire:key="aut-{{ $autorizada->chave }}" class="border-t border-outline-variant">
-                                        <td class="px-3 py-1.5 font-mono break-all">{{ $autorizada->chave }}</td>
-                                        <td class="px-3 py-1.5">{{ $autorizada->contingencia->loja }}</td>
-                                        <td class="px-3 py-1.5">{{ $autorizada->contingencia->pdv }}</td>
-                                        <td class="px-3 py-1.5">{{ $autorizada->contingencia->cupom }}</td>
-                                        <td class="px-3 py-1.5 whitespace-nowrap">{{ $autorizada->contingencia->data() }} {{ $autorizada->contingencia->hora() }}</td>
-                                        <td class="px-3 py-1.5">{{ $autorizada->contingencia->software }}</td>
-                                        <td class="px-3 py-1.5 whitespace-nowrap">{{ $autorizada->consultadaEmFormatada() }}</td>
+                                        <td class="px-2 py-1 font-mono break-all">{{ $autorizada->chave }}</td>
+                                        <td class="px-2 py-1">{{ $autorizada->contingencia->loja }}</td>
+                                        <td class="px-2 py-1">{{ $autorizada->contingencia->pdv }}</td>
+                                        <td class="px-2 py-1">{{ $autorizada->contingencia->cupom }}</td>
+                                        <td class="px-2 py-1 whitespace-nowrap">{{ $autorizada->contingencia->data() }} {{ $autorizada->contingencia->hora() }}</td>
+                                        <td class="px-2 py-1">{{ $autorizada->contingencia->software }}</td>
+                                        <td class="px-2 py-1 whitespace-nowrap">{{ $autorizada->consultadaEmFormatada() }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

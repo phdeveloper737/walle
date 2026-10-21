@@ -1,10 +1,10 @@
-<div class="mx-auto flex max-w-5xl flex-col gap-6">
+<div class="flex flex-col gap-4">
     <div>
         <p class="text-sm text-secondary">{{ now()->translatedFormat('l, d \d\e F') }}</p>
         <h2 class="mt-1 text-3xl text-on-surface">{{ $saudacao }}, {{ $nome }}.</h2>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
         <x-ui.card titulo="O walle está começando" icone="rocket_launch">
             <p class="text-sm text-on-surface-variant">
                 Esta é a base do novo sistema: login, visual e infraestrutura. As telas do newsuporte

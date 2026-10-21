@@ -1,6 +1,6 @@
-<div class="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-start">
+<div class="flex flex-col gap-3 lg:flex-row lg:items-start">
     {{-- Lista de clientes (Help Desk) --}}
-    <section class="flex w-full flex-col gap-3 lg:sticky lg:top-24 lg:w-[400px] lg:shrink-0" aria-label="Clientes">
+    <section class="flex w-full flex-col gap-2 lg:sticky lg:top-17 lg:w-[340px] lg:shrink-0 2xl:w-[380px]" aria-label="Clientes">
         <div class="flex items-center gap-1">
             <x-ui.busca class="flex-1" placeholder="Buscar cliente, CNPJ ou #id" wire:model.live.debounce.250ms="busca" />
             <x-ui.botao-icone icone="refresh" rotulo="Atualizar a lista" wire:click="recarregar" wire:loading.attr="disabled" wire:target="recarregar" />
@@ -9,13 +9,13 @@
         @if ($this->todosClientes === null)
             <x-ui.aviso tipo="erro">Não foi possível consultar o Help Desk (192.168.10.254). Tente atualizar em instantes.</x-ui.aviso>
         @else
-            <x-ui.segmentado wire:model.live="filtro" :opcoes="$this->opcoesFiltro" />
+            <x-ui.segmentado compacto wire:model.live="filtro" :opcoes="$this->opcoesFiltro" />
 
             <p class="px-1 text-xs text-on-surface-variant">
                 {{ count($this->clientes) }} {{ count($this->clientes) === 1 ? 'cliente' : 'clientes' }}
             </p>
 
-            <div class="flex flex-col gap-2 transition-opacity lg:max-h-[calc(100vh-17rem)] lg:overflow-y-auto lg:pr-1"
+            <div class="flex flex-col gap-1.5 transition-opacity lg:max-h-[calc(100vh-13.5rem)] lg:overflow-y-auto lg:pr-1"
                 wire:loading.class="opacity-60" wire:target="busca, filtro, recarregar">
                 @forelse ($this->clientes as $cliente)
                     @php $selecionado = $cliente->id === $clienteId; @endphp
@@ -24,7 +24,7 @@
                         x-on:click="if (window.innerWidth < 1024) setTimeout(() => document.getElementById('detalhe-cliente')?.scrollIntoView({ behavior: 'smooth' }), 200)"
                         @if ($selecionado) aria-current="true" @endif
                         @class([
-                            'relative w-full shrink-0 overflow-hidden rounded-md px-4 py-3 text-left transition',
+                            'relative w-full shrink-0 overflow-hidden rounded-md px-3 py-2.5 text-left transition',
                             'before:absolute before:inset-0 before:bg-on-surface before:opacity-0 before:transition-opacity hover:before:opacity-8',
                             'bg-secondary-container text-on-secondary-container' => $selecionado,
                             'bg-surface-container-high' => ! $selecionado,
@@ -53,9 +53,9 @@
     </section>
 
     {{-- Cliente escolhido --}}
-    <section id="detalhe-cliente" class="min-w-0 flex-1 scroll-mt-20 rounded-lg bg-surface-container-low p-6" aria-label="Cliente escolhido">
+    <section id="detalhe-cliente" class="min-w-0 flex-1 scroll-mt-16 rounded-lg bg-surface-container-low p-3 sm:p-4" aria-label="Cliente escolhido">
         @if ($cliente = $this->clienteSelecionado)
-            <header class="flex flex-col gap-3 border-b border-outline-variant pb-4">
+            <header class="flex flex-col gap-2 border-b border-outline-variant pb-3">
                 <div>
                     <p class="text-sm text-secondary">Cliente #{{ $cliente->id }}</p>
                     <h2 class="text-2xl text-on-surface">{{ $cliente->razaoSocial }}</h2>
@@ -76,7 +76,7 @@
                 </div>
             </header>
 
-            <p class="mt-3 mb-4 text-xs text-on-surface-variant">
+            <p class="mt-2 mb-3 text-xs text-on-surface-variant">
                 Help Desk: {{ $cliente->totalContingencias }} pendentes informadas pelo PDV Linux + Versatus.
             </p>
 

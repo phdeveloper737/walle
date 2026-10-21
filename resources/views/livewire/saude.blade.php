@@ -1,9 +1,9 @@
-<div class="mx-auto flex max-w-5xl flex-col gap-4" wire:poll.30s>
+<div class="flex flex-col gap-3" wire:poll.30s>
     <p class="text-sm text-on-surface-variant">
         Conferido às {{ $conferidoEm->format('H:i:s') }} · atualiza sozinho a cada 30 segundos.
     </p>
 
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         @foreach ($itens as $item)
             <x-ui.card wire:key="saude-{{ $loop->index }}">
                 <div class="flex items-start gap-4">

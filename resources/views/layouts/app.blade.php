@@ -7,13 +7,15 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full" x-data="{ menu: false }">
-    {{-- Moldura: barra lateral (no celular abre por cima) --}}
+{{-- menu: gaveta aberta no celular · recolhido: no computador, barra lateral só com ícones (lembrada no navegador) --}}
+<body class="h-full" x-data="{ menu: false, recolhido: $persist(false).as('walle-menu-recolhido') }">
+    {{-- Moldura: barra lateral --}}
     <aside
-        class="fixed inset-y-0 left-0 z-30 flex w-72 -translate-x-full flex-col bg-surface-container-lowest px-3 py-4 transition-transform lg:translate-x-0"
-        x-bind:class="menu && 'translate-x-0'">
-        <a href="{{ route('painel') }}" wire:navigate class="mb-6 rounded-full px-4 py-2">
-            <x-ui.logo />
+        class="fixed inset-y-0 left-0 z-30 flex w-64 -translate-x-full flex-col bg-surface-container-lowest px-3 py-3 transition-[width,transform] duration-200 lg:translate-x-0"
+        x-bind:class="{ 'translate-x-0': menu, 'lg:w-20! lg:px-2!': recolhido }">
+        <a href="{{ route('painel') }}" wire:navigate class="mb-4 flex h-12 items-center rounded-full px-3" x-bind:class="recolhido && 'lg:justify-center lg:px-0'">
+            <span x-bind:class="recolhido && 'lg:hidden'"><x-ui.logo /></span>
+            <span class="hidden" x-bind:class="recolhido && 'lg:inline-flex'"><x-ui.logo so-olhos /></span>
         </a>
 
         <nav class="flex flex-col gap-1" aria-label="Menu principal">
@@ -23,20 +25,18 @@
             <x-ui.menu-item href="/horizon" icone="stacks" target="_blank">Filas (Horizon)</x-ui.menu-item>
         </nav>
 
-        <p class="mt-auto px-4 text-xs text-on-surface-variant">walle · Laravel {{ app()->version() }}</p>
+        <p class="mt-auto px-3 text-xs text-on-surface-variant" x-bind:class="recolhido && 'lg:hidden'">walle · Laravel {{ app()->version() }}</p>
     </aside>
 
     <div class="fixed inset-0 z-20 bg-surface-container-lowest/70 lg:hidden" x-show="menu" x-cloak x-on:click="menu = false"></div>
 
-    <div class="flex min-h-full flex-col lg:pl-72">
+    <div class="flex min-h-full flex-col transition-[padding] duration-200 lg:pl-64" x-bind:class="recolhido && 'lg:pl-20!'">
         {{-- Moldura: barra do topo --}}
-        <header class="sticky top-0 z-10 flex h-16 items-center gap-2 bg-surface-container-lowest px-4 lg:px-6">
-            <button type="button" class="flex size-10 items-center justify-center rounded-full text-on-surface-variant hover:bg-on-surface/8 lg:hidden"
-                x-on:click="menu = true" aria-label="Abrir menu">
-                <x-ui.icone nome="menu" />
-            </button>
+        <header class="sticky top-0 z-10 flex h-14 items-center gap-1 bg-surface-container-lowest px-2 sm:px-3">
+            <x-ui.botao-icone icone="menu" rotulo="Mostrar ou recolher o menu"
+                x-on:click="window.innerWidth >= 1024 ? (recolhido = ! recolhido) : (menu = true)" />
 
-            <h1 class="truncate text-xl text-on-surface">{{ $title ?? '' }}</h1>
+            <h1 class="truncate text-lg text-on-surface">{{ $title ?? '' }}</h1>
 
             <div class="ml-auto flex items-center gap-2">
                 <span class="hidden items-center gap-2 sm:flex">
@@ -53,7 +53,7 @@
             </div>
         </header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 p-3 sm:p-4 xl:p-5">
             {{ $slot }}
         </main>
     </div>
