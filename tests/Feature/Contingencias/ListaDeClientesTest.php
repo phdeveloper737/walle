@@ -90,7 +90,7 @@ test('escolher um cliente mostra o detalhe dele', function () {
         ->assertSet('clienteId', $id)
         ->assertSee("Cliente #{$id}")
         ->assertSee('Loja 007')
-        ->assertSee('2 pendentes segundo o Help Desk');
+        ->assertSee('Help Desk: 2 pendentes');
 });
 
 test('IP, porta e dados de acesso do cliente não vão para a tela', function () {

@@ -76,9 +76,11 @@
                 </div>
             </header>
 
-            <x-ui.vazio icone="construction" titulo="As contingências deste cliente chegam no próximo passo">
-                {{ $cliente->totalContingencias }} pendentes segundo o Help Desk (PDV Linux + Versatus).
-            </x-ui.vazio>
+            <p class="mt-3 mb-4 text-xs text-on-surface-variant">
+                Help Desk: {{ $cliente->totalContingencias }} pendentes informadas pelo PDV Linux + Versatus.
+            </p>
+
+            <livewire:contingencias.do-cliente :cliente-id="$cliente->id" :key="'do-cliente-'.$cliente->id" />
         @else
             <x-ui.vazio icone="storefront" titulo="Escolha um cliente">
                 Selecione um cliente na lista para ver as contingências dele.

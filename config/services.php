@@ -35,6 +35,15 @@ return [
         ],
     ],
 
+    // Servidores MySQL dos clientes (contingências do Sactus/PDV Linux), SOMENTE LEITURA
+    'clientes' => [
+        // Docker da JM: o primeiro é o padrão quando o cadastro não diz o servidor
+        'docker_hosts' => ['192.168.10.244', '192.168.10.235'],
+        'docker_senha_root' => env('CLIENTES_DOCKER_SENHA_ROOT'),
+        // Segundos para conectar (o sistema antigo esperava até 20)
+        'timeout' => 10,
+    ],
+
     // API do Help Desk (192.168.10.251) que entrega a senha do banco do Help
     'help' => [
         'api_url' => env('HELP_API_URL', 'http://192.168.10.251/api'),

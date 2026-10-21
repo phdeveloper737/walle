@@ -1,5 +1,8 @@
 <?php
 
+use App\Contingencias\Cliente\ConectorDeCliente;
+use App\Contingencias\Cliente\ConexaoComCliente;
+use App\Contingencias\Cliente\FalhaConexaoCliente;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -55,7 +58,7 @@ function criarClienteHelpDesk(array $cliente = [], array $servidor = [], int $co
 
     $help->table('informacao_tecnica_dataserver')->insert(array_merge([
         'fk_c_cliente' => $id,
-        'loja' => '001',
+        'loja' => '1',
         'ip_externo_servidor' => '200.1.2.3',
         'servidor_multiempresa' => 'S',
         'pasta_multiempresa' => 'N',
@@ -72,4 +75,108 @@ function criarClienteHelpDesk(array $cliente = [], array $servidor = [], int $co
     }
 
     return $id;
+}
+
+/** A "conexão com o servidor do cliente" aponta para o próprio banco de testes, onde ficam as imitações do Sactus. */
+function servidorDoClienteNoBancoDeTestes(): void
+{
+    test()->mock(ConectorDeCliente::class)
+        ->shouldReceive('conectar')
+        ->andReturn(new ConexaoComCliente(DB::connection(), DB::getDatabaseName(), fecharAoTerminar: false));
+}
+
+function servidorDoClienteForaDoAr(): void
+{
+    test()->mock(ConectorDeCliente::class)
+        ->shouldReceive('conectar')
+        ->andThrow(FalhaConexaoCliente::servidorNaoResponde('teste'));
+}
+
+/**
+ * Venda do Versatus em contingência (banco walle) e os itens dela; devolve o id da venda.
+ *
+ * @param  array<string, mixed>  $venda
+ * @param  list<array<string, mixed>>  $itens
+ */
+function criarContingenciaVersatus(int $clienteId, array $venda = [], array $itens = [[]]): int
+{
+    $id = (int) DB::table('contingencias_versatus_venda')->insertGetId(array_merge([
+        'fk_contingencias_versatus' => $clienteId,
+        'fk_company' => 1,
+        'pdv' => 1,
+        'cupom' => '100',
+        'data_hora' => '2026-10-20 10:00:00',
+        'codigo' => '781',
+        'motivo' => 'Rejeição: Emissor não habilitado para emissão da NFC-e',
+        'chave' => str_repeat('1', 44),
+    ], $venda));
+
+    foreach ($itens as $item) {
+        DB::table('contingencias_versatus_venda_itens')->insert(array_merge([
+            'fk_contingencias_versatus_venda' => $id,
+            'cod_barras' => '7890000000001',
+            'fk_produto' => 10,
+            'nome' => 'ARROZ 5KG',
+            'unidade' => 'UN',
+            'aliquota' => 18,
+            'base_reducao' => 0,
+            'aliquota_reduzida' => 0,
+            'ncm' => '10063021',
+            'cest' => '',
+            'cbenef' => '',
+            'cfop' => '5102',
+            'cst' => '000',
+        ], $item));
+    }
+
+    return $id;
+}
+
+/**
+ * Contingência do Sactus no "servidor do cliente" (imitação no banco de testes), com a venda e os itens.
+ *
+ * @param  array<string, mixed>  $cabecalho
+ * @param  list<array<string, mixed>>  $itens
+ */
+function criarContingenciaSactus(array $cabecalho = [], array $itens = [[]], ?string $chave = null): string
+{
+    $cab = array_merge([
+        'store' => '1',
+        'pdv' => '2',
+        'cupom' => '500',
+        'fiscal_date' => '2026-10-19 09:00:00',
+        'cod_motivo' => '382',
+        'motivo' => 'Rejeição: CFOP não permitido para o CST informado',
+    ], $cabecalho);
+
+    $chave ??= str_pad((string) $cab['cupom'], 44, '2', STR_PAD_LEFT);
+
+    DB::table('contingencias_pdv')->insert($cab);
+    DB::table('sale')->insert([
+        'store' => $cab['store'], 'pdv' => $cab['pdv'], 'cupom' => $cab['cupom'],
+        'fiscal_date' => $cab['fiscal_date'], 'chave_acesso_nfce' => $chave,
+    ]);
+
+    foreach ($itens as $item) {
+        DB::table('sale_itens')->insert(array_merge([
+            'store' => $cab['store'], 'pdv' => $cab['pdv'], 'cupom' => $cab['cupom'],
+            'sku' => '7890000000002', 'plu_id' => '20', 'plu_sdesc' => 'FEIJAO 1KG', 'unit' => 'UN',
+            'aliquota_cheia' => '7.000', 'reducao_base' => '0.000', 'taxid' => 'T07',
+            'ncm' => '07133319', 'cest' => '', 'cbenef' => '', 'cfop' => '5102', 'cst_icms' => '0',
+            'cst_ibscbs' => '000', 'classtrib_ibs' => '000001',
+        ], $item));
+    }
+
+    return $chave;
+}
+
+function autorizarNaSefaz(int $clienteId, string $chave, string $referencia): void
+{
+    DB::table('history_contingencia_auth')->insert([
+        'fk_c_cliente' => $clienteId,
+        'chave' => $chave,
+        'autorizada' => 'S',
+        'referencia' => $referencia,
+        'data_consulta_sefaz_bot' => now(),
+    ]);
 }

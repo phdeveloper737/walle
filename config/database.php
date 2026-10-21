@@ -85,6 +85,26 @@ return [
             ],
         ],
 
+        // Banco "suporte" do sistema antigo: só a ORIGEM do importador (php artisan walle:importar-suporte). SOMENTE LEITURA.
+        // Em desenvolvimento é o MySQL do contêiner testes220; na virada, o MySQL do 220.
+        'suporte' => [
+            'driver' => 'mysql',
+            'host' => env('SUPORTE_DB_HOST', 'host.docker.internal'),
+            'port' => env('SUPORTE_DB_PORT', '3307'),
+            'database' => env('SUPORTE_DB_DATABASE', 'suporte'),
+            'username' => env('SUPORTE_DB_USERNAME', 'root'),
+            'password' => env('SUPORTE_DB_SENHA', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_general_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => [
+                PDO::ATTR_TIMEOUT => 10,
+            ],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
