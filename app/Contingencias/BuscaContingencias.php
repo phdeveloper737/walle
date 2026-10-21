@@ -170,21 +170,32 @@ class BuscaContingencias
             }
         }
 
-        $itens = $this->itensSactus($cliente, $loja, array_unique(array_column($cabecalhos, 'cupom')));
+        $itens = $this->itensSactus($cliente, $loja, array_values(array_unique(array_column($cabecalhos, 'cupom'))));
+        $chavesDaSale = $this->chavesNaSale($cliente, $loja, $cabecalhos);
+
+        // Se a data não bater (Sactus antigo sem fiscal_date nos itens), usa os itens da venda de qualquer data
+        $itensPorVenda = [];
+        foreach ($itens as $chaveItens => $lista) {
+            $itensPorVenda[explode('|', $chaveItens, 2)[0]] ??= $lista;
+        }
 
         $contingencias = [];
 
         foreach ($cabecalhos as $id => $linha) {
+            $data = (string) ($linha['fiscal_date'] ?? '');
+            $chave = trim((string) ($linha['chave_acesso_nfce'] ?? '')) ?: ($chavesDaSale["{$id}|{$data}"] ?? '');
+            $daVenda = $itens["{$id}|{$data}"] ?? $itensPorVenda[$id] ?? [];
+
             $contingencias[] = Contingencia::deArray([
                 'software' => Contingencia::SACTUS,
                 'loja' => $linha['store'],
                 'pdv' => $linha['pdv'],
                 'cupom' => $linha['cupom'],
-                'emitida_em' => $linha['fiscal_date'] ?? '',
+                'emitida_em' => $data,
                 'codigo_motivo' => $linha['cod_motivo'] ?? '',
                 'motivo' => $linha['motivo'] ?? '',
-                'chave' => $linha['chave_acesso_nfce'] ?? '',
-                'itens' => $itens[$id] ?? [],
+                'chave' => $chave,
+                'itens' => array_map(fn (array $item): array => [...$item, 'chave' => $chave], $daVenda),
             ]);
         }
 
@@ -192,42 +203,54 @@ class BuscaContingencias
     }
 
     /**
-     * Itens de todos os cupons de uma vez (o sistema antigo fazia uma consulta por cupom, até 1000 por clique).
-     * Servidores com Sactus antigo podem não ter as colunas da reforma tributária: aí elas vêm vazias.
+     * Itens de todos os cupons numa consulta só, direto da sale_itens e sem JOIN.
      *
-     * @param  array<int, mixed>  $cupons
-     * @return array<string, list<array<string, mixed>>> loja_pdv_cupom => itens
+     * O sistema antigo fazia uma consulta por cupom com JOIN na sale só pelo número do cupom: no cliente #1995
+     * isso levava 2,2 s a cada 200 cupons (sem o JOIN, 0,02 s) e podia misturar vendas de dias ou PDVs
+     * diferentes com o mesmo número de cupom. Aqui a venda é loja + PDV + cupom + data, como na chave da tabela.
+     *
+     * Sactus antigo pode não ter as colunas da reforma tributária ou a data nos itens: tenta versões mais simples.
+     *
+     * @param  list<mixed>  $cupons
+     * @return array<string, list<array<string, mixed>>> "loja_pdv_cupom|data" => itens na ordem do seq
      */
     private function itensSactus(ConexaoComCliente $cliente, string $loja, array $cupons): array
     {
+        $versoes = [
+            ['fiscal_date', 'cst_ibscbs, classtrib_ibs', 'pdv, cupom, fiscal_date, seq'],
+            ['fiscal_date', "'' AS cst_ibscbs, '' AS classtrib_ibs", 'pdv, cupom, fiscal_date, seq'],
+            ["'' AS fiscal_date", "'' AS cst_ibscbs, '' AS classtrib_ibs", 'pdv, cupom'],
+        ];
         $itens = [];
-        $reforma = 's.cst_ibscbs, s.classtrib_ibs';
 
-        foreach (array_chunk($cupons, 200) as $lote) {
+        foreach (array_chunk($cupons, 500) as $lote) {
             $marcadores = implode(',', array_fill(0, count($lote), '?'));
-            $consulta = fn (string $colunasReforma): array => $cliente->conexao->select(
-                "SELECT s.store, s.pdv, s.cupom, sa.chave_acesso_nfce,
-                        s.sku, s.plu_id, s.plu_sdesc, s.unit, s.aliquota_cheia, s.reducao_base, s.taxid,
-                        s.ncm, s.cest, s.cbenef, s.cfop, s.cst_icms, {$colunasReforma}
-                   FROM {$cliente->tabela('sale_itens')} s
-                   LEFT JOIN {$cliente->tabela('sale')} sa ON sa.cupom = s.cupom
-                  WHERE s.store = ? AND s.cupom IN ({$marcadores})",
-                [$loja, ...$lote],
-            );
 
-            try {
-                $linhas = $consulta($reforma);
-            } catch (QueryException $erro) {
-                if (! str_contains($erro->getMessage(), 'Unknown column')) {
-                    throw $erro;
+            while (true) {
+                [$data, $reforma, $ordem] = $versoes[0];
+
+                try {
+                    $linhas = $cliente->conexao->select(
+                        "SELECT store, pdv, cupom, {$data}, sku, plu_id, plu_sdesc, unit, aliquota_cheia, reducao_base, taxid,
+                                ncm, cest, cbenef, cfop, cst_icms, {$reforma}
+                           FROM {$cliente->tabela('sale_itens')}
+                          WHERE store = ? AND cupom IN ({$marcadores})
+                          ORDER BY {$ordem}",
+                        [$loja, ...$lote],
+                    );
+
+                    break;
+                } catch (QueryException $erro) {
+                    if (! str_contains($erro->getMessage(), 'Unknown column') || count($versoes) === 1) {
+                        throw $erro;
+                    }
+
+                    array_shift($versoes);
                 }
-
-                $reforma = "'' AS cst_ibscbs, '' AS classtrib_ibs";
-                $linhas = $consulta($reforma);
             }
 
             foreach ($linhas as $linha) {
-                $itens["{$linha->store}_{$linha->pdv}_{$linha->cupom}"][] = [
+                $itens["{$linha->store}_{$linha->pdv}_{$linha->cupom}|{$linha->fiscal_date}"][] = [
                     'codigo_barras' => $linha->sku,
                     'id_produto' => $linha->plu_id,
                     'nome' => $linha->plu_sdesc,
@@ -242,12 +265,45 @@ class BuscaContingencias
                     'cst' => $linha->cst_icms,
                     'cst_ibscbs' => $linha->cst_ibscbs,
                     'classtrib_ibs' => $linha->classtrib_ibs,
-                    'chave' => $linha->chave_acesso_nfce,
                 ];
             }
         }
 
         return $itens;
+    }
+
+    /**
+     * A chave da NFC-e normalmente vem na própria contingencias_pdv. Se faltar (Sactus antigo),
+     * busca na sale pela venda completa (loja + PDV + cupom + data), numa consulta só.
+     *
+     * @param  array<string, array<string, mixed>>  $cabecalhos
+     * @return array<string, string> "loja_pdv_cupom|data" => chave
+     */
+    private function chavesNaSale(ConexaoComCliente $cliente, string $loja, array $cabecalhos): array
+    {
+        $semChave = array_filter($cabecalhos, fn (array $linha): bool => trim((string) ($linha['chave_acesso_nfce'] ?? '')) === '');
+        $chaves = [];
+
+        foreach (array_chunk(array_values(array_unique(array_column($semChave, 'cupom'))), 500) as $lote) {
+            $marcadores = implode(',', array_fill(0, count($lote), '?'));
+
+            try {
+                $linhas = $cliente->conexao->select(
+                    "SELECT store, pdv, cupom, fiscal_date, chave_acesso_nfce FROM {$cliente->tabela('sale')} WHERE store = ? AND cupom IN ({$marcadores})",
+                    [$loja, ...$lote],
+                );
+            } catch (QueryException $erro) {
+                report($erro);
+
+                return $chaves;
+            }
+
+            foreach ($linhas as $linha) {
+                $chaves["{$linha->store}_{$linha->pdv}_{$linha->cupom}|{$linha->fiscal_date}"] = trim((string) $linha->chave_acesso_nfce);
+            }
+        }
+
+        return $chaves;
     }
 
     /**

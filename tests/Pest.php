@@ -138,7 +138,7 @@ function criarContingenciaVersatus(int $clienteId, array $venda = [], array $ite
  * @param  array<string, mixed>  $cabecalho
  * @param  list<array<string, mixed>>  $itens
  */
-function criarContingenciaSactus(array $cabecalho = [], array $itens = [[]], ?string $chave = null): string
+function criarContingenciaSactus(array $cabecalho = [], array $itens = [[]], ?string $chave = null, bool $chaveNaContingencia = true): string
 {
     $cab = array_merge([
         'store' => '1',
@@ -151,15 +151,16 @@ function criarContingenciaSactus(array $cabecalho = [], array $itens = [[]], ?st
 
     $chave ??= str_pad((string) $cab['cupom'], 44, '2', STR_PAD_LEFT);
 
-    DB::table('contingencias_pdv')->insert($cab);
+    DB::table('contingencias_pdv')->insert([...$cab, 'chave_acesso_nfce' => $chaveNaContingencia ? $chave : null]);
     DB::table('sale')->insert([
         'store' => $cab['store'], 'pdv' => $cab['pdv'], 'cupom' => $cab['cupom'],
         'fiscal_date' => $cab['fiscal_date'], 'chave_acesso_nfce' => $chave,
     ]);
 
-    foreach ($itens as $item) {
+    foreach (array_values($itens) as $seq => $item) {
         DB::table('sale_itens')->insert(array_merge([
             'store' => $cab['store'], 'pdv' => $cab['pdv'], 'cupom' => $cab['cupom'],
+            'fiscal_date' => $cab['fiscal_date'], 'seq' => $seq + 1,
             'sku' => '7890000000002', 'plu_id' => '20', 'plu_sdesc' => 'FEIJAO 1KG', 'unit' => 'UN',
             'aliquota_cheia' => '7.000', 'reducao_base' => '0.000', 'taxid' => 'T07',
             'ncm' => '07133319', 'cest' => '', 'cbenef' => '', 'cfop' => '5102', 'cst_icms' => '0',

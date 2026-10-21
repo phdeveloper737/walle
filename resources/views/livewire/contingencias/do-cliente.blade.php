@@ -34,7 +34,7 @@
             <x-ui.aviso>Sactus: {{ $resultado->avisoSactus }}</x-ui.aviso>
         @endif
 
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="flex flex-col gap-3">
             <x-ui.segmentado class="sm:max-w-sm" wire:model.live="aba" :opcoes="[
                 'pendentes' => 'Pendentes ('.count($resultado->pendentes).')',
                 'autorizadas' => 'Autorizadas ('.count($resultado->autorizadas).')',

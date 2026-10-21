@@ -41,7 +41,7 @@
                             <span>{{ $cliente->cnpj }}</span>
                             <x-ui.etiqueta>{{ $cliente->tipoPdv }}</x-ui.etiqueta>
                             @if ($cliente->servidorLocal)
-                                <x-ui.etiqueta cor="secundaria">SRV LOCAL</x-ui.etiqueta>
+                                <x-ui.etiqueta cor="primaria">SRV LOCAL</x-ui.etiqueta>
                             @endif
                         </span>
                     </button>

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->dateTime('fiscal_date')->nullable();
             $table->string('cod_motivo', 10)->nullable();
             $table->text('motivo')->nullable();
+            $table->string('chave_acesso_nfce', 44)->nullable();
         });
 
         Schema::create('sale', function (Blueprint $table) {
@@ -36,6 +37,8 @@ return new class extends Migration
             $table->string('store', 10);
             $table->string('pdv', 10);
             $table->string('cupom', 20);
+            $table->dateTime('fiscal_date')->nullable();
+            $table->integer('seq')->default(1);
             $table->string('sku', 14)->nullable();
             $table->string('plu_id', 10)->nullable();
             $table->string('plu_sdesc', 60)->nullable();

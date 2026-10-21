@@ -88,3 +88,41 @@ test('o resultado fica no cache e só consulta o servidor do cliente de novo ao 
     $busca->esquecer($cliente);
     $busca->buscar($cliente);
 });
+
+test('o mesmo número de cupom em outro PDV não duplica nem mistura os itens', function () {
+    $cliente = criarClienteHelpDesk();
+    // No sistema antigo o JOIN só pelo cupom juntava as duas vendas
+    criarContingenciaSactus(['pdv' => '1', 'cupom' => '900'], [['plu_sdesc' => 'ITEM DO PDV 1']]);
+    criarContingenciaSactus(['pdv' => '2', 'cupom' => '900'], [['plu_sdesc' => 'ITEM DO PDV 2'], ['plu_sdesc' => 'OUTRO DO PDV 2']]);
+    servidorDoClienteNoBancoDeTestes();
+
+    $porPdv = collect(app(BuscaContingencias::class)->buscar($cliente)->pendentes)->keyBy('pdv');
+
+    expect(array_map(fn ($i) => $i->nome, $porPdv['1']->itens))->toBe(['ITEM DO PDV 1'])
+        ->and(array_map(fn ($i) => $i->nome, $porPdv['2']->itens))->toBe(['ITEM DO PDV 2', 'OUTRO DO PDV 2']);
+});
+
+test('itens de outro dia com o mesmo cupom não entram na contingência', function () {
+    $cliente = criarClienteHelpDesk();
+    criarContingenciaSactus(['cupom' => '910', 'fiscal_date' => '2026-10-19 09:00:00'], [['plu_sdesc' => 'VENDA DE HOJE']]);
+    // Venda antiga (já autorizada, sem contingência) com o mesmo número de cupom
+    DB::table('sale_itens')->insert([
+        'store' => '1', 'pdv' => '2', 'cupom' => '910', 'fiscal_date' => '2026-01-05 15:00:00', 'seq' => 1, 'plu_sdesc' => 'VENDA DE JANEIRO',
+    ]);
+    servidorDoClienteNoBancoDeTestes();
+
+    $itens = app(BuscaContingencias::class)->buscar($cliente)->pendentes[0]->itens;
+
+    expect(array_map(fn ($i) => $i->nome, $itens))->toBe(['VENDA DE HOJE']);
+});
+
+test('sem a chave na contingencias_pdv (Sactus antigo), busca a chave na sale', function () {
+    $cliente = criarClienteHelpDesk();
+    $chave = criarContingenciaSactus(['cupom' => '920'], chaveNaContingencia: false);
+    servidorDoClienteNoBancoDeTestes();
+
+    $contingencia = app(BuscaContingencias::class)->buscar($cliente)->pendentes[0];
+
+    expect($contingencia->chaveNfce())->toBe($chave)
+        ->and($contingencia->itens[0]->chave)->toBe($chave);
+});
