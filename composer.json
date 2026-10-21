@@ -10,7 +10,8 @@
         "laravel/framework": "^13.17",
         "laravel/horizon": "^5.50",
         "laravel/tinker": "^3.0",
-        "livewire/livewire": "^4"
+        "livewire/livewire": "^4",
+        "phpseclib/phpseclib": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

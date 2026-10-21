@@ -34,6 +34,13 @@ O OPcache revalida arquivos a cada 2 s: uma edição pode levar até 2 s para ap
 - Datas são hora local (`America/Sao_Paulo`), sem fuso.
 - Conexão `help`: banco `suporte` do servidor 192.168.10.254 (Help Desk), **somente leitura**. É de lá que vem o login (`a_user`).
 
+## Ações que mexem fora do walle
+
+- Tudo que escreve no servidor de um cliente, consulta a Sefaz ou mostra um segredo passa por `Auditoria::registrar()` (quem, o quê, cliente, IP). Nunca grave senha ou valor sensível em `detalhes`.
+- Ações de admin: `Gate::allows('admin')` (ids em `WALLE_ADMINS`) e, no Livewire, o trait `ConfirmaSenha` (pede a senha do Help Desk de novo). Liste o método em `ACOES_COM_SENHA` e não use injeção de dependência nos parâmetros dele (depois da senha o trait chama o método direto).
+- Robôs que agem fora do walle ficam desligados por `.env` (`WALLE_*_ATIVO`) até a virada; com o robô desligado, as ações manuais dele também não rodam.
+- Segredos do `sactus.cfg` (senha, token...) saem mascarados do servidor (`ArquivoCfg::mascarar`); o valor real só vai para a tela quando um admin pede.
+
 ## Front-end (walle-ui)
 
 - Visual Material Design 3 implementado com Tailwind 4 e componentes Blade próprios em `resources/views/components/ui/`.

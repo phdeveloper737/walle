@@ -79,7 +79,8 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => 'robos',
-            'retry_after' => 2400,
+            // O ciclo do Sactus pode levar até 1 h
+            'retry_after' => 3700,
             'block_for' => null,
             'after_commit' => false,
         ],

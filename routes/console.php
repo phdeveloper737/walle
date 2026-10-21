@@ -2,6 +2,8 @@
 
 use App\Autorizadas\RoboAutorizadas;
 use App\Jobs\RodarCicloAutorizadas;
+use App\Jobs\RodarCicloSactus;
+use App\Sactus\RoboSactus;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -22,3 +24,9 @@ Schedule::job(new RodarCicloAutorizadas)
     ->everyMinute()
     ->name('walle:robo-autorizadas')
     ->when(fn (RoboAutorizadas $robo): bool => $robo->ligado() && $robo->pausadoAte() === null);
+
+// Robô do Sactus: de hora em hora, só com WALLE_SACTUS_ATIVO=true e sem pausa (o job é único)
+Schedule::job(new RodarCicloSactus)
+    ->hourly()
+    ->name('walle:robo-sactus')
+    ->when(fn (RoboSactus $robo): bool => $robo->ligado() && $robo->pausa() === null);

@@ -3,8 +3,12 @@
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
+use App\Sactus\Prechecagem;
+use App\Sactus\Ssh\ConectorSsh;
 use App\Sefaz\ConsultaSituacao;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\PrechecagemFalsa;
+use Tests\Support\ServidorSshFalso;
 use Tests\Support\SessaoSefazFalsa;
 use Tests\TestCase;
 
@@ -225,4 +229,39 @@ function criarHistoricoContingencia(int $clienteId, string $chave, ?string $data
         'data_fiscal_xml' => $dataFiscal,
         'software' => 'SACTUS',
     ]);
+}
+
+/**
+ * Cliente do Help Desk com servidor para o robô do Sactus (padrão: servidor na empresa, SSH root em 200.1.2.3:22).
+ *
+ * @param  array<string, mixed>  $servidor  colunas do informacao_tecnica_dataserver
+ */
+function criarClienteSactus(array $servidor = [], array $cliente = []): int
+{
+    return criarClienteHelpDesk($cliente, array_merge([
+        'local_servidor' => 'EMPRESA',
+        'pasta_multiempresa' => 'N',
+        'ip_externo_servidor' => '200.1.2.3',
+        'porta_ssh' => '22',
+        'usuario_ssh' => 'root',
+        'senha_ssh' => 'senha-ssh',
+    ], $servidor));
+}
+
+/** Troca o SSH e a pré-checagem de verdade pelos falsos; devolve o servidor falso para montar e conferir. */
+function sshFalso(array $foraDoAr = []): ServidorSshFalso
+{
+    $falso = new ServidorSshFalso;
+    app()->instance(ConectorSsh::class, $falso);
+    app()->instance(Prechecagem::class, new PrechecagemFalsa($foraDoAr));
+
+    return $falso;
+}
+
+/** sactus.cfg de exemplo (formato chave=valor do Sactus). */
+function cfgSactus(array $extra = []): string
+{
+    $linhas = array_merge(['licenciado' => 'S', 'jm_database_password' => 'segredo-do-banco', 'debug' => 'N', 'bloquear_importacao_ibscbs' => 'N'], $extra);
+
+    return implode("\n", array_map(fn ($k, $v) => "{$k}={$v}", array_keys($linhas), $linhas))."\n";
 }

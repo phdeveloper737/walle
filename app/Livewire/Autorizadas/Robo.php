@@ -5,13 +5,13 @@ namespace App\Livewire\Autorizadas;
 use App\Autorizadas\AnaliseAutorizadas;
 use App\Autorizadas\RoboAutorizadas;
 use App\Jobs\RodarCicloAutorizadas;
+use App\Models\Auditoria;
 use App\Models\CicloAutorizadas;
 use App\Models\Usuario;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -41,9 +41,8 @@ class Robo extends Component
             return;
         }
 
-        $nome = Usuario::nomeDoLogado();
-        $robo->pausar(now()->addHours($horas), "Pausado por {$nome} pelo painel");
-        Log::info('Robô das Autorizadas pausado pelo painel', ['usuario' => $nome, 'horas' => $horas]);
+        $robo->pausar(now()->addHours($horas), 'Pausado por '.Usuario::nomeDoLogado().' pelo painel');
+        Auditoria::registrar('autorizadas.robo.pausar', null, ['horas' => $horas]);
 
         $this->avisar("Robô pausado por {$horas} h.");
     }
@@ -51,7 +50,7 @@ class Robo extends Component
     public function retomar(RoboAutorizadas $robo): void
     {
         $robo->retomar();
-        Log::info('Robô das Autorizadas retomado pelo painel', ['usuario' => Usuario::nomeDoLogado()]);
+        Auditoria::registrar('autorizadas.robo.retomar');
 
         $this->avisar('Robô retomado.');
     }

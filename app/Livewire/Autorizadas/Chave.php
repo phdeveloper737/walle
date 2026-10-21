@@ -5,12 +5,11 @@ namespace App\Livewire\Autorizadas;
 use App\Autorizadas\DiagnosticoChave;
 use App\Autorizadas\RoboAutorizadas;
 use App\Contingencias\ListaDeClientes;
-use App\Models\Usuario;
+use App\Models\Auditoria;
 use App\Sefaz\ChaveDeAcesso;
 use App\Sefaz\ConsultaSituacao;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -82,7 +81,7 @@ class Chave extends Component
             $gravou = true;
         }
 
-        Log::info('Consulta à mão na Sefaz pelo painel', ['usuario' => Usuario::nomeDoLogado(), 'chave' => $r->chave, 'cStat' => $r->cStat]);
+        Auditoria::registrar('autorizadas.consulta_sefaz', $diagnostico->clienteConhecido() ?: null, ['chave' => $r->chave, 'cStat' => $r->cStat]);
 
         $this->resultado = [
             'situacao' => $r->situacao->rotulo(),

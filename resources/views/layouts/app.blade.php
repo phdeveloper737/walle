@@ -22,6 +22,7 @@
             <x-ui.menu-item rota="painel" icone="space_dashboard">Painel</x-ui.menu-item>
             <x-ui.menu-item rota="contingencias" icone="receipt_long">Contingências</x-ui.menu-item>
             <x-ui.menu-item rota="autorizadas" icone="verified">Autorizadas</x-ui.menu-item>
+            <x-ui.menu-item rota="sactus" icone="dns">Sactus</x-ui.menu-item>
             <x-ui.menu-item rota="saude" icone="monitor_heart">Saúde do sistema</x-ui.menu-item>
             <x-ui.menu-item href="/horizon" icone="stacks" target="_blank">Filas (Horizon)</x-ui.menu-item>
         </nav>

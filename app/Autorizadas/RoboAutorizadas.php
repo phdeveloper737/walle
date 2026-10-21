@@ -7,6 +7,7 @@ use App\Sefaz\ChaveDeAcesso;
 use App\Sefaz\ConsultaSituacao;
 use App\Sefaz\ResultadoConsulta;
 use App\Sefaz\SituacaoNfce;
+use App\Support\PausaDeRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -28,11 +29,14 @@ use Throwable;
  */
 class RoboAutorizadas
 {
-    private const CHAVE_PAUSA = 'autorizadas:pausa';
-
     private const CHAVE_CURSOR = 'autorizadas:cursor-semeadura';
 
-    public function __construct(private readonly ConsultaSituacao $sefaz) {}
+    private readonly PausaDeRobo $pausaDoRobo;
+
+    public function __construct(private readonly ConsultaSituacao $sefaz)
+    {
+        $this->pausaDoRobo = new PausaDeRobo('autorizadas:pausa');
+    }
 
     public function ligado(): bool
     {
@@ -47,18 +51,7 @@ class RoboAutorizadas
      */
     public function pausa(): ?array
     {
-        $pausa = Cache::get(self::CHAVE_PAUSA);
-
-        // O Valkey devolve número como texto, por isso is_numeric
-        if (! is_array($pausa) || ! is_numeric($pausa['ate'] ?? null) || (int) $pausa['ate'] <= now()->getTimestamp()) {
-            return null;
-        }
-
-        return [
-            'ate' => Carbon::createFromTimestamp((int) $pausa['ate'], config('app.timezone')),
-            'motivo' => (string) ($pausa['motivo'] ?? ''),
-            'automatica' => (bool) ($pausa['automatica'] ?? false),
-        ];
+        return $this->pausaDoRobo->atual();
     }
 
     public function pausadoAte(): ?Carbon
@@ -68,7 +61,7 @@ class RoboAutorizadas
 
     public function pausar(Carbon $ate, string $motivo = '', bool $automatica = false): void
     {
-        Cache::put(self::CHAVE_PAUSA, ['ate' => $ate->getTimestamp(), 'motivo' => $motivo, 'automatica' => $automatica], $ate);
+        $this->pausaDoRobo->pausar($ate, $motivo, $automatica);
     }
 
     /** Pausa automática por consumo indevido (656): o robô para e a consulta à mão também. */
@@ -83,7 +76,7 @@ class RoboAutorizadas
 
     public function retomar(): void
     {
-        Cache::forget(self::CHAVE_PAUSA);
+        $this->pausaDoRobo->retomar();
     }
 
     /** Data de referência a partir da qual as chaves são mantidas (as anteriores são apagadas). */

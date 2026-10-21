@@ -225,6 +225,21 @@ return [
             'timeout' => 1800,
             'nice' => 0,
         ],
+
+        // Sactus: dois processos, um pode estar no ciclo de 1 h enquanto o outro roda uma ação manual
+        // ("sactus-acoes" vem primeiro: ação pedida no painel não espera o ciclo)
+        'supervisor-sactus' => [
+            'connection' => 'robos',
+            'queue' => ['sactus-acoes', 'sactus'],
+            'balance' => false,
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 3600,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -235,6 +250,7 @@ return [
                 'balanceCooldown' => 3,
             ],
             'supervisor-robos' => [],
+            'supervisor-sactus' => [],
         ],
 
         'local' => [
@@ -242,6 +258,7 @@ return [
                 'maxProcesses' => 3,
             ],
             'supervisor-robos' => [],
+            'supervisor-sactus' => [],
         ],
     ],
 

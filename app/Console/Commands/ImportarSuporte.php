@@ -30,6 +30,8 @@ class ImportarSuporte extends Command
         'contingencias_versatus_venda_itens',
         'history_contingencia',
         'history_contingencia_auth',
+        'painel_sactus_cfg',
+        'sactus_cfg_edicoes',
     ];
 
     /** Ordem de leitura das tabelas sem coluna id (a cópia em lotes precisa de uma ordem estável). */

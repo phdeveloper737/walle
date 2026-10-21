@@ -32,6 +32,17 @@ return new class extends Migration
             $table->string('pasta_multiempresa', 100)->nullable();
             $table->string('porta_http', 10)->nullable()->default('80');
             $table->string('local_servidor', 20)->nullable();
+            // SSH, ACL e ERP (robô do Sactus)
+            $table->string('ip_interno_servidor', 50)->nullable();
+            $table->string('porta_ssh', 10)->nullable()->default('22');
+            $table->string('usuario_ssh', 50)->nullable()->default('');
+            $table->string('senha_ssh', 100)->nullable()->default('');
+            $table->string('servidor_docker', 50)->nullable()->default('');
+            $table->string('porta_ssh_docker', 10)->nullable()->default('');
+            $table->string('usuario_ssh_docker', 50)->nullable()->default('');
+            $table->string('senha_ssh_docker', 100)->nullable()->default('');
+            $table->char('service_acl', 1)->default('N');
+            $table->char('atualizar_erp', 1)->default('N');
         });
 
         Schema::create('informacao_tecnica_pdv_linux', function (Blueprint $table) {

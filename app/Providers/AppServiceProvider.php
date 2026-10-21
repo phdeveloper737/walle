@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use App\Auth\UsuariosHelpDesk;
+use App\Models\Usuario;
+use App\Sactus\Ssh\ConectorPhpseclib;
+use App\Sactus\Ssh\ConectorSsh;
 use App\Support\HelpDesk\SenhaHelpDesk;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SenhaHelpDesk::class);
+
+        // SSH de verdade nos servidores dos clientes; os testes trocam por um servidor falso
+        $this->app->bind(ConectorSsh::class, ConectorPhpseclib::class);
     }
 
     /**
@@ -35,5 +42,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Auth::provider('helpdesk', fn () => new UsuariosHelpDesk);
+
+        // Admin: id do a_user na lista WALLE_ADMINS do .env (ações fora do walle e segredos)
+        Gate::define('admin', fn (Usuario $usuario): bool => in_array($usuario->id, config('walle.admins'), true));
     }
 }
