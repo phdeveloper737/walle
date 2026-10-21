@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SomenteLeitura;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use LogicException;
 
 /**
  * Usuário do Help Desk (tabela a_user do 192.168.10.254).
@@ -18,6 +18,8 @@ use LogicException;
  */
 class Usuario extends Authenticatable
 {
+    use SomenteLeitura;
+
     protected $connection = 'help';
 
     protected $table = 'a_user';
@@ -31,17 +33,6 @@ class Usuario extends Authenticatable
     protected $rememberTokenName = '';
 
     protected $hidden = ['password', 'tx_senha'];
-
-    protected static function booted(): void
-    {
-        static::saving(function (): void {
-            throw new LogicException('A tabela a_user é do Help Desk e é somente leitura no walle.');
-        });
-
-        static::deleting(function (): void {
-            throw new LogicException('A tabela a_user é do Help Desk e é somente leitura no walle.');
-        });
-    }
 
     /** @param Builder<Usuario> $query */
     public function scopeAtivos(Builder $query): void
