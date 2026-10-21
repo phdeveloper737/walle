@@ -2,6 +2,7 @@
 
 namespace App\Contingencias;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,22 @@ class ListaDeClientes
         $linhas = Cache::remember(self::CHAVE_CACHE, now()->addMinutes(2), fn (): array => $this->consultar());
 
         return array_map(ClienteDaLista::deLinha(...), $linhas);
+    }
+
+    /**
+     * id => razão social, para as telas que só precisam do nome. Vazio se o Help Desk estiver fora do ar.
+     *
+     * @return array<int, string>
+     */
+    public function nomes(): array
+    {
+        try {
+            return array_column(array_map(fn (ClienteDaLista $c): array => ['id' => $c->id, 'nome' => $c->razaoSocial], $this->todos()), 'nome', 'id');
+        } catch (QueryException $e) {
+            report($e);
+
+            return [];
+        }
     }
 
     public function esquecer(): void

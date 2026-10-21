@@ -1,0 +1,18 @@
+# walle: OpenSSL 3 com o provider "legacy" ligado, além do padrão.
+# Certificados A1 (PFX) emitidos no Brasil costumam vir com criptografia antiga (RC2-40), que o
+# OpenSSL 3 recusa por padrão ("digital envelope routines::unsupported"). Sem isso o walle não
+# abre o certificado da JM Sistemas usado na consulta à Sefaz.
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+
+[default_sect]
+activate = 1
+
+[legacy_sect]
+activate = 1

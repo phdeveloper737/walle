@@ -44,4 +44,12 @@ class Usuario extends Authenticatable
     {
         return explode(' ', trim($this->name))[0];
     }
+
+    /** Nome de quem está logado, para os registros de quem fez o quê. */
+    public static function nomeDoLogado(): string
+    {
+        $usuario = auth()->user();
+
+        return $usuario instanceof self ? $usuario->name : 'desconhecido';
+    }
 }

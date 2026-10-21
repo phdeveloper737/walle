@@ -14,7 +14,7 @@ test('o painel abre e cumprimenta pelo primeiro nome', function () {
 test('a tela de saúde do sistema abre com todas as conferências', function () {
     $this->get(route('saude'))
         ->assertOk()
-        ->assertSee(['Aplicação', 'Banco walle', 'Valkey', 'Help Desk', 'Filas (Horizon)', 'Agendador']);
+        ->assertSee(['Aplicação', 'Banco walle', 'Valkey', 'Help Desk', 'Filas (Horizon)', 'Agendador', 'Robô das Autorizadas', 'Desligado neste servidor']);
 });
 
 test('a batida do agendador aparece mesmo vindo como texto do Valkey', function () {

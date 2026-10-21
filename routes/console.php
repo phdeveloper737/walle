@@ -1,5 +1,7 @@
 <?php
 
+use App\Autorizadas\RoboAutorizadas;
+use App\Jobs\RodarCicloAutorizadas;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -14,3 +16,9 @@ Artisan::command('inspire', function () {
 Schedule::call(fn () => Cache::put('walle:agendador:batida', now()->getTimestamp(), now()->addMinutes(10)))
     ->everyMinute()
     ->name('walle:batida-do-agendador');
+
+// Robô das Autorizadas: só com WALLE_AUTORIZADAS_ATIVO=true e sem pausa (o job é único: um ciclo por vez)
+Schedule::job(new RodarCicloAutorizadas)
+    ->everyMinute()
+    ->name('walle:robo-autorizadas')
+    ->when(fn (RoboAutorizadas $robo): bool => $robo->ligado() && $robo->pausadoAte() === null);

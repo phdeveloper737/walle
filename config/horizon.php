@@ -211,6 +211,20 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+
+        // Robôs: uma fila por robô, um processo cada (nunca dois ciclos do mesmo robô ao mesmo tempo)
+        'supervisor-robos' => [
+            'connection' => 'robos',
+            'queue' => ['autorizadas'],
+            'balance' => false,
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 1800,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -220,12 +234,14 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'supervisor-robos' => [],
         ],
 
         'local' => [
             'supervisor-1' => [
                 'maxProcesses' => 3,
             ],
+            'supervisor-robos' => [],
         ],
     ],
 

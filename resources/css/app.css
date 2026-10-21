@@ -61,6 +61,20 @@
     --radius-xl: 28px;
 }
 
+/*
+ * Gráficos: sempre sobre o surface-container-low (#063035). Validados com o validate_palette
+ * (skill dataviz) nesse fundo: faixa de luminosidade, croma, daltonismo (ΔE 12,3) e contraste.
+ * Trocou uma cor? Rode o validador de novo antes.
+ * "static": os gráficos usam as cores por var() no style; sem isso o Tailwind só gera as que alguma classe usa.
+ */
+@theme static {
+    --color-grafico-1: #04a19b; /* série principal (teal da marca): autorizadas */
+    --color-grafico-2: #b7893b; /* segunda série (areia da marca): pendentes */
+    --color-grafico-contexto: #6f8a89; /* série de comparação, apagada (mês anterior) */
+    --color-grafico-grade: #1a4547; /* linhas de grade, bem discretas */
+    --color-grafico-base: #2f5c5c; /* linha de base do eixo */
+}
+
 @layer base {
     html {
         color-scheme: dark;

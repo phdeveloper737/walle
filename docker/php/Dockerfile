@@ -16,4 +16,13 @@ RUN install-php-extensions pdo_mysql redis pcntl intl zip bcmath gd \
 
 COPY docker/php/walle.ini /usr/local/etc/php/conf.d/zz-walle.ini
 
+# Raiz ICP-Brasil v10: o web service da Sefaz GO usa cadeia ICP-Brasil, que o Debian não traz.
+# Autenticidade conferida validando a cadeia apresentada pela própria Sefaz (sha256 6E:0B:FF:...:89:F6).
+COPY docker/php/icp-brasil/*.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+# Certificado A1 com criptografia antiga (RC2): OpenSSL 3 precisa do provider "legacy" (ver o arquivo)
+COPY docker/php/openssl-legado.cnf /usr/local/etc/openssl-legado.cnf
+ENV OPENSSL_CONF=/usr/local/etc/openssl-legado.cnf
+
 WORKDIR /var/www/html

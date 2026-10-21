@@ -3,7 +3,9 @@
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
+use App\Sefaz\ConsultaSituacao;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\SessaoSefazFalsa;
 use Tests\TestCase;
 
 /*
@@ -179,5 +181,48 @@ function autorizarNaSefaz(int $clienteId, string $chave, string $referencia): vo
         'autorizada' => 'S',
         'referencia' => $referencia,
         'data_consulta_sefaz_bot' => now(),
+    ]);
+}
+
+/**
+ * Chave de acesso válida (dígito verificador calculado à parte, sem usar o código do walle).
+ * Padrão: GO (52), out/2026, NFC-e (65), emissão em contingência (9).
+ */
+function chaveValida(int $numero, string $uf = '52', string $aamm = '2610', string $modelo = '65'): string
+{
+    $base = $uf.$aamm.'12345678000190'.$modelo.'001'.str_pad((string) $numero, 9, '0', STR_PAD_LEFT).'9'.'12345678';
+    $pesos = [2, 3, 4, 5, 6, 7, 8, 9];
+    $soma = 0;
+
+    foreach (array_reverse(str_split($base)) as $i => $digito) {
+        $soma += (int) $digito * $pesos[$i % 8];
+    }
+
+    $resto = $soma % 11;
+
+    return $base.($resto < 2 ? 0 : 11 - $resto);
+}
+
+/**
+ * Troca a Sefaz de verdade por uma falsa (Tests\Support\SessaoSefazFalsa) e devolve a sessão para conferência.
+ *
+ * @param  array<string, string>  $cStatPorChave  chave => cStat que a "Sefaz" vai responder
+ */
+function sefazFalsa(array $cStatPorChave = []): SessaoSefazFalsa
+{
+    $sessao = new SessaoSefazFalsa($cStatPorChave);
+    app()->instance(ConsultaSituacao::class, new ConsultaSituacao(fn () => $sessao));
+
+    return $sessao;
+}
+
+/** Contingência no histórico (de onde o robô das Autorizadas semeia as chaves). */
+function criarHistoricoContingencia(int $clienteId, string $chave, ?string $dataFiscal = '2026-10-15 10:00:00'): void
+{
+    DB::table('history_contingencia')->insert([
+        'fk_c_cliente' => $clienteId,
+        'chave' => $chave,
+        'data_fiscal_xml' => $dataFiscal,
+        'software' => 'SACTUS',
     ]);
 }

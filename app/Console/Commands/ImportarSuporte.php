@@ -28,7 +28,14 @@ class ImportarSuporte extends Command
         'a_user_acessos',
         'contingencias_versatus_venda',
         'contingencias_versatus_venda_itens',
+        'history_contingencia',
         'history_contingencia_auth',
+    ];
+
+    /** Ordem de leitura das tabelas sem coluna id (a cópia em lotes precisa de uma ordem estável). */
+    private const ORDEM = [
+        'history_contingencia' => 'chave',
+        'history_contingencia_auth' => 'chave',
     ];
 
     public function handle(): int
@@ -71,7 +78,7 @@ class ImportarSuporte extends Command
             Schema::connection('suporte')->getColumnListing($tabela),
             Schema::getColumnListing($tabela),
         ));
-        $chave = in_array('id', $colunas, true) ? 'id' : $colunas[0];
+        $chave = self::ORDEM[$tabela] ?? (in_array('id', $colunas, true) ? 'id' : $colunas[0]);
 
         $total = $origem->table($tabela)->count();
         $inicio = microtime(true);

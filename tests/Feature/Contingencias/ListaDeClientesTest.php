@@ -20,10 +20,11 @@ test('a tela de contingências abre pelo menu', function () {
 });
 
 test('lista só os clientes não deletados, sem o cliente 18, em ordem de razão social', function () {
+    // O 18 primeiro: o AUTO_INCREMENT não volta com o rollback dos testes e um id automático podia cair no 18
+    criarClienteHelpDesk(['id' => 18, 'razao_social' => 'CLIENTE OCULTO']);
     criarClienteHelpDesk(['razao_social' => 'ZETA MERCADO']);
     criarClienteHelpDesk(['razao_social' => 'ALFA MERCADO']);
     criarClienteHelpDesk(['razao_social' => 'MERCADO DELETADO', 'deletado' => 'S']);
-    criarClienteHelpDesk(['id' => 18, 'razao_social' => 'CLIENTE OCULTO']);
 
     $nomes = array_map(fn ($c) => $c->razaoSocial, app(ListaDeClientes::class)->todos());
 

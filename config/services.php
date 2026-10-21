@@ -35,6 +35,18 @@ return [
         ],
     ],
 
+    // Sefaz GO: consulta da situação de NF-e/NFC-e (NFeConsultaProtocolo 4.00) com o certificado A1 da JM Sistemas
+    'sefaz' => [
+        'certificado' => env('SEFAZ_CERTIFICADO', storage_path('app/private/certificados/jm-sistemas.pfx')),
+        'certificado_senha' => env('SEFAZ_CERTIFICADO_SENHA'),
+        // 1 = produção, 2 = homologação
+        'ambiente' => (int) env('SEFAZ_AMBIENTE', 1),
+        'uf' => '52',
+        'url_producao' => 'https://nfe.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4',
+        'url_homologacao' => 'https://homolog.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4',
+        'timeout' => 20,
+    ],
+
     // Servidores MySQL dos clientes (contingências do Sactus/PDV Linux), SOMENTE LEITURA
     'clientes' => [
         // Docker da JM: o primeiro é o padrão quando o cadastro não diz o servidor

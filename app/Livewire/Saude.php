@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Autorizadas\RoboAutorizadas;
+use App\Models\CicloAutorizadas;
 use App\Support\HelpDesk\SenhaHelpDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -17,7 +19,7 @@ use Throwable;
 #[Title('Saúde do sistema')]
 class Saude extends Component
 {
-    public function render(SenhaHelpDesk $senhaHelpDesk, MasterSupervisorRepository $supervisores): View
+    public function render(SenhaHelpDesk $senhaHelpDesk, MasterSupervisorRepository $supervisores, RoboAutorizadas $robo): View
     {
         return view('livewire.saude', [
             'itens' => [
@@ -44,6 +46,7 @@ class Saude extends Component
                 }),
                 $this->horizon($supervisores),
                 $this->agendador(),
+                $this->roboAutorizadas($robo),
             ],
             'conferidoEm' => now(),
         ]);
@@ -122,5 +125,22 @@ class Saude extends Component
             'ok' => $segundos < 120,
             'detalhe' => "Última batida há {$segundos} s ({$batida->format('H:i:s')})",
         ];
+    }
+
+    /** @return array{nome: string, icone: string, ok: bool, detalhe: string} */
+    private function roboAutorizadas(RoboAutorizadas $robo): array
+    {
+        $item = ['nome' => 'Robô das Autorizadas', 'icone' => 'verified'];
+        $pausa = $robo->pausa();
+        $ultimo = CicloAutorizadas::query()->latest('iniciado_em')->first();
+
+        return $item + match (true) {
+            ! $robo->ligado() => ['ok' => true, 'detalhe' => 'Desligado neste servidor (WALLE_AUTORIZADAS_ATIVO=false)'],
+            $pausa !== null => ['ok' => ! $pausa['automatica'], 'detalhe' => $pausa['motivo'].' — até '.$pausa['ate']->format('H:i')],
+            $ultimo === null => ['ok' => false, 'detalhe' => 'Ligado, mas nenhum ciclo rodou ainda — o Horizon está rodando?'],
+            $ultimo->erro !== null => ['ok' => false, 'detalhe' => 'Último ciclo com erro: '.$ultimo->erro],
+            $ultimo->iniciado_em->lt(now()->subMinutes(40)) => ['ok' => false, 'detalhe' => 'Nenhum ciclo desde '.$ultimo->iniciado_em->format('d/m H:i').' — o Horizon está rodando?'],
+            default => ['ok' => true, 'detalhe' => "Último ciclo às {$ultimo->iniciado_em->format('H:i')}: {$ultimo->consultadas} consultadas, {$ultimo->autorizadas} autorizadas"],
+        };
     }
 }

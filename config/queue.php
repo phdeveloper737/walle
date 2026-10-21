@@ -73,6 +73,17 @@ return [
             'after_commit' => false,
         ],
 
+        // Robôs (autorizadas, contingency...): um ciclo leva minutos. retry_after precisa ser maior
+        // que o timeout do job, senão a fila acha que travou e roda o mesmo ciclo de novo.
+        'robos' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => 'robos',
+            'retry_after' => 2400,
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

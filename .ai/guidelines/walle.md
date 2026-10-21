@@ -42,6 +42,14 @@ O OPcache revalida arquivos a cada 2 s: uma edição pode levar até 2 s para ap
 - Ícones: Material Symbols (`<x-ui.icone nome="..."/>`). Fonte: Roboto. Tudo servido localmente, sem CDN.
 - Interatividade com Livewire 4 (e Alpine, que vem junto).
 
+### Gráficos (`components/grafico/`)
+
+- Sem biblioteca de JS: `<x-grafico.colunas>`, `<x-grafico.linhas>` e `<x-grafico.barras>` são HTML/SVG gerados no servidor, dentro de `<x-grafico.cartao>`.
+- Todo gráfico tem a tabela com os mesmos números (`<x-slot:tabela>` com `<x-grafico.tabela>`): a dica do mouse nunca é o único jeito de ler um valor.
+- Cores só `grafico-1`, `grafico-2` e `grafico-contexto` (definidas em `@theme static` no `app.css`), sempre sobre o `surface-container-low`. Elas foram validadas para daltonismo e contraste nesse fundo; trocar cor exige validar de novo.
+- Duas séries ou mais: legenda no cartão. Uma série: sem legenda, o título diz o que é. Nunca dois eixos Y no mesmo gráfico.
+- O filtro de período fica numa linha acima de tudo o que ele recorta, nunca dentro de um cartão.
+
 ## Fluxo de trabalho
 
 - Um branch por tarefa e PR no GitHub. O Claude implementa, o Codex revisa e o usuário aprova.
