@@ -25,3 +25,56 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# ─── Reforço para ferramentas de IA ───────────────────────────────────────────
+# O OpenCode não tem arquivo de exclusão próprio e segue o .gitignore; o Claude Code usa
+# .claudeignore + .claude/settings.json. Só acrescenta padrões: nada versionado fica escondido.
+
+# Dependências
+node_modules/
+
+# Build e arquivos gerados
+_ide_helper_models.php
+.phpstorm.meta.php
+/coverage
+**/.__daphne_*
+._*
+
+# Segredos e variáveis de ambiente
+.env.local
+.env.*.local
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+*.ppk
+id_rsa*
+id_ed25519*
+
+# Banco de dados local
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.sql.zip
+*.dump
+dump.rdb
+
+# Uploads e mídia
+/storage/app/public/*
+!/storage/app/public/.gitignore
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.m4a
+
+# Cache e logs
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+!/storage/framework/**/.gitignore

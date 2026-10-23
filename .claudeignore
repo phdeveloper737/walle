@@ -1,0 +1,76 @@
+# Arquivos e pastas que o Claude Code não deve ler neste projeto (walle — Laravel 13 + Livewire 4 + Vite, tudo em Docker).
+# O bloqueio efetivo dos segredos está em .claude/settings.json (permissions.deny); este arquivo documenta a lista completa.
+# Nunca listar aqui código-fonte, testes ou documentação. Squads e agentes do ExpxAgents ficam visíveis: só o que é gerado sai.
+
+# Dependências
+vendor/
+node_modules/
+**/node_modules/
+
+# Build e arquivos gerados
+public/build/
+public/hot
+public/fonts-manifest.dev.json
+bootstrap/cache/*.php
+bootstrap/cache/*.json
+storage/framework/views/
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+squads/**/output/**/temp/
+squads/**/output/**/cache/
+squads/**/output/**/frames/
+squads/**/.ambiente.json
+**/.__daphne_*
+._*
+.DS_Store
+Thumbs.db
+
+# Segredos e variáveis de ambiente
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+**/.env
+!.env.example
+auth.json
+storage/*.key
+storage/app/private/
+*.pfx
+*.p12
+*.key
+*.pem
+*.ppk
+id_rsa*
+id_ed25519*
+
+# Banco de dados local
+*.sqlite
+*.sqlite3
+*.db
+database/*.sqlite*
+*.sql.gz
+*.sql.zip
+*.dump
+dump.rdb
+
+# Uploads e mídia
+storage/app/public/
+public/storage
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.m4a
+
+# Cache e logs
+*.log
+storage/logs/
+storage/pail/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/testing/

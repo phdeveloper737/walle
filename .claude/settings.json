@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.backup)",
+      "Read(./.env.production)",
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./**/.env)",
+      "Read(./auth.json)",
+      "Read(./storage/*.key)",
+      "Read(./storage/app/private/**)",
+      "Read(./storage/logs/**)",
+      "Read(./**/*.pfx)",
+      "Read(./**/*.p12)",
+      "Read(./**/*.key)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.ppk)",
+      "Read(./**/id_rsa*)",
+      "Read(./**/id_ed25519*)",
+      "Edit(./.env)",
+      "Edit(./storage/app/private/**)"
+    ]
+  }
+}
