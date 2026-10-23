@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LandingFiscalController;
 use App\Http\Controllers\SairController;
 use App\Livewire\Autorizadas;
 use App\Livewire\Concorrentes;
@@ -18,6 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/autorizadas', Autorizadas::class)->name('autorizadas');
     Route::livewire('/sactus', Sactus::class)->name('sactus');
     Route::livewire('/concorrentes', Concorrentes::class)->name('concorrentes');
+    Route::get('/landing/fiscal', LandingFiscalController::class)->name('landing.fiscal');
     Route::livewire('/saude', Saude::class)->name('saude');
     Route::post('/sair', SairController::class)->name('sair');
 });

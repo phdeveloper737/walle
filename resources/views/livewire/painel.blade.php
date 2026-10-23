@@ -16,6 +16,7 @@
             <div class="flex flex-wrap gap-2">
                 <x-ui.botao variante="tonal" icone="monitor_heart" :href="route('saude')" wire:navigate>Saúde do sistema</x-ui.botao>
                 <x-ui.botao variante="contorno" icone="stacks" href="/horizon" target="_blank">Filas</x-ui.botao>
+                <x-ui.botao variante="contorno" icone="campaign" :href="route('landing.fiscal')" target="_blank">Landing page Fiscal em dia</x-ui.botao>
             </div>
         </x-ui.card>
     </div>
