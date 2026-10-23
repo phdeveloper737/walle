@@ -1,0 +1,199 @@
+{
+    "atualizada_em": "2026-10-23",
+    "escopo": "ERP + PDV + fiscal para supermercados e atacarejos, com foco em Goiás",
+    "resumo": [
+        "A TOTVS domina o topo do mercado (cerca de 45% dos self-checkouts do país) e pode comprar a Linx. A JM não deve brigar por escala com ela.",
+        "Nenhum concorrente divulga PDV Linux, app de compras na Ceasa, monitoramento de contingência de NFC-e como produto ou BPO Fiscal junto com o ERP. Esses quatro pontos formam o território exclusivo da JM.",
+        "Em Goiás, a disputa é com a Competi (Anápolis, generalista) e com a Intersolid (via revenda Soft-Tec). A JM tem a vantagem de ser especialista e ter suporte próprio.",
+        "A JM perde em vitrine: o site não mostra números de clientes, BI/IA, fidelidade, e-commerce nem Reforma Tributária, temas que os concorrentes já usam.",
+        "Ações rápidas: lançar o \"Contingência Zero\" (JM Tools como serviço), usar o PDV Linux como argumento de custo e assumir o discurso de especialista local."
+    ],
+    "concorrentes": [
+        {
+            "id": "totvs",
+            "nome": "TOTVS · Consinco + TOTVS PDV",
+            "camada": "Nacional, líder",
+            "sede": "São Paulo-SP",
+            "escala": "~45% dos self-checkouts",
+            "em_goias": false,
+            "forcas": ["Líder em self-checkout, +42% de instalações em 2024", "Suíte completa: ERP, PDV, WMS e Winthor", "Marca e solidez; servidor próprio ou nuvem"],
+            "fraquezas": ["Reputação \"regular\" (6,4/10, fonte secundária)", "Pesada e cara para o supermercado de bairro", "Atende por canais, sem proximidade garantida em GO"],
+            "fontes": [
+                {"rotulo": "Giro News", "url": "https://gironews.com/tag/consinco/"},
+                {"rotulo": "SuperVarejo", "url": "https://www.supervarejo.com.br/apas-show/totvs-aumenta-163-dos-resultados-logo-no-primeiro-dia-do-festival-apas-show"},
+                {"rotulo": "SiteConfiável", "url": "https://www.siteconfiavel.com.br/site/totvs-com"}
+            ]
+        },
+        {
+            "id": "vr",
+            "nome": "VR Software",
+            "camada": "Especialista em supermercado",
+            "sede": "Limeira-SP",
+            "escala": "26 estados",
+            "em_goias": false,
+            "forcas": ["Foco total em supermercado, +400 especialistas", "ERP, PDV, coletor, BI (Controller 360) e clube de vantagens", "Monitoramento remoto de checkouts; marketing forte"],
+            "fraquezas": ["Não declara presença em GO", "O monitoramento é de perdas, não de contingência fiscal", "Não divulga PDV Linux/offline; não oferece BPO"],
+            "fontes": [
+                {"rotulo": "vrsoft.com.br", "url": "https://www.vrsoft.com.br/"},
+                {"rotulo": "TI Inside", "url": "https://tiinside.com.br/18/12/2025/grupo-vr-software-apresenta-solucoes-para-supermercados-na-nfr-em-nova-york/"}
+            ]
+        },
+        {
+            "id": "rpinfo",
+            "nome": "RP Info",
+            "camada": "Especialista em supermercado e atacado",
+            "sede": "Mariópolis-PR",
+            "escala": "+3.000 supermercados",
+            "em_goias": false,
+            "forcas": ["Escala: +20.000 checkouts, desde 1991", "Metodologia própria de implantação e centro de capacitação", "WMS e produto bancário (RP Banking)"],
+            "fraquezas": ["Site confuso sobre os módulos", "Sem unidade no Centro-Oeste", "Não divulga Linux, offline, Ceasa nem BPO"],
+            "fontes": [
+                {"rotulo": "rpinfo.com.br", "url": "https://www.rpinfo.com.br/"}
+            ]
+        },
+        {
+            "id": "intersolid",
+            "nome": "Intersolid ERP",
+            "camada": "Especialista em supermercado",
+            "sede": "Interior de SP",
+            "escala": "+1.000 lojas",
+            "em_goias": true,
+            "forcas": ["IA no WhatsApp (ISA), Analytics, precificação inteligente", "Nota Fácil: entrada de notas até 90% mais rápida", "E-commerce, CRM, nuvem; prêmios do setor"],
+            "fraquezas": ["Em GO atende só via revenda (Soft-Tec)", "Não divulga Linux, offline, TEF nem self-checkout", "Sem BPO, sem hortifrúti; preço fechado"],
+            "fontes": [
+                {"rotulo": "intersolid.com.br", "url": "https://intersolid.com.br/"}
+            ]
+        },
+        {
+            "id": "telecon",
+            "nome": "Telecon · Sistema S",
+            "camada": "Especialista em supermercado, nuvem",
+            "sede": "RS",
+            "escala": "+35 anos",
+            "em_goias": false,
+            "forcas": ["Inteligência Tributária com time dedicado (~500 mil produtos)", "ERP 100% em nuvem, com PDV e TEF", "Suporte humano, sem chatbot; Sala de Comando (BI)"],
+            "fraquezas": ["Não declara presença em GO", "Não divulga PDV Linux nem self-checkout", "Faz tributação de cadastro, não um BPO completo"],
+            "fontes": [
+                {"rotulo": "teleconsistemas.com.br", "url": "https://teleconsistemas.com.br/"}
+            ]
+        },
+        {
+            "id": "competi",
+            "nome": "Competi Sistemas",
+            "camada": "Regional",
+            "sede": "Anápolis-GO",
+            "escala": "4.389 clientes",
+            "em_goias": true,
+            "forcas": ["Concorrente local, sede em Goiás", "Suporte direto \"sem fila terceirizada\", treinamento incluso", "Já fala em Reforma Tributária; tem página de planos"],
+            "fraquezas": ["Generalista: de padaria a autopeças", "Não divulga TEF, offline, Linux, coletor nem BI", "Implantação remota"],
+            "fontes": [
+                {"rotulo": "competisistemas.com.br", "url": "https://www.competisistemas.com.br/"}
+            ]
+        },
+        {
+            "id": "hiper",
+            "nome": "Hiper · grupo StoneCo",
+            "camada": "Pequeno varejo",
+            "sede": "Brusque-SC",
+            "escala": "Minimercados",
+            "em_goias": false,
+            "forcas": ["Simples e barato, com teste grátis", "Offline por até 7 dias", "TEF, maquininha e conta digital Stone integrados"],
+            "fraquezas": ["Não atende supermercado médio nem atacarejo", "Plano básico até 3 usuários; TEF e app cobrados à parte", "Preso ao ecossistema Stone"],
+            "fontes": [
+                {"rotulo": "hiper.com.br", "url": "https://www.hiper.com.br/"},
+                {"rotulo": "Negócio Certo", "url": "https://negociocerto.org/melhores-sistemas-pdv/supermercado/"}
+            ]
+        }
+    ],
+    "radar": "Linx/StoneCo (mais forte em vestuário e franquias; venda em discussão), SG Sistemas, Solidcon, Titan Software, CISS e Arius/Zanthus (PDV).",
+    "matriz": {
+        "colunas": {
+            "jm": "JM",
+            "totvs": "TOTVS",
+            "vr": "VR",
+            "rpinfo": "RP Info",
+            "intersolid": "Intersolid",
+            "telecon": "Telecon",
+            "competi": "Competi",
+            "hiper": "Hiper"
+        },
+        "linhas": [
+            {"capacidade": "ERP para supermercado", "lacuna": false, "valores": {"jm": "sim|web", "totvs": "sim", "vr": "sim", "rpinfo": "sim", "intersolid": "sim|nuvem", "telecon": "sim|nuvem", "competi": "parcial|generalista", "hiper": "parcial|pequeno varejo"}},
+            {"capacidade": "PDV NFC-e", "lacuna": false, "valores": {"jm": "sim", "totvs": "sim", "vr": "sim", "rpinfo": "sim", "intersolid": "sim", "telecon": "sim", "competi": "sim", "hiper": "sim"}},
+            {"capacidade": "PDV Linux", "lacuna": true, "valores": {"jm": "sim", "totvs": "nd", "vr": "nd", "rpinfo": "nd", "intersolid": "nd", "telecon": "nd", "competi": "nd", "hiper": "nd"}},
+            {"capacidade": "PDV offline", "lacuna": false, "valores": {"jm": "sim", "totvs": "nd", "vr": "nd", "rpinfo": "nd", "intersolid": "nd", "telecon": "parcial|app pedidos", "competi": "nd", "hiper": "sim|7 dias"}},
+            {"capacidade": "TEF / Sitef", "lacuna": false, "valores": {"jm": "sim", "totvs": "sim", "vr": "nd", "rpinfo": "nd", "intersolid": "nd", "telecon": "sim", "competi": "nd", "hiper": "sim|Stone"}},
+            {"capacidade": "Self-checkout", "lacuna": false, "valores": {"jm": "sim", "totvs": "sim|líder", "vr": "parcial|autoatend.", "rpinfo": "nd", "intersolid": "nd", "telecon": "nd", "competi": "nd", "hiper": "nd"}},
+            {"capacidade": "App coletor", "lacuna": false, "valores": {"jm": "sim", "totvs": "nd", "vr": "sim", "rpinfo": "nd", "intersolid": "nd", "telecon": "nd", "competi": "nd", "hiper": "parcial|app vendas"}},
+            {"capacidade": "BI / IA", "lacuna": false, "valores": {"jm": "parcial|relatórios/DRE", "totvs": "nd", "vr": "sim", "rpinfo": "nd", "intersolid": "sim|IA", "telecon": "sim", "competi": "parcial|dashboards", "hiper": "parcial|60 relatórios"}},
+            {"capacidade": "Compras em Ceasa (app)", "lacuna": true, "valores": {"jm": "sim", "totvs": "nd", "vr": "nd", "rpinfo": "nd", "intersolid": "nd", "telecon": "parcial|compras ext.", "competi": "nd", "hiper": "nd"}},
+            {"capacidade": "Monitoramento de contingência NFC-e", "lacuna": true, "valores": {"jm": "sim|JM Tools", "totvs": "nd", "vr": "parcial|monit. perdas", "rpinfo": "nd", "intersolid": "nd", "telecon": "nd", "competi": "nd", "hiper": "nd"}},
+            {"capacidade": "BPO Fiscal", "lacuna": true, "valores": {"jm": "sim", "totvs": "nd", "vr": "parcial|software", "rpinfo": "nd", "intersolid": "nd", "telecon": "parcial|intel. tributária", "competi": "nd", "hiper": "nd"}},
+            {"capacidade": "Integração contábil", "lacuna": false, "valores": {"jm": "sim|Domínio/Tron/GO", "totvs": "nd", "vr": "nd", "rpinfo": "nd", "intersolid": "parcial|fiscal/contábil", "telecon": "sim|SPED", "competi": "nd", "hiper": "parcial|painel contador"}},
+            {"capacidade": "E-commerce / fidelidade / delivery", "lacuna": false, "valores": {"jm": "nd", "totvs": "nd", "vr": "sim|clube", "rpinfo": "nd", "intersolid": "sim", "telecon": "sim|integrações", "competi": "nd", "hiper": "sim"}},
+            {"capacidade": "Presença local em GO", "lacuna": false, "valores": {"jm": "sim|Goiânia", "totvs": "parcial|canal", "vr": "nd", "rpinfo": "nd", "intersolid": "parcial|revenda", "telecon": "nd", "competi": "sim|Anápolis", "hiper": "parcial|parceiros"}},
+            {"capacidade": "Preço público", "lacuna": false, "valores": {"jm": "nd", "totvs": "nd", "vr": "nd", "rpinfo": "nd", "intersolid": "nd", "telecon": "nd", "competi": "parcial|página de planos", "hiper": "parcial|planos sem valor"}}
+        ]
+    },
+    "posicionamento": {
+        "ganha": ["Pacote de operação + fiscal que ninguém fecha", "PDV Linux, offline, TEF e self-checkout", "JM Tools, JM Ceasa e BPO Fiscal", "Especialista com sede em Goiânia"],
+        "empata": ["ERP + PDV NFC-e + coletor são o padrão do mercado", "A Competi também é local", "A Telecon tem fiscal forte"],
+        "perde": ["Escala e marca menores", "BI/IA pouco visíveis", "Site sem fidelidade, e-commerce e Reforma Tributária", "Sem números de clientes no site"]
+    },
+    "oportunidades": [
+        {"codigo": "1", "titulo": "Contingência Zero", "descricao": "Monitoramento de NFC-e vendido como serviço, com alerta e SLA", "lacuna": "Nenhum dos 7 oferece; o mercado só tem telas dentro de ERPs", "ativo": "JM Tools + robô Sefaz GO", "impacto": "alto", "esforco": "baixo", "prazo": "0–3 meses", "tipo": "quick win"},
+        {"codigo": "2", "titulo": "ERP + BPO Fiscal num pacote só", "descricao": "Com o gancho da Reforma Tributária (IBS/CBS)", "lacuna": "Ninguém vende BPO junto com o sistema", "ativo": "BPO Fiscal + Versatus Gestor", "impacto": "alto", "esforco": "medio", "prazo": "3–6 meses", "tipo": "aposta"},
+        {"codigo": "3", "titulo": "PDV Linux como argumento de custo total", "descricao": "Sem licença Windows, offline, TEF", "lacuna": "Nenhum concorrente divulga PDV Linux", "ativo": "Versatus Linux", "impacto": "alto", "esforco": "baixo", "prazo": "0–3 meses", "tipo": "quick win"},
+        {"codigo": "4", "titulo": "Especialista local", "descricao": "Contra o generalista local e os nacionais remotos", "lacuna": "Competi é generalista; Intersolid em GO é revenda", "ativo": "Sede e suporte próprios em Goiânia", "impacto": "alto", "esforco": "baixo", "prazo": "0–3 meses", "tipo": "quick win"},
+        {"codigo": "5", "titulo": "Hortifrúti do início ao fim", "descricao": "Compra na Ceasa, custo e preço de FLV no ERP", "lacuna": "Nenhum ERP concorrente tem app de compras em Ceasa", "ativo": "JM Ceasa + Versatus Gestor", "impacto": "medio", "esforco": "medio", "prazo": "3–6 meses", "tipo": "aposta"},
+        {"codigo": "6", "titulo": "Captura de clientes em transição", "descricao": "Linx à venda, consolidação TOTVS", "lacuna": "Incerteza sobre roadmap e suporte", "ativo": "Migração + suporte local", "impacto": "medio", "esforco": "medio", "prazo": "3–12 meses", "tipo": "aposta"},
+        {"codigo": "7", "titulo": "Preço de referência público", "descricao": "\"A partir de\" por loja/PDV", "lacuna": "Nenhum especialista publica preço", "ativo": "Site JM", "impacto": "medio", "esforco": "baixo", "prazo": "0–3 meses", "tipo": "quick win"}
+    ],
+    "defesas": [
+        {"codigo": "D1", "titulo": "Prova social", "acao": "Publicar no site números reais (lojas, PDVs, anos, NFC-e/mês) e cases goianos."},
+        {"codigo": "D2", "titulo": "Reforma Tributária", "acao": "Página \"JM pronta para IBS/CBS\", apoiada no BPO. VR e Competi já falam disso."},
+        {"codigo": "D3", "titulo": "Painel do dono", "acao": "Empacotar DRE e relatórios como painel web/celular, para competir com a ISA e o Controller 360."},
+        {"codigo": "D4", "titulo": "Ecossistema de vendas", "acao": "Fidelidade, delivery, e-commerce e conciliação de cartões por meio de parceiros."}
+    ],
+    "mensagens": [
+        {"frase": "Nenhuma NFC-e fica para trás.", "apoio": "A JM monitora seus PDVs e resolve a contingência antes de virar multa."},
+        {"frase": "Sistema e fiscal na mesma mão.", "apoio": "ERP para supermercado com BPO Fiscal de quem já fala IBS/CBS."},
+        {"frase": "PDV que não para e não paga Windows.", "apoio": "Linux, offline, TEF e self-checkout, com suporte aqui em Goiânia."}
+    ],
+    "ameacas": [
+        {"titulo": "Concentração", "texto": "A TOTVS domina o self-checkout e pode absorver a Linx."},
+        {"titulo": "Stone / Hiper", "texto": "Software barato amarrado à maquininha pressiona o preço de entrada nos minimercados."},
+        {"titulo": "Disputa em GO", "texto": "Intersolid (via Soft-Tec) e Competi já disputam clientes com discurso de IA e suporte direto."},
+        {"titulo": "Regulatório", "texto": "SC exige PDV NFC-e em Windows. Se outros estados seguirem, o diferencial Linux vira risco. Vale monitorar a SEFAZ-GO."}
+    ],
+    "proximos_passos": [
+        "Lançar o \"Contingência Zero\": landing page e piloto do JM Tools com 3 clientes por 30 dias.",
+        "Atualizar o site: números de prova social, página sobre a Reforma Tributária e PDV Linux com comparativo de custo.",
+        "Montar a oferta \"Versatus + BPO Fiscal\" com preço por loja e validar com 5 supermercados.",
+        "Confirmar com a SEFAZ-GO que não há restrição a PDV Linux para NFC-e.",
+        "Mapear clientes Linx e Intersolid em GO para uma campanha de migração."
+    ],
+    "fontes": [
+        {"rotulo": "Giro News: Consinco / self-checkout ABRAS 2025", "url": "https://gironews.com/tag/consinco/"},
+        {"rotulo": "SuperVarejo: TOTVS na APAS Show", "url": "https://www.supervarejo.com.br/apas-show/totvs-aumenta-163-dos-resultados-logo-no-primeiro-dia-do-festival-apas-show"},
+        {"rotulo": "Giro News: aquisição da Consinco", "url": "https://gironews.com/informacoes-de-fornecedores/consinco-tera-novos-investimentos-59486/"},
+        {"rotulo": "GSoft: top 10 sistemas para supermercados", "url": "https://gsoft.com.br/artigos/top-10-melhores-op%C3%A7%C3%B5es-de-sistema-para-supermercados"},
+        {"rotulo": "SiteConfiável: reputação totvs.com", "url": "https://www.siteconfiavel.com.br/site/totvs-com"},
+        {"rotulo": "VR Software: site oficial", "url": "https://www.vrsoft.com.br/"},
+        {"rotulo": "TI Inside: VR Software na NRF", "url": "https://tiinside.com.br/18/12/2025/grupo-vr-software-apresenta-solucoes-para-supermercados-na-nfr-em-nova-york/"},
+        {"rotulo": "Giro News: VR na APAS Show 2025", "url": "https://gironews.com/informacoes-de-fornecedores/vr-software-tera-o-maior-estande-de-tecnologia-da-apas-show-2025/"},
+        {"rotulo": "RP Info: site oficial", "url": "https://www.rpinfo.com.br/"},
+        {"rotulo": "Intersolid: site oficial", "url": "https://intersolid.com.br/"},
+        {"rotulo": "Telecon Sistemas: site oficial", "url": "https://teleconsistemas.com.br/"},
+        {"rotulo": "Competi Sistemas: site oficial", "url": "https://www.competisistemas.com.br/"},
+        {"rotulo": "Hiper: site oficial", "url": "https://www.hiper.com.br/"},
+        {"rotulo": "Negócio Certo: PDV para supermercado 2026", "url": "https://negociocerto.org/melhores-sistemas-pdv/supermercado/"},
+        {"rotulo": "Expo Supermercados: 10 sistemas 2026", "url": "https://www.exposupermercados.com.br/post/os-10-melhores-sistemas-para-supermercados-em-2026-como-escolher-o-erp-ideal"},
+        {"rotulo": "Convergência Digital: TOTVS e Linx", "url": "https://convergenciadigital.com.br/mercado/erp-brasil-totvs-assume-interesse-em-comprar-a-linx-da-stone"},
+        {"rotulo": "Senior: exigência de PDV Windows em SC", "url": "https://documentacao.senior.com.br/gestaodelojas/6.2.19/configuracoes-do-pdv/configuracao-pdv-paf-ecf.htm"},
+        {"rotulo": "Alterdata: gerenciador de NFC-e pendentes", "url": "https://ajuda.alterdata.com.br/spice/funcoes-padrao-spice/gerenciamento-de-nfce-pedentes-e-rejeitadas"},
+        {"rotulo": "TabletCloud: painel de monitoramento fiscal", "url": "https://ajuda.tabletcloud.com.br/painel-de-monitoramento-fiscal-o-que-preciso-saber"},
+        {"rotulo": "Folha Vitória: E-Ceasa", "url": "https://www.folhavitoria.com.br/folha-business/ceasa-es-vai-lancar-e-commerce-para-venda-de-hortifruti-carnes-e-embalagens/"},
+        {"rotulo": "JM Sistemas: site oficial", "url": "https://www.jmsistemas.com.br/"}
+    ]
+}

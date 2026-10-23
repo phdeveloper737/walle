@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\SairController;
 use App\Livewire\Autorizadas;
+use App\Livewire\Concorrentes;
 use App\Livewire\Contingencias;
 use App\Livewire\Entrar;
 use App\Livewire\Painel;
@@ -16,6 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/contingencias', Contingencias::class)->name('contingencias');
     Route::livewire('/autorizadas', Autorizadas::class)->name('autorizadas');
     Route::livewire('/sactus', Sactus::class)->name('sactus');
+    Route::livewire('/concorrentes', Concorrentes::class)->name('concorrentes');
     Route::livewire('/saude', Saude::class)->name('saude');
     Route::post('/sair', SairController::class)->name('sair');
 });
