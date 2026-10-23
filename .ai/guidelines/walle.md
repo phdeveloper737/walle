@@ -26,6 +26,26 @@ Comandos sempre dentro do contêiner:
 Depois de mudar `.env` ou `config/`, rode `docker exec walle-app php artisan optimize:clear`.
 O OPcache revalida arquivos a cada 2 s: uma edição pode levar até 2 s para aparecer.
 
+## Estrutura de pastas
+
+```
+walle/
+├── app/
+│   ├── Autorizadas/        # robô que confere na Sefaz GO as contingências já autorizadas, diagnóstico de chave e consulta por período
+│   ├── Concorrentes/       # AnaliseConcorrentes: só lê o analise-concorrentes.json gerado pelo squad ExpxAgents
+│   ├── Contingencias/      # conexão com o servidor do cliente e busca do estado de contingência de NFC-e
+│   ├── Livewire/           # telas: Entrar, Painel, Contingencias, Autorizadas, Sactus, Concorrentes, Saude
+│   │   └── Concerns/       # traits de componente, ex.: ConfirmaSenha (pede a senha do Help Desk de novo)
+│   ├── Models/             # models do walle (ex.: Auditoria) e das tabelas legadas do banco suporte
+│   ├── Sactus/             # coleta e interpretação do sactus.cfg, ações, rotinas e robô
+│   │   └── Ssh/            # conexão SSH com o servidor do cliente (ConectorSsh, ConectorPhpseclib, SessaoSsh)
+│   └── Sefaz/              # consulta de situação de NFC-e com certificado digital
+├── resources/views/components/
+│   ├── ui/                 # componentes Blade do walle-ui (<x-ui.*>)
+│   └── grafico/            # gráficos em HTML/SVG gerados no servidor (<x-grafico.*>), sem biblioteca JS
+└── routes/                 # rotas (páginas autenticadas que apontam para componentes Livewire)
+```
+
 ## Banco de dados
 
 - Tabelas que vêm do banco legado `suporte` mantêm **exatamente** o mesmo nome de tabela e de coluna (`c_cliente`, `s_atendimento`, `fk_c_cliente`...). Nunca renomeie. Pode acrescentar colunas e tabelas novas.
@@ -62,3 +82,16 @@ O OPcache revalida arquivos a cada 2 s: uma edição pode levar até 2 s para ap
 - Um branch por tarefa e PR no GitHub. O Claude implementa, o Codex revisa e o usuário aprova.
 - Antes de concluir: Pint, PHPStan e Pest passando.
 - O sistema antigo roda no contêiner `testes220` (http://localhost:8074, código em `C:\docker\testes220\newsuporte`) e serve de referência: o walle deve devolver os mesmos resultados com os mesmos dados.
+
+## Testes (TDD)
+
+- Framework: Pest. Roda com `docker exec walle-app ./vendor/bin/pest` (filtrar: `--filter=nome`).
+- Testes críticos deste projeto:
+  - Ao receber o código 656 (consumo indevido) da Sefaz, a consulta para na hora e não consulta mais nada.
+  - Segredos do `sactus.cfg` (senha, token) saem mascarados (`ArquivoCfg::mascarar`) e só aparecem reais quando um admin pede.
+  - `Auditoria::registrar()` registra usuário, ação, cliente e IP e nunca grava senha ou valor sensível em `detalhes`.
+
+## Decisões em aberto
+
+- Modelo de dados completo (migrations novas do walle vs. tabelas legadas herdadas) e contrato de cada Job de fila (`ExecutarAcaoSactus`, `ProcessarClienteSactus`, `RodarCicloAutorizadas`, `RodarCicloSactus`).
+- Critérios de autorização além do `Gate::allows('admin')` (perfis, permissões granulares) e integração completa com o squad ExpxAgents que gera `analise-concorrentes.json`.
