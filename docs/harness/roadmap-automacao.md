@@ -17,8 +17,8 @@
 
 ## Fase 2 — Ledger, retomada e Git automático
 
-- `.walle/tarefas/T-NNNN.json`: estado de cada tarefa (recebida → em execução → em revisão → validada → integrada, ou bloqueada), ciclos de correção, eventos, branch, PR, resumo do gate e veredito da revisão. Versionado: a retomada funciona em qualquer máquina.
-- `.claude/hooks/tarefa.ps1`: único caminho do orquestrador para o Git. Cria o branch, faz o commit, publica o PR e integra (merge) só com gate `valida_para_commit` para o HEAD, revisão APROVADO e CI verde. Conta os ciclos e bloqueia no terceiro.
+- `.walle/tarefas/T-NNNN/` (`pedido.json` e `estado.json`): estado de cada tarefa (`em_execucao`, `em_revisao` ou `bloqueada`), dono, ciclos de correção, eventos, branch e PR. Versionado no branch da tarefa; integrada é a tarefa cuja pasta está no `origin/main`. Bloqueadas e abertas ficam visíveis pelos branches no origin: a retomada funciona em qualquer máquina.
+- `.claude/hooks/tarefa.ps1`: único caminho do orquestrador para o Git (`proxima`, `abrir`, `retomar`, `bloquear`, `commitar`, `publicar`, `integrar`, `status`). O `integrar` faz o merge só com gate `valida_para_commit` para o HEAD, revisão APROVADO do `walle-arquiteto` para o mesmo commit e CI verde, amarrado ao HEAD conferido; é idempotente. O `commitar` conta os ciclos depois do PR e bloqueia no terceiro. Recusa a Classificação Mercadológica.
 - `/executar-plano`: tarefas do `PLAN.md` já estão aprovadas; o orquestrador segue em ordem de dependência e para só em decisão do usuário, bloqueio ou na seção manual.
 - `/retomar`: continua a partir do ledger.
 - `maxTurns` em todos os agentes.

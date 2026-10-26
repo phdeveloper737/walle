@@ -233,18 +233,22 @@ try {
 }
 # Orquestrador: no terminal so o tarefa.ps1 (acao e id fixos); grava so o ledger local, PLAN, SPEC e docs.
 $baseTarefa = 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao '
-foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($baseTarefa + 'abrir -Tarefa T-0001'), ($baseTarefa + 'commitar -Tarefa T-0012'), ($baseTarefa + 'integrar -Tarefa T-0001'))) {
+foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($baseTarefa + 'abrir -Tarefa T-0001'), ($baseTarefa + 'commitar -Tarefa T-0012'), ($baseTarefa + 'integrar -Tarefa T-0001'), ($baseTarefa + 'retomar -Tarefa T-0003'))) {
     Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 0
 }
-foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
+foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'ciclo -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
     Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 2
 }
-foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/revisao.md', 'PLAN.md', 'docs/features/x/relatorio.md')) {
+foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/notas.md', 'PLAN.md', 'docs/features/x/relatorio.md')) {
     Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 0
 }
-foreach ($arquivo in @('.walle/tarefas/T-0001/estado.json', '.claude/hooks/tarefa.ps1', 'app/Models/Cliente.php', '.walle/gate/ultimo.json', '.walle/local/T-0001/script.ps1')) {
+foreach ($arquivo in @('.walle/tarefas/T-0001/estado.json', '.walle/local/T-0001/revisao.md', '.claude/hooks/tarefa.ps1', 'app/Models/Cliente.php', '.walle/gate/ultimo.json', '.walle/local/T-0001/script.ps1')) {
     Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 2
 }
+# Arquiteto: grava so o parecer da revisao (revisao.md da tarefa); nada mais, nem terminal.
+Conferir 'walle-arquiteto' 'Write' @{file_path='.walle/local/T-0001/revisao.md'} 0
+foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/revisao.md.ps1', 'PLAN.md', 'app/Models/Cliente.php')) { Conferir 'walle-arquiteto' 'Write' @{file_path=$arquivo} 2 }
+Conferir 'walle-explorador-220' 'Write' @{file_path='.walle/local/T-0001/revisao.md'} 2
 # Evento de outro agent visto pelos hooks do orquestrador (sessao principal com --agent): a politica e a do outro.
 Conferir 'walle-orquestrador' 'Bash' @{command='docker exec walle-app ./vendor/bin/pest'} 0 'PreToolUse' @{agent_type='walle-robos'}
 Conferir 'walle-orquestrador' 'Bash' @{command='docker exec walle-app ./vendor/bin/pest'} 2 'PreToolUse' @{agent_type='walle-orquestrador'}

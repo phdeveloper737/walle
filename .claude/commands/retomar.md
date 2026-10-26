@@ -3,16 +3,15 @@ description: "Retoma o trabalho a partir do ledger (.walle/tarefas): continua as
 argument-hint: "[opcional: T-NNNN para retomar uma tarefa só, ou 'e continue' para seguir com o plano]"
 ---
 
-Você atua como **walle-orquestrador**, conforme `.claude/agents/walle-orquestrador.md`.
+Você atua como **walle-orquestrador**, conforme `.claude/agents/walle-orquestrador.md` (seção "Ciclo de uma tarefa").
 
 Pedido: $ARGUMENTS
 
-1. Rode `-Acao status` do `tarefa.ps1` (todas as tarefas, ou só a informada) e leia o `estado.json` de cada uma, o `git status` (pelo `walle-verificador`) e `.walle/gate/ultimo.json`.
-2. Para cada tarefa `em_execucao` ou `em_revisao`, descubra o último passo concluído pelos eventos do ledger e continue do seguinte:
-   - `aberta` sem `commit`: implementação em andamento ou não começada; confira o diff e retome a delegação.
+1. Rode `-Acao status` do `tarefa.ps1` (todas as tarefas, ou só a informada). Ele mostra as integradas (no `origin/main`), as abertas e as bloqueadas (pelos branches no origin), em qualquer máquina.
+2. Para cada tarefa `em_execucao` ou `em_revisao`, rode `-Acao retomar -Tarefa T-NNNN` (troca para o branch dela; exige árvore limpa), leia os eventos do `estado.json` e continue do passo seguinte:
+   - `aberta` sem `commit`: implementação em andamento ou não começada; confira o diff com o `walle-verificador` e retome a delegação ao `dono` do ledger.
    - `commit` sem `pr`: rode `publicar`.
-   - `pr`: peça o gate e a revisão para o HEAD atual (vereditos antigos não valem para outro commit) e siga para `integrar`.
-   - `ciclo`: a correção estava em andamento; retome com o mesmo dono.
-3. Tarefas `bloqueadas`: liste o motivo (`eventos`) e só retome se a decisão já tiver sido tomada.
-4. Não refaça o que o ledger registra como feito. Se o estado local divergir do ledger (ex.: branch apagado, PR fechado), relate e pergunte antes de agir.
+   - `pr` ou `ciclo`: peça o gate e a revisão para o HEAD atual (vereditos antigos não valem para outro commit) e siga para `integrar`. Se `integrar` sair com 4, o CI ainda está rodando: rode de novo.
+3. Tarefas `bloqueadas`: liste o motivo (último evento) e pergunte a decisão ao usuário. Com a decisão, grave-a em `.walle/local/T-NNNN/notas.md` e rode `-Acao retomar -Tarefa T-NNNN`.
+4. Não refaça o que o ledger registra como feito. Se o estado local divergir do ledger (ex.: branch apagado, PR fechado sem merge), relate e pergunte antes de agir.
 5. Se o pedido incluir continuar o plano, ao terminar as tarefas abertas siga `.claude/commands/executar-plano.md`.

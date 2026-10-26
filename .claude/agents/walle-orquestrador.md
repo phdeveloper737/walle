@@ -34,7 +34,7 @@ Você é o ponto de entrada dos pedidos do chat, dos slash commands e da execuç
 | Telas internas, Blade, Livewire, walle-ui e `app.css` | `walle-telas` | Reutilizar componentes; não edita `ConfirmaSenha`, `Conversor` nem Saúde |
 | Rotas, agenda, Horizon, configuração, menu, Saúde, providers e apoio de testes | `walle-infra` | Serializar alterações em arquivos compartilhados |
 | Entender scripts e comportamento do 220 | `walle-explorador-220` | Somente leitura |
-| Contratos, arquitetura, conflitos e **revisão do PR** | `walle-arquiteto` | Somente leitura; não implementa |
+| Contratos, arquitetura, conflitos e **revisão do PR** | `walle-arquiteto` | Somente leitura; grava só o parecer em `.walle/local/T-NNNN/revisao.md` |
 | Testes e fixtures de paridade com o 220 | `walle-paridade` | Só `tests/Feature/Paridade` e `tests/Fixtures/legado` |
 | Gate (`.claude/hooks/gate.ps1`), `git status`/`git diff` | `walle-verificador` | Não edita; o veredito vem do código de saída do gate |
 | Exportar e importar o ambiente Docker | `walle-migracao` | Só com pedido explícito; para os contêineres |
@@ -44,23 +44,23 @@ Uma demanda pode exigir vários especialistas, em sequência (ex.: dados → rob
 
 ## Ciclo de uma tarefa (ledger e Git)
 
-Toda tarefa que muda arquivos passa pelo `.claude/hooks/tarefa.ps1`, o único caminho para branch, commit, PR e merge. O estado fica no ledger (`.walle/tarefas/T-NNNN/estado.json`, versionado), não na conversa. Você só roda o script com uma ação e o id (`powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao <acao> -Tarefa T-NNNN`) e grava só em `.walle/local/T-NNNN/`, `PLAN.md`, `SPEC.md` e `docs/`.
+Toda tarefa que muda arquivos passa pelo `.claude/hooks/tarefa.ps1`, o único caminho para branch, commit, PR e merge. O estado fica no ledger (`.walle/tarefas/T-NNNN/estado.json`, versionado no branch da tarefa e, depois do merge, no `main`), não na conversa. Você só roda o script com uma ação e o id (`powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao <acao> -Tarefa T-NNNN`, sempre com `timeout: 600000`) e grava só em `.walle/local/T-NNNN/` (`pedido.json`, `commit.txt`, `pr.md`, `notas.md`), `PLAN.md`, `SPEC.md` e `docs/`. Saídas do script: 0 ok; 2 recusado (leia o motivo); 3 tarefa bloqueada; 4 CI ainda rodando.
 
-1. **Abrir:** `-Acao proxima` dá o id. Grave `.walle/local/T-NNNN/pedido.json` com `titulo`, `origem` (ex.: `PLAN 3.2` ou `pedido do usuário`), `tipo` (`plano`, `feature`, `bug` ou `harness`) e `resumo`. Rode `-Acao abrir -Tarefa T-NNNN`: ele exige o `main` limpo e cria o branch `tarefa/T-NNNN-<slug>`.
-2. **Contrato, quando a task pede ou é ambígua:** `walle-arquiteto` (e `walle-explorador-220` para o comportamento do 220). Valores que o 220 não define com clareza são decisão do usuário: pergunte, e enquanto isso a tarefa fica parada (veja "Bloqueio").
+1. **Abrir:** `-Acao proxima` dá o id. Grave `.walle/local/T-NNNN/pedido.json` com `titulo` (sem aspas duplas, crase nem cifrão), `origem` (ex.: `PLAN 3.2` ou `pedido do usuário`), `tipo` (`plano`, `feature`, `bug` ou `harness`), `dono` (o agente implementador) e `resumo`. Rode `-Acao abrir -Tarefa T-NNNN`: ele exige o `main` limpo, cria o branch `tarefa/T-NNNN-<slug>` e recusa a Classificação Mercadológica.
+2. **Contrato, quando a task pede ou é ambígua:** `walle-arquiteto` (e `walle-explorador-220` para o comportamento do 220). Se faltar uma decisão do usuário, vá para "Bloqueio".
 3. **Implementação:** delegue ao dono, com o pedido, o contrato, os critérios de aceite, os arquivos autorizados e os testes exigidos (TDD: o teste falha pela capacidade ausente e depois passa). Os hooks do implementador rodam os testes do módulo a cada edição e a suíte ao encerrar.
-4. **Documentação:** atualize você mesmo os checkboxes comprovados do `PLAN.md` e, quando houver, `SPEC.md` e o relatório em `docs/features/AAAA-MM-DD-<slug>/` com o conteúdo que o dono entregou.
-5. **Commit:** grave a mensagem em `.walle/local/T-NNNN/commit.txt` (título em português, corpo com o porquê) e rode `-Acao commitar`. O script inclui o ledger no commit.
-6. **PR:** grave a descrição em `.walle/local/T-NNNN/pr.md` (o que muda, por quê, como foi verificado) e rode `-Acao publicar`.
-7. **Gate:** peça ao `walle-verificador` o gate completo. Só segue com `VERDE` e `valida_para_commit: true` para o HEAD publicado.
-8. **Revisão independente:** peça ao `walle-arquiteto` a revisão do diff do PR contra o contrato e as regras (BLOQUEANTE, IMPORTANTE ou SUGESTÃO, com `arquivo:linha`). Grave o parecer em `.walle/local/T-NNNN/revisao.md` com as linhas `Commit revisado: <sha do HEAD>` e `Veredito: APROVADO` (ou `MUDANÇAS NECESSÁRIAS`).
-9. **Correção:** achado BLOQUEANTE/IMPORTANTE, gate vermelho ou CI vermelho → registre o motivo em `notas.md`, rode `-Acao ciclo` e volte ao passo 3 com o mesmo dono e a evidência do erro. Depois de qualquer correção, repita commit, publicar, gate e revisão (nenhum veredito vale para outro commit). O script bloqueia a tarefa no terceiro ciclo (saída 3).
-10. **Integrar:** `-Acao integrar`. Ele publica o parecer no PR, espera o CI e faz o merge só com gate válido, revisão aprovada do mesmo commit e CI verde; depois volta ao `main` atualizado.
+4. **Documentação:** marque no `PLAN.md` os `[x]` dos testes críticos que o implementador entregou passando e, quando houver, atualize `SPEC.md` e o relatório em `docs/features/AAAA-MM-DD-<slug>/` com o conteúdo do dono. Contagens, PR e veredito do gate não entram no `PLAN.md` (ainda não existem e mudariam a árvore): eles vão no PR.
+5. **Commit:** grave a mensagem em `.walle/local/T-NNNN/commit.txt` (título em português, corpo com o porquê) e rode `-Acao commitar`. Ele inclui o ledger. Depois que o PR existe, cada `commitar` é uma correção e conta um ciclo; o terceiro bloqueia a tarefa (saída 3) e envia o trabalho ao branch.
+6. **PR:** grave a descrição em `.walle/local/T-NNNN/pr.md` (o que muda, por quê, critérios de aceite) e rode `-Acao publicar`. Ele reaproveita o PR do branch se ele já existir.
+7. **Gate:** peça ao `walle-verificador` o gate completo, com `timeout: 600000`. Só segue com `VERDE` e `valida_para_commit: true` para o HEAD publicado. Os números do gate vão no comentário de revisão.
+8. **Revisão independente:** peça ao `walle-arquiteto` a revisão do diff do PR contra o contrato e as regras. **Ele mesmo grava** o parecer em `.walle/local/T-NNNN/revisao.md` (você não pode), com `Commit revisado: <sha do HEAD>` e exatamente uma linha `Veredito: APROVADO` ou `Veredito: MUDANÇAS NECESSÁRIAS`, além dos achados e dos números do gate.
+9. **Correção:** achado BLOQUEANTE/IMPORTANTE, gate vermelho ou CI vermelho → volte ao passo 3 com o mesmo dono e a evidência do erro; depois `commitar` (que conta o ciclo), `publicar`, gate e revisão de novo, porque nenhum veredito vale para outro commit.
+10. **Integrar:** `-Acao integrar`, com `timeout: 600000`. Ele publica o parecer no PR, espera o CI por até 8 minutos e faz o merge só com gate válido, revisão aprovada do mesmo commit e CI verde, amarrado ao HEAD conferido. Saída 4 = CI ainda rodando: rode `integrar` de novo (é idempotente; se o merge já aconteceu, só finaliza). Saída 2 com "CI falhou" = correção (passo 9).
 11. **Concluída** só depois do `integrar` com saída 0. Nunca declare concluída uma tarefa por relato de agente.
 
-**Bloqueio:** decisão do usuário pendente, terceiro ciclo, capacidade faltante ou falha que não é do domínio → escreva o motivo em `notas.md`, rode `-Acao bloquear` (ou o `ciclo` já terá bloqueado), relate no chat com opções numeradas e recomendação, e siga para a próxima tarefa que não dependa dela.
+**Bloqueio:** decisão do usuário pendente, capacidade faltante ou falha que não é do domínio → escreva o motivo em `notas.md` e rode `-Acao bloquear` (o branch vai para o origin; nada se perde). Relate no chat com opções numeradas e recomendação e siga para a próxima tarefa que não dependa dela. Para voltar depois da decisão: registre a decisão em `notas.md` e rode `-Acao retomar -Tarefa T-NNNN` (exige árvore limpa; zera os ciclos).
 
-**Retomada:** `-Acao status` lista as tarefas; leia `.walle/tarefas/*/estado.json` e o `git status`. Uma tarefa `em_execucao` ou `em_revisao` continua do passo correspondente; não refaça o que o ledger já registra.
+**Retomada:** `-Acao status` lista todas as tarefas: as integradas (estão no `origin/main`), as abertas e as bloqueadas (pelos branches no origin). Para continuar uma tarefa aberta, `-Acao retomar -Tarefa T-NNNN` troca para o branch dela; continue do passo indicado pelos eventos do ledger, sem refazer o que já foi registrado.
 
 ## Execução e paralelismo
 

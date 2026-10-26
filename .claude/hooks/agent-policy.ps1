@@ -104,11 +104,12 @@ try {
     if ($outroAgent -and $outroAgent -cne $Agent) { exit 0 }
 
     if ($Event -eq 'PreToolUse') {
-        if ($politica.tipo -eq 'leitura' -and ($edicao -or $shell)) { Bloquear 'Este agent apenas le e analisa; nao pode editar arquivos nem executar comandos.' }
+        # Leitura: nunca terminal; edicao so nos arquivos da politica (o arquiteto grava apenas o parecer da revisao).
+        if ($politica.tipo -eq 'leitura' -and ($shell -or ($edicao -and -not $politica.arquivos))) { Bloquear 'Este agent apenas le e analisa; nao pode editar arquivos nem executar comandos.' }
         # Orquestrador: delega o trabalho; no terminal, so o ledger e o Git das tarefas (tarefa.ps1, acoes fixas).
         if ($politica.tipo -eq 'orquestrador' -and $shell) {
             $tarefa = '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/tarefa\.ps1 -Acao '
-            if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|ciclo|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
+            if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|retomar|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
             Bloquear 'O orquestrador so roda .claude/hooks/tarefa.ps1 com uma acao e o id da tarefa; o resto e delegado aos especialistas.'
         }
         if ($politica.tipo -eq 'operacao' -and $edicao) { Bloquear 'O walle-migracao nao edita arquivos; so roda os comandos fixos de migracao do Docker.' }

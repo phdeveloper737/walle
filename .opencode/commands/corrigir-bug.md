@@ -8,7 +8,7 @@ Problema relatado pelo usuário:
 
 $ARGUMENTS
 
-Leia `.claude/commands/corrigir-bug.md` e siga integralmente o fluxo descrito ali, a partir da seção "Fluxo automático", que prevalece sobre o restante,, tratando `$ARGUMENTS` como o problema relatado. Atue como `walle-orquestrador`, conforme `.opencode/agents/walle-orquestrador.md`.
+Leia `.claude/commands/corrigir-bug.md` e siga integralmente o fluxo descrito ali, a partir da seção "Fluxo automático", que prevalece sobre o restante, tratando `$ARGUMENTS` como o problema relatado. Atue como `walle-orquestrador`, conforme `.opencode/agents/walle-orquestrador.md`.
 
 Adaptações para o OpenCode:
 

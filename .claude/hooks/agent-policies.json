@@ -34,8 +34,8 @@
         "arquivos": "^(\\.claude/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.opencode/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.(claude|opencode)/commands/[a-z0-9-]+\\.md|\\.(claude|agents)/skills/.+\\.md|\\.ai/guidelines/walle\\.md|CLAUDE\\.md|AGENTS\\.md)$"
     },
     "walle-verificador": { "tipo": "verificacao" },
-    "walle-orquestrador": { "tipo": "orquestrador", "arquivos": "^(\\.walle/local/T-[0-9]{4}/(pedido\\.json|commit\\.txt|pr\\.md|revisao\\.md|notas\\.md)|PLAN\\.md|SPEC\\.md|docs/.+\\.md)$" },
+    "walle-orquestrador": { "tipo": "orquestrador", "arquivos": "^(\\.walle/local/T-[0-9]{4}/(pedido\\.json|commit\\.txt|pr\\.md|notas\\.md)|PLAN\\.md|SPEC\\.md|docs/.+\\.md)$" },
     "walle-explorador-220": { "tipo": "leitura" },
-    "walle-arquiteto": { "tipo": "leitura" },
+    "walle-arquiteto": { "tipo": "leitura", "arquivos": "^\\.walle/local/T-[0-9]{4}/revisao\\.md$" },
     "walle-migracao": { "tipo": "operacao" }
 }
