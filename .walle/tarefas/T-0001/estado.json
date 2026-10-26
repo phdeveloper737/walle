@@ -4,10 +4,10 @@
     "origem":  "PLAN 13.1b",
     "tipo":  "plano",
     "dono":  "walle-seguranca",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0001-reforcos-da-trava-do-help-desk-apontados",
-    "pr":  0,
+    "pr":  13,
     "base":  "cdeb1244842cef7516cd51ee166defd998b7e6d0",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-26 15:57:18",
                         "tipo":  "commit",
                         "detalhe":  "Reforça a trava de leitura do Help Desk (PLAN 13.1b)"
+                    },
+                    {
+                        "quando":  "2026-10-26 15:57:41",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #13 aberto"
                     }
                 ]
 }
