@@ -32,12 +32,29 @@ class ImportarSuporte extends Command
         'history_contingencia_auth',
         'painel_sactus_cfg',
         'sactus_cfg_edicoes',
+        'painel_sentinela',
+        'painel_contingency_crawler',
+        'informacao_tecnica_painel_contingencias',
+        'painel_mercadological_worker',
+        'painel_mercadological_worker_log',
+        'painel_cleantax_worker',
+        'task_scheduler_querys',
+        'task_scheduler_querys_log',
     ];
 
-    /** Ordem de leitura das tabelas sem coluna id (a cópia em lotes precisa de uma ordem estável). */
+    /**
+     * Ordem de leitura das tabelas sem coluna id: a cópia em lotes (offset) precisa de uma ordem estável.
+     * Tabela sem nenhuma coluna única ordena por todas as colunas: empate só entre linhas iguais, que dão no mesmo.
+     *
+     * @var array<string, string|list<string>>
+     */
     private const ORDEM = [
         'history_contingencia' => 'chave',
         'history_contingencia_auth' => 'chave',
+        'painel_contingency_crawler' => 'fk_c_cliente',
+        'painel_mercadological_worker' => 'fk_c_cliente',
+        'painel_cleantax_worker' => 'fk_c_cliente',
+        'task_scheduler_querys_log' => ['data_time', 'fk_task_scheduler_querys', 'fk_c_cliente', 'log_query'],
     ];
 
     public function handle(): int
@@ -80,7 +97,7 @@ class ImportarSuporte extends Command
             Schema::connection('suporte')->getColumnListing($tabela),
             Schema::getColumnListing($tabela),
         ));
-        $chave = self::ORDEM[$tabela] ?? (in_array('id', $colunas, true) ? 'id' : $colunas[0]);
+        $ordem = (array) (self::ORDEM[$tabela] ?? (in_array('id', $colunas, true) ? 'id' : $colunas[0]));
 
         $total = $origem->table($tabela)->count();
         $inicio = microtime(true);
@@ -90,9 +107,15 @@ class ImportarSuporte extends Command
         $barra = $this->output->createProgressBar($total);
         $barra->setFormat(" {$tabela}: %current%/%max% [%bar%] %percent:3s%%");
 
+        $consulta = $origem->table($tabela)->select($colunas);
+
+        foreach ($ordem as $coluna) {
+            $consulta->orderBy($coluna);
+        }
+
         $linhas = [];
 
-        foreach ($origem->table($tabela)->select($colunas)->orderBy($chave)->lazy($lote) as $linha) {
+        foreach ($consulta->lazy($lote) as $linha) {
             $linhas[] = (array) $linha;
 
             if (count($linhas) >= $lote) {
