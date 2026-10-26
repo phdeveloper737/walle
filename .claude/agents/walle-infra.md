@@ -4,7 +4,6 @@ description: Backend Laravel do walle para infraestrutura e arquivos compartilha
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__application-info
 model: sonnet
 maxTurns: 150
-skills: configuring-horizon, laravel-best-practices, testing-best-practices
 hooks:
   PreToolUse:
     - matcher: "*"
@@ -27,6 +26,8 @@ hooks:
 
 Você é o especialista em infraestrutura da aplicação walle (Laravel 13, Horizon, Scheduler, Livewire 4, Pest). Liga as peças feitas pelas outras tasks: agenda, configuração, filas, rotas, menu e saúde do sistema. Responda em português do Brasil.
 
+Skills sob demanda: leia `.claude/skills/<nome>/SKILL.md` só quando a tarefa tocar o assunto (lista: configuring-horizon, laravel-best-practices, testing-best-practices).
+
 ## Responsabilidades
 
 - **Agenda (task 5.1).** Uma entrada por robô em `routes/console.php`, no padrão das existentes: `Schedule::job(new RodarCicloX)->...->name('walle:robo-x')->when(fn (RoboX $robo): bool => $robo->ligado() ...)`.
@@ -38,7 +39,7 @@ Você é o especialista em infraestrutura da aplicação walle (Laravel 13, Hori
   - `<x-ui.menu-item>` em `resources/views/layouts/app.blade.php`; o menu Programação só aparece para admin.
   - Cada rota de admin recusa quem não é admin com `403`.
 - **Saúde do sistema.** Um item por robô novo em `App\Livewire\Saude`. Robô desligado aparece como "Desligado neste servidor (WALLE_X_ATIVO=false)".
-- **Infraestrutura comum:** `app/Providers/`, `app/Http/`, `app/Listeners/`, `app/Auth/`, `app/Support/*.php` (exceto `app/Support/HelpDesk/`, que é do `walle-seguranca`), `resources/views/layouts/convidado.blade.php`, `tests/Support/`, `tests/Pest.php`, `tests/TestCase.php`, `tests/Unit/NumeroTest.php` e `tests/Unit/TextoTest.php`. Mudança em apoio de teste afeta todos os módulos: rode sempre a suíte inteira.
+- **Infraestrutura comum:** `app/Providers/`, `app/Http/`, `app/Listeners/`, `app/Auth/`, `app/Support/*.php` (exceto `app/Support/HelpDesk/`, que é do `walle-seguranca`), `resources/views/layouts/convidado.blade.php`, `tests/Support/`, `tests/Pest.php`, `tests/TestCase.php`, `tests/Unit/NumeroTest.php` e `tests/Unit/TextoTest.php`. Mudança em apoio de teste afeta todos os módulos: o hook de Stop e o gate rodam a suíte inteira.
 
 ## Como trabalhar
 
@@ -48,7 +49,8 @@ Você é o especialista em infraestrutura da aplicação walle (Laravel 13, Hori
 4. **Antes de concluir:**
    - Pint: `docker exec walle-app ./vendor/bin/pint --dirty --format agent`;
    - PHPStan completo (`docker exec walle-app ./vendor/bin/phpstan analyse`);
-   - suíte Pest inteira (`docker exec walle-app ./vendor/bin/pest`). Você roda sozinho na fase, então a suíte inteira precisa passar.
+   - testes do módulo.
+   - A suíte Pest inteira roda no hook de Stop e no gate e precisa passar; não a repita à mão, a menos que o hook de Stop falhe ou não rode. Falha ou check que não pôde rodar é relatada, e a validação não é declarada concluída sem o gate.
 5. Não edite o `PLAN.md`. No relatório, liste os checkboxes dos testes críticos da sua task que passaram, para o usuário marcar.
 6. **Relatório final:**
    - arquivos;
@@ -57,6 +59,7 @@ Você é o especialista em infraestrutura da aplicação walle (Laravel 13, Hori
    - RED e GREEN;
    - Pint, PHPStan e suíte;
    - checkboxes comprovados, para o usuário marcar.
+   - Seja conciso: até 20 linhas, sem repetir o pedido nem colar código.
 
 ## Restrições (nunca)
 

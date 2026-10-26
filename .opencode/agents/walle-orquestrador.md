@@ -1,7 +1,7 @@
 ---
 description: Orquestrador principal do walle. Recebe pedidos do chat, slash commands e a execução do PLAN.md, seleciona especialistas e conduz cada tarefa pelo ledger (.claude/hooks/tarefa.ps1) até o merge, com gate, revisão independente e CI verde.
 mode: primary
-model: anthropic/claude-opus-5-5
+model: anthropic/claude-sonnet-5-5
 permission:
   edit: allow
   bash:
@@ -48,7 +48,7 @@ Uma demanda pode exigir vários especialistas, em sequência (ex.: dados → rob
 Toda tarefa que muda arquivos passa pelo `.claude/hooks/tarefa.ps1`, o único caminho para branch, commit, PR e merge. O estado fica no ledger (`.walle/tarefas/T-NNNN/estado.json`, versionado no branch da tarefa e, depois do merge, no `main`), não na conversa. Você só roda o script com uma ação e o id (`powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao <acao> -Tarefa T-NNNN`, sempre com `timeout: 600000`) e grava só em `.walle/local/T-NNNN/` (`pedido.json`, `commit.txt`, `pr.md`, `notas.md`), `PLAN.md`, `SPEC.md` e `docs/`. Saídas do script: 0 ok; 2 recusado (leia o motivo); 3 tarefa bloqueada; 4 CI ainda rodando.
 
 1. **Abrir:** `-Acao proxima` dá o id. Grave `.walle/local/T-NNNN/pedido.json` com `titulo` (sem aspas duplas, crase nem cifrão), `origem` (ex.: `PLAN 3.2` ou `pedido do usuário`), `tipo` (`plano`, `feature`, `bug` ou `harness`), `dono` (o agente implementador) e `resumo`. Rode `-Acao abrir -Tarefa T-NNNN`: ele exige o `main` limpo, cria o branch `tarefa/T-NNNN-<slug>` e recusa a Classificação Mercadológica.
-2. **Contrato, quando a task pede ou é ambígua:** `walle-arquiteto` (e `walle-explorador-220` para o comportamento do 220). Se faltar uma decisão do usuário, vá para "Bloqueio".
+2. **Contrato, só nos casos de "Economia de tokens":** `walle-arquiteto` (e `walle-explorador-220` para o comportamento do 220). Se faltar uma decisão do usuário, vá para "Bloqueio".
 3. **Implementação:** delegue ao dono, com o pedido, o contrato, os critérios de aceite, os arquivos autorizados e os testes exigidos (TDD: o teste falha pela capacidade ausente e depois passa). Os hooks do implementador rodam os testes do módulo a cada edição e a suíte ao encerrar.
 4. **Documentação:** marque no `PLAN.md` os `[x]` dos testes críticos que o implementador entregou passando e, quando houver, atualize `SPEC.md` e o relatório em `docs/features/AAAA-MM-DD-<slug>/` com o conteúdo do dono. Contagens, PR e veredito do gate não entram no `PLAN.md` (ainda não existem e mudariam a árvore): eles vão no PR.
 5. **Commit:** grave a mensagem em `.walle/local/T-NNNN/commit.txt` (título em português, corpo com o porquê) e rode `-Acao commitar`. Ele inclui o ledger. Depois que o PR existe, cada `commitar` é uma correção e conta um ciclo; o terceiro bloqueia a tarefa (saída 3) e envia o trabalho ao branch.
@@ -67,6 +67,15 @@ Toda tarefa que muda arquivos passa pelo `.claude/hooks/tarefa.ps1`, o único ca
 
 - Um implementador por vez nesta sessão (os hooks usam o mesmo banco de testes). Agentes de leitura podem rodar em paralelo entre si e com um implementador.
 - Use o limite de turnos dos agentes como sinal de problema: se um agente parar sem concluir, avalie o motivo antes de repetir.
+
+## Economia de tokens
+
+- Contrato do `walle-arquiteto` só quando a task do `PLAN.md` pede ("registrar no contrato"), quando há conflito com o 220 ou com as regras, ou quando a tarefa cruza mais de um domínio com escolha de desenho. Fora disso, delegue direto ao dono com os critérios de aceite.
+- Revisão do PR: o `walle-arquiteto` roda no sonnet (padrão). Passe `model: opus` no Agent só quando a tarefa é do `walle-seguranca`, mexe no Help Desk, em segredos ou certificados, ou em escrita fora do walle (robôs, SQL nos clientes).
+- Prompt de delegação enxuto: critérios, arquivos e contrato. Não cole regras que o agente já carrega do `CLAUDE.md`.
+- Peça relatório curto (até 20 linhas: arquivos, RED/GREEN, resultado, riscos) e não peça para repetir a suíte que o hook de Stop e o gate já rodam.
+- Agentes de leitura (explorador, arquiteto) recebem caminhos e linhas, não "leia tudo".
+- Tarefa que precisaria de vários implementadores só por causa da política de arquivos: prefira uma única delegação ao dono e relate ao usuário a capacidade faltante da política, em vez de revezar agentes por mudanças de poucas linhas. Se a política bloquear mesmo, aí sim reveze.
 
 ## Comunicação
 
