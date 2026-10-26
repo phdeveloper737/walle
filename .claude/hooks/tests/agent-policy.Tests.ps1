@@ -50,8 +50,15 @@ foreach ($agent in @('walle-arquiteto','walle-explorador-220','walle-orquestrado
 }
 
 # Verificador: le e roda validadores, nunca edita.
-foreach ($comando in @('docker exec walle-app ./vendor/bin/pest','docker exec -e DB_DATABASE=walle_testes_t32 walle-app ./vendor/bin/pest tests/Feature/Contingencias --stop-on-failure','docker exec walle-app ./vendor/bin/pint --test','docker exec walle-app ./vendor/bin/pint --test app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/phpstan analyse --no-progress','git status')) {
+foreach ($comando in @('docker exec walle-app ./vendor/bin/pest','docker exec -e DB_DATABASE=walle_testes_t32 walle-app ./vendor/bin/pest tests/Feature/Contingencias --stop-on-failure','docker exec walle-app ./vendor/bin/pint --test','docker exec walle-app ./vendor/bin/pint --test app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/phpstan analyse --no-progress','git status','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco walle_testes_t32')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 0
+}
+# Gate: so completo (sem escolher etapas), so em banco de testes e so pelo verificador.
+foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco walle','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Etapas pint','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Saida x.json','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1; git push')) {
+    Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
+}
+foreach ($agent in @('walle-robos','walle-dados','walle-harness','walle-orquestrador')) {
+    Conferir $agent 'Bash' @{command='powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1'} 2
 }
 foreach ($comando in @('git push','docker exec walle-app ./vendor/bin/pest; git push','docker exec walle-app ./vendor/bin/pest --bootstrap=malicioso.php','docker exec walle-app php artisan migrate:fresh','docker exec -e DB_DATABASE=walle walle-app ./vendor/bin/pest','docker exec walle-app ./vendor/bin/pint app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/pint --dirty','docker exec walle-app php artisan make:model Exemplo','docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
@@ -224,4 +231,44 @@ try {
     Remove-Item -LiteralPath $temporario
     if ($bancoAnterior) { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
 }
+# proteger-comandos.ps1 (vale para toda sessao, inclusive a principal): segredos, destrutivos, Help Desk e merge --admin.
+function ConferirProteger([string]$Comando, [int]$Esperado) {
+    $resultado = Rodar 'proteger-comandos.ps1' '' (@{ tool_name = 'Bash'; tool_input = @{ command = $Comando } } | ConvertTo-Json -Compress)
+    if ($resultado.codigo -ne $Esperado) { throw "proteger-comandos ${Comando}: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
+    if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
+    $script:casos++
+}
+# Merge: so com o CI do PR todo verde, conferido por "gh pr checks" (aqui um duplo que devolve o codigo pedido).
+$duploGh = Join-Path ([IO.Path]::GetTempPath()) ('walle-gh-' + [guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($duploGh) | Out-Null
+$pathSemGh = $env:PATH
+try {
+    [IO.File]::WriteAllText((Join-Path $duploGh 'gh.cmd'), "@echo off`r`nexit /b %WALLE_TEST_GH_EXIT%`r`n")
+    $env:PATH = $duploGh + ';' + $env:PATH
+    $env:WALLE_TEST_GH_EXIT = '0'
+    ConferirProteger 'gh pr merge 9 --squash --delete-branch' 0
+    foreach ($codigo in @('1', '8')) {                               # 1 = falhou, 8 = pendente
+        $env:WALLE_TEST_GH_EXIT = $codigo
+        ConferirProteger 'gh pr merge 9 --squash --delete-branch' 2
+    }
+    $env:WALLE_TEST_GH_EXIT = '0'
+    foreach ($comando in @('gh pr merge --squash', 'gh pr merge 9 --squash; echo x', 'gh pr merge 9 "--admin"', 'gh.exe pr merge 9 --admin', 'GH PR MERGE 9 --ADMIN', 'gh api -X PUT repos/x/walle/pulls/9/merge')) {
+        ConferirProteger $comando 2
+    }
+} finally {
+    $env:PATH = $pathSemGh
+    Remove-Item Env:WALLE_TEST_GH_EXIT -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $duploGh -Recurse -Force -ErrorAction SilentlyContinue
+}
+# Gate: a regra da politica e sensivel a maiusculas.
+foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -banco walle_testes', 'POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco WALLE_TESTES')) {
+    Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
+}
+foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+    ConferirProteger $comando 0
+}
+foreach ($comando in @('gh pr merge 9 --squash --admin', 'gh pr merge --admin 9', 'cat .env', 'docker exec walle-app php artisan migrate:fresh', 'docker exec walle-app php artisan config:show database', 'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"')) {
+    ConferirProteger $comando 2
+}
+
 Write-Output "$script:casos casos de politica passaram."

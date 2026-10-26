@@ -37,7 +37,7 @@ Se o argumento estiver vazio ou vago, pergunte qual necessidade será atendida, 
 | Paridade | `walle-paridade`: cria testes e fixtures só em `tests/Feature/Paridade` e `tests/Fixtures/legado`; não corrige a aplicação. |
 | Code review | `walle-arquiteto`, em chamada separada do levantamento: só lê o diff e consumidores necessários. |
 
-O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate completo (`pint --test`, PHPStan e suíte inteira) e consolida o veredito; `walle-arquiteto` audita o diff. Identifique quem executou cada parte. A revisão do arquiteto não substitui a revisão do Codex exigida pelo fluxo Claude implementa, Codex revisa e usuário aprova.
+O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Identifique quem executou cada parte. A revisão do arquiteto não substitui a revisão do Codex exigida pelo fluxo Claude implementa, Codex revisa e usuário aprova.
 
 Se faltar dono com permissão para um arquivo, teste ou comando, exponha a lacuna e sugira o responsável pela sessão para essa parte. Não crie agentes, amplie permissões ou troque de dono para contornar um hook. Marketing JM usa `frontend-design`, mas os agentes atuais não têm seus caminhos autorizados; não atribua esse trabalho a `walle-telas` por aproximação.
 
@@ -109,9 +109,9 @@ Delegue task por task ao dono aprovado com o pedido original, contrato, evidênc
 
 `package.json` só tem `build` e `dev`. Não invente scripts `npm test`, `npm run lint`, `npm run typecheck`, TypeScript ou ESLint. Tudo roda no Docker; nada de instalar PHP, Composer ou Node no Windows.
 
-Em sessões paralelas, cada uma usa o banco atribuído à task. Ao fechar a fase, espere todas terminarem e peça ao `walle-verificador`, no `walle_testes`, `pint --test`, PHPStan completo e a suíte inteira. Alteração exclusivamente documental exige revisão de consistência, sem ferramentas de código.
+Em sessões paralelas, cada uma usa o banco atribuído à task. Ao fechar a fase, espere todas terminarem e peça ao `walle-verificador` o gate completo no `walle_testes`. Alteração exclusivamente documental exige revisão de consistência, sem ferramentas de código.
 
-Peça a `walle-arquiteto` a auditoria do diff e passe a `walle-verificador` os critérios de aceite e o parecer da auditoria. Ele executa `pint --test`, PHPStan e Pest e consolida **VERDE / VERMELHO / PENDENTE**, identificando executor, comando, banco, código de saída, contagens e primeiras linhas úteis de erro, sem segredos. Não atribua ao verificador comandos executados por outro papel.
+Peça a `walle-arquiteto` a auditoria do diff e passe a `walle-verificador` os critérios de aceite e o parecer da auditoria. Ele roda o gate e consolida **VERDE / VERMELHO / PENDENTE**, identificando executor, comando, banco, código de saída, contagens e primeiras linhas úteis de erro, sem segredos. Não atribua ao verificador comandos executados por outro papel.
 
 Só avance com os checks aplicáveis e a auditoria verdes. Check bloqueado/não executado ou falha preexistente mantém a pendência: explique sua origem sem corrigir trabalho alheio fora do escopo. Toda alteração posterior de código exige a revalidação correspondente; não reutilize um veredito de outro diff nem declare prontas tasks dependentes de uma fase não aprovada.
 
