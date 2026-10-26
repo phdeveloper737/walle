@@ -180,7 +180,7 @@ try {
                 if ($alvos.Count -gt 0 -or $teste) { exit 0 }
             }
             # Gate completo com evidencia em .walle/gate/ultimo.json: so o verificador, sem escolher etapas.
-            if ($politica.tipo -eq 'verificacao' -and $comando -match '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/gate\.ps1(?: -Banco walle_testes(?:_t[0-9]+)?)?$') { exit 0 }
+            if ($politica.tipo -eq 'verificacao' -and $comando -cmatch '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/gate\.ps1(?: -Banco walle_testes(?:_t[0-9]+)?)?\z') { exit 0 }
             if ($politica.tipo -eq 'verificacao') { Bloquear 'O verificador so roda o gate, Pest, pint --test, phpstan analyse e git status/diff.' }
             if ($comando -match $make) {
                 $tipo = $Matches.tipo

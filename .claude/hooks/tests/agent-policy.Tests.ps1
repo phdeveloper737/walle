@@ -231,4 +231,18 @@ try {
     Remove-Item -LiteralPath $temporario
     if ($bancoAnterior) { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
 }
+# proteger-comandos.ps1 (vale para toda sessao, inclusive a principal): segredos, destrutivos, Help Desk e merge --admin.
+function ConferirProteger([string]$Comando, [int]$Esperado) {
+    $resultado = Rodar 'proteger-comandos.ps1' '' (@{ tool_name = 'Bash'; tool_input = @{ command = $Comando } } | ConvertTo-Json -Compress)
+    if ($resultado.codigo -ne $Esperado) { throw "proteger-comandos ${Comando}: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
+    if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
+    $script:casos++
+}
+foreach ($comando in @('git status', 'gh pr merge 9 --squash --delete-branch', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+    ConferirProteger $comando 0
+}
+foreach ($comando in @('gh pr merge 9 --squash --admin', 'gh pr merge --admin 9', 'cat .env', 'docker exec walle-app php artisan migrate:fresh', 'docker exec walle-app php artisan config:show database', 'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"')) {
+    ConferirProteger $comando 2
+}
+
 Write-Output "$script:casos casos de politica passaram."

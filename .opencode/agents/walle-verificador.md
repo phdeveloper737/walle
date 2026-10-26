@@ -1,5 +1,5 @@
 ---
-description: 'Verificador do walle. Roda os comandos de gate de uma fase do PLAN.md e a validação completa (Pint em modo teste, PHPStan completo, suíte Pest inteira), e devolve um resumo objetivo do que passou e do que falhou, com o nome dos testes e a primeira linha de cada erro. Não corrige nada. Use ao fim de cada fase, antes de commit ou PR, e sempre que alguém precisar saber se a suíte está verde.'
+description: 'Verificador do walle. Roda o gate (.claude/hooks/gate.ps1: Pint em modo teste, PHPStan, suíte Pest inteira e testes do harness e do RAG, com evidência em .walle/gate) e os comandos de gate de uma fase do PLAN.md, e devolve um resumo objetivo do que passou e do que falhou, com o nome dos testes e a primeira linha de cada erro. Não corrige nada. Use ao fim de cada fase, antes de commit ou PR, e sempre que alguém precisar saber se a suíte está verde.'
 mode: subagent
 model: anthropic/claude-haiku-5-5
 permission:
@@ -11,7 +11,8 @@ permission:
     "docker exec -e DB_DATABASE=walle_testes* walle-app ./vendor/bin/pest*": allow
     "docker exec walle-app ./vendor/bin/pint --test*": allow
     "docker exec walle-app ./vendor/bin/phpstan analyse*": allow
-    "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1*": allow
+    "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1": allow
+    "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco walle_testes_t*": allow
     "git status*": allow
     "git diff*": allow
 ---
@@ -33,7 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banc
 - **Gate de fase:** rode o comando exatamente como está no `PLAN.md`. Ex.: `docker exec walle-app ./vendor/bin/pest tests/Migrations`.
 - **Banco de testes de uma sessão paralela:** `docker exec -e DB_DATABASE=walle_testes_tNN walle-app ./vendor/bin/pest ...`.
 - **Diff e relatórios:** use `git status`, `git diff --stat` ou `git diff --name-only` e as ferramentas Read, Grep e Glob para conferir arquivos alterados e relatos contra o diff.
-- Use timeout longo: a suíte inteira leva alguns minutos.
+- Use timeout de 600000 ms (10 minutos): o gate completo leva uns 5 minutos e a suíte sozinha, uns 2.
 
 ## O que devolver
 

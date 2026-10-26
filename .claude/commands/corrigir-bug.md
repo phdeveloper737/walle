@@ -40,7 +40,7 @@ Telas internas usam Livewire 4, `<x-ui.*>`, tokens do tema e gráficos `<x-grafi
 | Paridade | `walle-paridade`: cria testes e fixtures só em `tests/Feature/Paridade` e `tests/Fixtures/legado`; não corrige a aplicação. |
 | Code reviewer | `walle-arquiteto`, em uma chamada separada da investigação: só lê o diff e arquivos associados, aponta problemas e não corrige. |
 
-O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate completo (`pint --test`, PHPStan e suíte inteira) e consolida o veredito; `walle-arquiteto` audita o diff. Não diga que o verificador executou ferramentas que outro agente rodou. O fluxo do projeto continua sendo Claude implementa, Codex revisa e usuário aprova; a leitura pelo arquiteto não substitui a revisão do Codex quando ela for exigida.
+O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Não diga que o verificador executou ferramentas que outro agente rodou. O fluxo do projeto continua sendo Claude implementa, Codex revisa e usuário aprova; a leitura pelo arquiteto não substitui a revisão do Codex quando ela for exigida.
 
 Se faltar permissão para um arquivo ou comando, informe o caminho e a capacidade faltante, sugira o responsável pela sessão para essa parte e pare a operação dependente. Não crie agentes, não troque de dono para burlar um hook e não amplie o escopo silenciosamente.
 
@@ -110,9 +110,9 @@ Todos os comandos de PHP e npm rodam no Docker. `package.json` só tem `build` e
 | Build, se o bug envolver assets | `walle-telas`: `docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build`. Build não é typecheck nem lint JS. |
 | Configuração alterada | `walle-infra`, quando fizer parte do plano: `docker exec walle-app php artisan optimize:clear`. Não exponha configuração/segredos com `config:show`. |
 
-Em sessões paralelas, cada uma usa o banco `walle_testes_tNN` atribuído à task. No gate consolidado, espere todas terminarem e peça ao `walle-verificador`, no `walle_testes`, `pint --test`, PHPStan completo e a suíte inteira; não troque configuração nem contorne o hook.
+Em sessões paralelas, cada uma usa o banco `walle_testes_tNN` atribuído à task. No gate consolidado, espere todas terminarem e peça ao `walle-verificador` o gate completo no `walle_testes`; não troque configuração nem contorne o hook.
 
-Ao fechar cada fase, solicite a `walle-arquiteto` a auditoria do diff em leitura e passe a `walle-verificador` a auditoria e os critérios de aceite. Ele executa `pint --test`, PHPStan e Pest e consolida um veredito **VERDE / VERMELHO / PENDENTE**, identificando quem executou cada verificação. Informe comando, banco, código de saída, contagens e primeiras linhas úteis de erro, sempre sem segredos. Não infira sucesso de saída ausente ou de um hook que só tentou executar.
+Ao fechar cada fase, solicite a `walle-arquiteto` a auditoria do diff em leitura e passe a `walle-verificador` a auditoria e os critérios de aceite. Ele roda o gate e consolida um veredito **VERDE / VERMELHO / PENDENTE**, identificando quem executou cada verificação. Informe comando, banco, código de saída, contagens e primeiras linhas úteis de erro, sempre sem segredos. Não infira sucesso de saída ausente ou de um hook que só tentou executar.
 
 Só avance com suíte inteira, análise estática, lint e auditoria verdes. Um check bloqueado, não executado ou uma falha preexistente mantém o gate pendente/vermelho: relate sua origem sem corrigi-la fora do escopo. Qualquer alteração posterior no código invalida o veredito daquele diff e exige a revalidação correspondente.
 

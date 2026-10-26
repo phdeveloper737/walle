@@ -48,4 +48,10 @@ if ($comando -match $destrutivo -and $comando -notmatch 'DB_DATABASE=walle_teste
     exit 2
 }
 
+# Merge automatico so pelo caminho normal (CI verde e revisao): --admin passaria por cima das protecoes.
+if ($comando -match '\bgh\s+pr\s+merge\b' -and $comando -match '(^|\s)--admin\b') {
+    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: gh pr merge com --admin passa por cima das protecoes. Faca o merge sem --admin, depois do CI verde e da revisao.')
+    exit 2
+}
+
 exit 0

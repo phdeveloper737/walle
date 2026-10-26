@@ -237,7 +237,7 @@ textuais dos assistentes; não é um arquivo integral da conversa nem um mecanis
 
 ## 8. Qualidade e fluxo de trabalho
 
-- Um branch por tarefa, PR no GitHub: Claude implementa, Codex revisa, usuário aprova.
+- Um branch por tarefa, PR no GitHub, em fluxo automático (decisão do usuário de 26/10/2026): os agentes implementam, o `walle-arquiteto` revisa o PR e o merge acontece quando o CI está verde e não há achado BLOQUEANTE ou IMPORTANTE pendente. A Classificação Mercadológica segue manual.
 - Para concluir alterações de código, o agente executa Pint nos PHP alterados, PHPStan com a configuração completa e toda a suíte Pest no Docker. Testes filtrados são intermediários; não delegar a suíte ao usuário. Falha ou impedimento deve ser relatado como pendência. Alterações exclusivamente documentais exigem revisão de consistência e sincronização.
 - Regras completas do projeto (fonte): `.ai/guidelines/walle.md`, replicadas em `CLAUDE.md` e
   `AGENTS.md` pelo Laravel Boost (`docker exec walle-app php artisan boost:update`).
