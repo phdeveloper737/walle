@@ -8,9 +8,9 @@ on:
   pull_request:
 
 # Um push novo no mesmo PR cancela a execução anterior (o ledger faz um commit logo depois de abrir o PR);
-# no main nada é cancelado: cada merge tem a sua execução completa.
+# no main o grupo é o próprio commit, então nenhum merge cancela (nem tira da fila) a execução de outro.
 concurrency:
-  group: ci-${{ github.head_ref || github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

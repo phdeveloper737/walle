@@ -201,7 +201,7 @@ try {
     Garantir ((Tarefa 'status' 'T-0002').saida -match 'T-0002 \| bloqueada') 'bloqueada vista pelo branch remoto'
     Garantir ((Tarefa 'proxima').saida.Trim() -eq 'T-0003') 'proxima nao reaproveita o id da bloqueada'
     Espera (Tarefa 'retomar' 'T-0002') 2 'retomar bloqueada sem a decisao'
-    G @('switch', '-q', 'main') | Out-Null
+    Garantir ((G @('branch', '--show-current')) -eq 'main') 'retomar recusado nao troca de branch'
     Local 'T-0002' 'notas.md' 'Usuario decidiu: seguir com a abordagem B.'
     Espera (Tarefa 'retomar' 'T-0002') 0 'retomar com a decisao'
     $e = Estado 'T-0002'
@@ -214,6 +214,15 @@ try {
     Local 'T-0002' 'notas.md' 'Usuario enviou a senha por outro canal; seguir.'
     Espera (Tarefa 'retomar' 'T-0002') 0 'retomar com a decisao nova'
     Garantir ((Estado 'T-0002').estado -eq 'em_revisao') 'volta para em_revisao (tem PR)'
+    # Terceiro ciclo com um notas.md que ja existia: aquele texto tambem nao vale como decisao.
+    foreach ($n in 1..3) {
+        [IO.File]::WriteAllText((Join-Path $repo 'outra.txt'), "rodada 2, $n`n", $utf8)
+        Local 'T-0002' 'commit.txt' "Outra: nova correcao $n"
+        Espera (Tarefa 'commitar' 'T-0002') $(if ($n -lt 3) { 0 } else { 3 }) "nova correcao $n"
+    }
+    Espera (Tarefa 'retomar' 'T-0002') 2 'retomar com o notas.md de antes do terceiro ciclo'
+    Local 'T-0002' 'notas.md' 'Usuario aceitou a versao atual.'
+    Espera (Tarefa 'retomar' 'T-0002') 0 'retomar com a decisao depois do terceiro ciclo'
 
     # Abrir exige arvore limpa e tipo valido.
     G @('switch', '-q', 'main') | Out-Null
@@ -255,6 +264,9 @@ try {
     Local 'T-0003' 'commit.txt' 'Terceira: correcao'
     Espera (Tarefa 'commitar' 'T-0003') 1 'commit recusado pelo hook do git'
     Garantir ((Estado 'T-0003').ciclos -eq 0 -and (Test-Path -LiteralPath (Join-Path $repo '.walle/local/T-0003/commit.txt'))) 'ciclo nao contado e mensagem preservada'
+    Local 'T-0003' 'notas.md' 'Bloqueio que nao chega a ser commitado.'
+    Espera (Tarefa 'bloquear' 'T-0003') 1 'bloqueio recusado pelo hook do git'
+    Garantir ((Estado 'T-0003').estado -eq 'em_revisao' -and -not (G @('diff', '--cached', '--name-only'))) 'estado restaurado e nada em stage'
     Remove-Item -LiteralPath $hook -Force
     Espera (Tarefa 'commitar' 'T-0003') 0 'commit depois de tirar o hook'
     Garantir ((Estado 'T-0003').ciclos -eq 1) 'agora o ciclo conta'
@@ -274,6 +286,21 @@ try {
     $r = Tarefa 'integrar' 'T-0003'
     Garantir ($r.codigo -eq 2 -and $r.saida -match 'Mercadologica') "integrar recusa a Mercadologica: $($r.saida)"
     G @('checkout', '--', '.walle/tarefas/T-0003/estado.json') | Out-Null
+    Espera (Tarefa 'integrar' 'T-0009') 2 'integrar sem ledger local e fora do main'
+
+    # O desbloqueio commita so o ledger: trabalho pendente e em stage ficam como estavam.
+    Local 'T-0003' 'notas.md' 'Esperando o usuario.'
+    Espera (Tarefa 'bloquear' 'T-0003') 0 'bloquear a terceira'
+    [IO.File]::WriteAllText((Join-Path $repo 'trabalho.txt'), "alterado depois do bloqueio`n", $utf8)
+    [IO.File]::WriteAllText((Join-Path $repo 'preparado.txt'), "em stage`n", $utf8)
+    G @('add', 'preparado.txt') | Out-Null
+    Espera (Tarefa 'retomar' 'T-0002') 2 'retomar outra tarefa com a arvore suja'
+    Garantir ((G @('branch', '--show-current')) -eq 'tarefa/T-0003-terceira') 'continua no branch da terceira'
+    Local 'T-0003' 'notas.md' 'Usuario respondeu: seguir.'
+    Espera (Tarefa 'retomar' 'T-0003') 0 'desbloquear com trabalho pendente'
+    $noCommit = @((G @('show', '--name-only', '--format=', 'HEAD')) -split "`n" | Where-Object { $_.Trim() })
+    Garantir ($noCommit.Count -gt 0 -and -not @($noCommit | Where-Object { $_ -notlike '.walle/tarefas/T-0003/*' }).Count) "commit do desbloqueio so com o ledger: $($noCommit -join ', ')"
+    Garantir ((G @('diff', '--cached', '--name-only')) -eq 'preparado.txt' -and (G @('diff', '--name-only')) -match 'trabalho\.txt') 'stage e trabalho pendente preservados'
 } finally {
     $env:PATH = $pathAnterior
     foreach ($nome in $variaveis) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
