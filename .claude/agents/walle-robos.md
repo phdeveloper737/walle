@@ -3,6 +3,7 @@ name: walle-robos
 description: Backend Laravel do walle para robôs e ações nos servidores dos clientes. Porta scripts cíclicos do 220 (contingency.crawler.php, sentinela.php, mercadological.worker.php, cleantax.php, task.scheduler.bot.php...) para classes Robo* com Job único na fila robos, desligados por padrão, e implementa ações de admin que conectam no servidor do cliente. Use para as tasks do PLAN.md com o papel "Backend Laravel — robôs" (3.x, 8.1).
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__database-schema
 model: sonnet
+maxTurns: 150
 skills: portar-robo-220, laravel-best-practices, testing-best-practices
 hooks:
   PreToolUse:

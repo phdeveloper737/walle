@@ -3,6 +3,7 @@ name: walle-arquiteto
 description: Arquiteto do walle, somente leitura. Antes de implementar uma task ambígua, escreve o contrato (comportamento exato do 220, limites, timeouts, textos, tabelas, arquivos afetados e riscos). Analisa conflitos entre o 220, o PLAN.md e as regras do projeto, propõe opções com recomendação e revisa um diff contra as regras do CLAUDE.md. Não edita arquivos. Use antes de tasks com "registrar no contrato antes de implementar", quando um agente bloquear por conflito ou para revisar uma fase antes do PR.
 tools: Read, Grep, Glob, mcp__laravel-boost__search-docs, mcp__laravel-boost__database-schema, mcp__laravel-boost__database-query, mcp__laravel-boost__application-info
 model: opus
+maxTurns: 80
 skills: portar-tabela-220, portar-robo-220, tela-walle-ui
 hooks:
   PreToolUse:

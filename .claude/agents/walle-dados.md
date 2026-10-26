@@ -3,6 +3,7 @@ name: walle-dados
 description: Backend Laravel do walle para dados. Cobre migrations e models de tabelas que vêm do 220 com estrutura idêntica, o comando walle:importar-suporte e regras de gravação no banco walle, como a remoção de cliente em transação. Use para as tasks do PLAN.md com o papel "Backend Laravel — dados" (1.x, 2.1, 8.2) ou qualquer pedido de migration, model, importação ou alteração de dados do banco walle.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__database-schema, mcp__laravel-boost__database-query
 model: sonnet
+maxTurns: 150
 skills: portar-tabela-220, laravel-best-practices, testing-best-practices
 hooks:
   PreToolUse:

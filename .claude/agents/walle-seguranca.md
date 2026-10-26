@@ -3,6 +3,7 @@ name: walle-seguranca
 description: Backend Laravel do walle para funcionalidades sensíveis. Cobre SQL manual nos clientes (só admin com senha confirmada antes de conectar), conversão de certificado inteiramente em memória, a trava que mantém o Help Desk somente leitura e revisão de riscos (segredos, autorização, auditoria). Use para as tasks do PLAN.md com o papel "Backend Laravel — segurança" (8.3, 10.1) ou quando uma mudança mexer em autenticação, autorização, segredos, certificados ou proteção de bancos externos.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__database-schema
 model: opus
+maxTurns: 150
 skills: laravel-best-practices, testing-best-practices, tela-walle-ui
 hooks:
   PreToolUse:

@@ -11,6 +11,15 @@ $ARGUMENTS
 
 Se o argumento estiver vazio ou vago, pergunte pelo comportamento observado, comportamento esperado, passos para reproduzir e contexto necessário. Não comece uma investigação sem um problema identificável. Não peça senhas, tokens, certificados nem conteúdo de `.env`.
 
+## Fluxo automático (decisão do usuário de 26/10/2026; prevalece sobre o restante deste comando)
+
+- **Git e estado:** branch, commit, PR e merge seguem o ciclo do `.claude/hooks/tarefa.ps1` descrito em `.claude/agents/walle-orquestrador.md`: `abrir` antes de qualquer escrita, `commitar`, `publicar`, gate, revisão e `integrar` no fim. Onde este texto diz que ninguém faz commit, push ou PR, ou que o responsável pela sessão providencia o branch, vale o ledger.
+- **Documentação:** o orquestrador grava `PLAN.md`, `SPEC.md` e os relatórios em `docs/` com o conteúdo que o dono entregou. Onde este texto diz que o usuário grava, leia que o orquestrador grava.
+- **Aprovação:** apresente o plano no chat e siga sem esperar resposta. Pare e pergunte só quando houver decisão do usuário em aberto (requisito ambíguo, valor de negócio que o 220 não define, conflito com uma regra); nesse caso, bloqueie a tarefa (`notas.md` e `-Acao bloquear`) com opções numeradas e recomendação.
+- **Revisão:** a revisão independente é do `walle-arquiteto` sobre o diff do PR, gravada em `.walle/local/T-NNNN/revisao.md` e publicada no PR pelo `integrar`. Não há revisão do Codex.
+- **Conclusão:** só depois do `integrar` com saída 0 (gate válido, revisão aprovada do mesmo commit e CI verde).
+- **Classificação Mercadológica:** fora deste fluxo; só com pedido explícito do usuário.
+
 ## Fontes de verdade, capacidades e limites
 
 Antes de cada execução, leia as definições atuais; não confunda descrição de um agente com permissão efetiva:

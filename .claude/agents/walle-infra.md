@@ -3,6 +3,7 @@ name: walle-infra
 description: Backend Laravel do walle para infraestrutura e arquivos compartilhados. Cobre agenda dos robôs (routes/console.php), chaves WALLE_*_ATIVO em config/walle.php e .env.example, supervisores do Horizon na conexão robos, rotas autenticadas em routes/web.php, menu do layout e itens da tela Saúde. Use para as tasks do PLAN.md com o papel "Backend Laravel — infraestrutura" (5.1, 7.1, 11.1), sempre sozinho na fase, porque mexe em arquivos que todos usam.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__application-info
 model: sonnet
+maxTurns: 150
 skills: configuring-horizon, laravel-best-practices, testing-best-practices
 hooks:
   PreToolUse:

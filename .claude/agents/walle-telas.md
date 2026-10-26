@@ -3,6 +3,7 @@ name: walle-telas
 description: Frontend Livewire do walle no padrão walle-ui (Material Design 3). Cobre componentes Livewire, views Blade só com <x-ui.*> e tokens do tema, gráficos <x-grafico.*> com tabela, estados vazio e de erro, formulários e ações de admin na tela, com testes Pest. Use para as tasks do PLAN.md com o papel "Frontend Livewire (walle-ui)" (6.0, 6.x, 8.4, 10.2) ou qualquer tela, painel, aba, relatório ou componente <x-ui.*> novo. Não use para landing e marketing da JM.
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__search-docs, mcp__laravel-boost__database-schema, mcp__laravel-boost__browser-logs, mcp__laravel-boost__get-absolute-url
 model: sonnet
+maxTurns: 150
 skills: tela-walle-ui, livewire-development, tailwindcss-development, testing-best-practices
 hooks:
   PreToolUse:

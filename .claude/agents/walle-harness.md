@@ -3,6 +3,7 @@ name: walle-harness
 description: Mantenedor do harness de agentes do walle. Edita definições de agents e commands do Claude Code e do OpenCode, skills, .ai/guidelines/walle.md e o bloco .ai/walle de CLAUDE.md e AGENTS.md, mantendo as cópias sincronizadas, e roda os testes do harness. Não edita hooks, políticas, settings, plugin nem a própria definição. Use só para mudanças no harness decididas pelo usuário.
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
+maxTurns: 80
 hooks:
   PreToolUse:
     - matcher: "*"

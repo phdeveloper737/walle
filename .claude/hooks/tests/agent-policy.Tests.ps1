@@ -231,6 +231,24 @@ try {
     Remove-Item -LiteralPath $temporario
     if ($bancoAnterior) { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
 }
+# Orquestrador: no terminal so o tarefa.ps1 (acao e id fixos); grava so o ledger local, PLAN, SPEC e docs.
+$baseTarefa = 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao '
+foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($baseTarefa + 'abrir -Tarefa T-0001'), ($baseTarefa + 'commitar -Tarefa T-0012'), ($baseTarefa + 'integrar -Tarefa T-0001'))) {
+    Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 0
+}
+foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
+    Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 2
+}
+foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/revisao.md', 'PLAN.md', 'docs/features/x/relatorio.md')) {
+    Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 0
+}
+foreach ($arquivo in @('.walle/tarefas/T-0001/estado.json', '.claude/hooks/tarefa.ps1', 'app/Models/Cliente.php', '.walle/gate/ultimo.json', '.walle/local/T-0001/script.ps1')) {
+    Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 2
+}
+# Evento de outro agent visto pelos hooks do orquestrador (sessao principal com --agent): a politica e a do outro.
+Conferir 'walle-orquestrador' 'Bash' @{command='docker exec walle-app ./vendor/bin/pest'} 0 'PreToolUse' @{agent_type='walle-robos'}
+Conferir 'walle-orquestrador' 'Bash' @{command='docker exec walle-app ./vendor/bin/pest'} 2 'PreToolUse' @{agent_type='walle-orquestrador'}
+
 # proteger-comandos.ps1 (vale para toda sessao, inclusive a principal): segredos, destrutivos, Help Desk e merge --admin.
 function ConferirProteger([string]$Comando, [int]$Esperado) {
     $resultado = Rodar 'proteger-comandos.ps1' '' (@{ tool_name = 'Bash'; tool_input = @{ command = $Comando } } | ConvertTo-Json -Compress)

@@ -52,13 +52,13 @@ try {
     $pendente = "$(& $gitReal -C $raiz status --porcelain)".Trim()
     $arvoreDoCommit = "$(& $gitReal -C $raiz rev-parse 'HEAD^{tree}')".Trim()
 
-    # 1. Gate completo com tudo passando: VERDE, saida 0, sete etapas na ordem, completo.
+    # 1. Gate completo com tudo passando: VERDE, saida 0, oito etapas na ordem, completo.
     Limpar
     $r = RodarGate @('-Saida', $saida)
     Garantir ($r.codigo -eq 0) "completo verde deveria sair com 0: $($r.saida)"
     $e = Evidencia
     Garantir ($e.verde -eq $true -and $e.completo -eq $true -and $e.preliminar -eq $false) 'completo, verde e definitivo'
-    Garantir ((@($e.etapas | ForEach-Object { $_.nome }) -join ',') -eq 'pint,phpstan,pest,politicas,gate,plugin,rag') 'sete etapas na ordem'
+    Garantir ((@($e.etapas | ForEach-Object { $_.nome }) -join ',') -eq 'pint,phpstan,pest,politicas,gate,tarefa,plugin,rag') 'oito etapas na ordem'
     Garantir ($e.arvore -match '^[0-9a-f]{40}$' -and $e.commit -match '^[0-9a-f]{40}$') 'arvore e commit com 40 hex'
     Garantir ($e.banco -eq 'walle_testes' -and $e.etapas[2].comando -match 'DB_DATABASE=walle_testes ') 'banco padrao no pest'
     Garantir ($e.etapas[3].resumo -match 'casos falsos passaram' -and $e.etapas[2].resumo -match 'Tests: falso') 'resumo vem da saida'
@@ -82,7 +82,7 @@ try {
     $r = RodarGate @('-Saida', $saida)
     Garantir ($r.codigo -eq 1) "vermelho deveria sair com 1: $($r.saida)"
     $e = Evidencia
-    Garantir ($e.verde -eq $false -and (($e.motivos -join ' ') -match 'etapas com falha: politicas, gate')) "motivo com as etapas: $($e.motivos)"
+    Garantir ($e.verde -eq $false -and (($e.motivos -join ' ') -match 'etapas com falha: politicas, gate, tarefa')) "motivo com as etapas: $($e.motivos)"
 
     # 4. Sem -Banco, vale WALLE_HOOK_TEST_DATABASE (sessao paralela); o -Banco explicito vence.
     Limpar

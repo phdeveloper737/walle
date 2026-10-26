@@ -82,6 +82,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/gate.Tests.ps1
 
+      - name: Ledger e Git das tarefas
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/tarefa.Tests.ps1
+
   # Node: memória local dos agentes (RAG) e plugin do OpenCode (o duplo do PowerShell no teste é /bin/sh)
   rag:
     runs-on: ubuntu-latest
