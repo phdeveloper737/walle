@@ -63,6 +63,8 @@ test('particiona notas longas em 200 a 250 tokens e preserva o texto e o final',
 
 test('sqlite-vec recupera top-3, prioriza categoria próxima e não inclui vetores irrelevantes', () => {
   const db = new KnowledgeDatabase(':memory:');
+  const previousTopK = config.topK;
+  config.topK = 3;
   try {
     const near = vector(); near[0] = 0.98; near[1] = Math.sqrt(1 - 0.98 ** 2);
     db.replace('a.md', 'walle-dados', 'a', [row('Melhor sem bônus'), row('Categoria do arquiteto', 'arquitetura', near), row('Terceiro'), row('Quarto'), row('Irrelevante', 'arquitetura', vector(1))]);
@@ -70,7 +72,7 @@ test('sqlite-vec recupera top-3, prioriza categoria próxima e não inclui vetor
     assert.equal(matches.length, 3);
     assert.equal(matches[0].content, 'Categoria do arquiteto');
     assert.ok(matches.every(match => match.content !== 'Irrelevante'));
-  } finally { db.close(); }
+  } finally { config.topK = previousTopK; db.close(); }
 });
 
 test('reindexação substitui chunks atomicamente e não deixa vetores órfãos', () => {
@@ -115,6 +117,8 @@ test('troca de revisão do modelo ou divisão em chunks reindexa notas sem reuti
   const db = new KnowledgeDatabase(':memory:');
   const previousRevision = config.revision;
   const previousChunkTokens = config.chunkTokens;
+  const previousTopK = config.topK;
+  config.topK = 3;
   try {
     const file = (await summarize({ messages: [notes], agent: 'walle-dados' }, directory))!;
     await indexFile(file, db, fakeEngine, directory);
@@ -126,7 +130,7 @@ test('troca de revisão do modelo ou divisão em chunks reindexa notas sem reuti
     config.chunkTokens = 240;
     assert.equal(await indexFile(file, db, fakeEngine, directory), 4);
     assert.equal(db.nearest(vector(1)).length, 0);
-  } finally { config.revision = previousRevision; config.chunkTokens = previousChunkTokens; db.close(); await rm(directory, { recursive: true, force: true }); }
+  } finally { config.revision = previousRevision; config.chunkTokens = previousChunkTokens; config.topK = previousTopK; db.close(); await rm(directory, { recursive: true, force: true }); }
 });
 
 test('a busca não salva a pergunta e o contexto limita e delimita memórias não confiáveis', async () => {
@@ -141,6 +145,17 @@ test('a busca não salva a pergunta e o contexto limita e delimita memórias nã
     assert.equal((context.match(/<\/project_knowledge>/g) || []).length, 1);
     assert.equal(db.db.prepare('SELECT count(*) AS n FROM knowledge').get()!.n, 1);
     assert.equal(contextFor([]), '');
+  } finally { db.close(); }
+});
+
+test('pergunta curta não consulta as memórias', async () => {
+  const db = new KnowledgeDatabase(':memory:');
+  let embedded = false;
+  try {
+    db.replace('nota.md', 'walle-dados', 'a', [row('Nota que seria encontrada por qualquer vetor')]);
+    const matches = await search('  ok, pode seguir  ', 'walle-dados', db, { tokens, embed: async () => { embedded = true; return vector(); } });
+    assert.deepEqual(matches, []);
+    assert.equal(embedded, false);
   } finally { db.close(); }
 });
 

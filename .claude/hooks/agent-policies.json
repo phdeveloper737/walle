@@ -22,7 +22,7 @@
     "walle-seguranca": {
         "tipo": "implementacao",
         "testes": ["tests/Feature/Conversor", "tests/Feature/HelpDesk", "tests/Feature/Ferramentas"],
-        "arquivos": "^(app/(Conversor|Support/HelpDesk|Ferramentas)/.+\\.php|app/Livewire/(Conversor|Ferramentas)\\.php|app/Livewire/Concerns/ConfirmaSenha\\.php|app/Models/Concerns/SomenteLeitura\\.php|config/database\\.php|resources/views/livewire/(conversor|ferramentas)(/.*)?\\.blade\\.php|tests/Feature/(Conversor|HelpDesk|Ferramentas)/.+\\.php)$"
+        "arquivos": "^(app/(Conversor|Support/HelpDesk|Ferramentas)/.+\\.php|app/Livewire/(Conversor|Ferramentas)\\.php|app/Livewire/Concerns/ConfirmaSenha\\.php|app/Models/Concerns/SomenteLeitura\\.php|app/Models/Auditoria\\.php|tests/TestCase\\.php|config/database\\.php|resources/views/livewire/(conversor|ferramentas)(/.*)?\\.blade\\.php|tests/Feature/(Conversor|HelpDesk|Ferramentas)/.+\\.php)$"
     },
     "walle-paridade": {
         "tipo": "implementacao",
@@ -32,6 +32,10 @@
     "walle-harness": {
         "tipo": "harness",
         "arquivos": "^(\\.claude/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.opencode/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.(claude|opencode)/commands/[a-z0-9-]+\\.md|\\.(claude|agents)/skills/.+\\.md|\\.ai/guidelines/walle\\.md|CLAUDE\\.md|AGENTS\\.md)$"
+    },
+    "walle-hooks": {
+        "tipo": "harness",
+        "arquivos": "^(\\.claude/hooks/(?!agent-policies\\.json$).+\\.(ps1|json)|\\.claude/scripts/.+|\\.claude/settings\\.json)$"
     },
     "walle-verificador": { "tipo": "verificacao" },
     "walle-orquestrador": { "tipo": "orquestrador", "arquivos": "^(\\.walle/local/T-[0-9]{4}/(pedido\\.json|commit\\.txt|pr\\.md|notas\\.md)|PLAN\\.md|SPEC\\.md|docs/.+\\.md)$" },
