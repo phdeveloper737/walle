@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Autorizadas\RoboAutorizadas;
 use App\Models\CicloAutorizadas;
-use App\Support\HelpDesk\SenhaHelpDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -19,7 +18,7 @@ use Throwable;
 #[Title('Saúde do sistema')]
 class Saude extends Component
 {
-    public function render(SenhaHelpDesk $senhaHelpDesk, MasterSupervisorRepository $supervisores, RoboAutorizadas $robo): View
+    public function render(MasterSupervisorRepository $supervisores, RoboAutorizadas $robo): View
     {
         return view('livewire.saude', [
             'itens' => [
@@ -34,15 +33,10 @@ class Saude extends Component
 
                     return 'Valkey '.($info['valkey_version'] ?? $info['redis_version'] ?? '?');
                 }),
-                $this->conferir('Help Desk (192.168.10.254)', 'support_agent', function () use ($senhaHelpDesk) {
+                $this->conferir('Help Desk (192.168.10.254)', 'support_agent', function () {
                     $versao = DB::connection('help')->selectOne('select version() as versao')->versao;
-                    $origem = match ($senhaHelpDesk->origem()) {
-                        'api' => 'senha pela API',
-                        'reserva' => 'senha RESERVA (a API do Help falhou)',
-                        default => 'senha em cache',
-                    };
 
-                    return 'MySQL '.$versao.' · '.$origem;
+                    return 'MySQL '.$versao.' · usuário '.config('database.connections.help.username');
                 }),
                 $this->horizon($supervisores),
                 $this->agendador(),

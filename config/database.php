@@ -65,13 +65,15 @@ return [
         ],
 
         // Help Desk (192.168.10.254): login (a_user) e base de consulta. SOMENTE LEITURA.
-        // A senha real vem da API do Help (App\Support\HelpDesk\SenhaHelpDesk); a reserva só se a API falhar.
+        // Usuário "walle" do .254, só com SELECT (o root não é mais usado). A senha vem só do .env
+        // (HELP_DB_SENHA_RESERVA): a API do Help não é mais consultada.
+        // Fora dos testes, esta conexão só lê, qualquer que seja o host (App\Support\HelpDesk\TravaHelpDeskProducao).
         'help' => [
             'driver' => 'mysql',
             'host' => env('HELP_DB_HOST', '192.168.10.254'),
             'port' => env('HELP_DB_PORT', '3306'),
             'database' => env('HELP_DB_DATABASE', 'suporte'),
-            'username' => env('HELP_DB_USERNAME', 'root'),
+            'username' => env('HELP_DB_USERNAME', 'walle'),
             'password' => env('HELP_DB_SENHA_RESERVA', ''),
             // O MySQL do .254 é anterior ao 5.5.3 e não conhece utf8mb4 (o sistema antigo também usa utf8)
             'charset' => 'utf8',

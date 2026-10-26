@@ -6,10 +6,12 @@ use App\Auth\UsuariosHelpDesk;
 use App\Models\Usuario;
 use App\Sactus\Ssh\ConectorPhpseclib;
 use App\Sactus\Ssh\ConectorSsh;
-use App\Support\HelpDesk\SenhaHelpDesk;
+use App\Support\HelpDesk\TravaHelpDeskProducao;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(SenhaHelpDesk::class);
+        $this->app->singleton(TravaHelpDeskProducao::class);
 
         // SSH de verdade nos servidores dos clientes; os testes trocam por um servidor falso
         $this->app->bind(ConectorSsh::class, ConectorPhpseclib::class);
@@ -34,12 +36,13 @@ class AppServiceProvider extends ServiceProvider
         // Fora da produção: acusa lazy loading e atributo inexistente (útil com as tabelas legadas)
         Model::shouldBeStrict(! $this->app->isProduction());
 
-        // Conexão "help": a senha só é buscada (API do Help ou reserva) quando a conexão é usada de fato
-        DB::extend('help', function (array $config, string $name) {
-            $config['password'] = $this->app->make(SenhaHelpDesk::class)->obter();
-
-            return $this->app->make('db.factory')->make($config, $name);
-        });
+        // Help Desk de produção é só consulta: toda conexão (inclusive as recriadas depois de um DB::purge
+        // e as dinâmicas do DB::build) recebe a trava que barra escrita antes de abrir o PDO
+        $trava = $this->app->make(TravaHelpDeskProducao::class);
+        Event::listen(ConnectionEstablished::class, fn (ConnectionEstablished $evento) => $trava->proteger($evento->connection));
+        foreach (DB::getConnections() as $conexao) {
+            $trava->proteger($conexao);
+        }
 
         Auth::provider('helpdesk', fn () => new UsuariosHelpDesk);
 

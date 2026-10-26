@@ -1,0 +1,44 @@
+<?php
+
+use App\Support\HelpDesk\TravaHelpDeskProducao;
+use Illuminate\Support\Facades\DB;
+
+/*
+ * Nos testes a conexão "help" aponta para `<banco de testes>_help`, nunca para o banco principal nem para o
+ * Help Desk real (tests/TestCase.php). SEGURANÇA: nada daqui abre conexão com o 192.168.10.254, e
+ * migrateDatabases() só é chamado com nomes inválidos, que ele recusa antes de qualquer SQL.
+ */
+
+test('nos testes, a conexão help usa o banco <banco de testes>_help', function () {
+    $principal = DB::connection('mysql')->getDatabaseName();
+
+    expect($principal)->toMatch('/^walle_testes(_t[0-9]+)?$/')
+        ->and(DB::connection('help')->getDatabaseName())->toBe($principal.'_help');
+});
+
+test('nos testes, a conexão help não aponta para nenhum host do Help Desk de produção', function () {
+    expect(config('walle.help_desk.hosts_producao'))->not->toBeEmpty()
+        ->and(TravaHelpDeskProducao::hostDeProducao(DB::connection('help')->getConfig()))->toBeNull();
+});
+
+test('migrateDatabases recusa banco fora do padrão walle_testes antes de criar qualquer banco', function (string $banco) {
+    $bancosAntes = DB::connection('mysql')->table('information_schema.SCHEMATA')->orderBy('SCHEMA_NAME')->pluck('SCHEMA_NAME')->all();
+    config(['database.connections.mysql.database' => $banco]);
+
+    expect(fn () => $this->migrateDatabases())
+        ->toThrow(RuntimeException::class, "Banco de testes inválido: \"{$banco}\". Use walle_testes ou walle_testes_tNN.");
+
+    $bancosDepois = DB::connection('mysql')->table('information_schema.SCHEMATA')->orderBy('SCHEMA_NAME')->pluck('SCHEMA_NAME')->all();
+
+    expect($bancosDepois)->toBe($bancosAntes)
+        ->and(DB::connection('mysql')->table('information_schema.SCHEMATA')->where('SCHEMA_NAME', $banco.'_help')->exists())->toBeFalse();
+})->with([
+    'banco de desenvolvimento' => 'walle',
+    'Help Desk' => 'suporte',
+    'banco help dos testes' => 'walle_testes_help',
+    'sufixo solto' => 'walle_testesx',
+    'sessão paralela sem número' => 'walle_testes_t',
+    'sessão paralela com sufixo' => 'walle_testes_t01_help',
+    'maiúsculas' => 'WALLE_TESTES',
+    'vazio' => '',
+]);

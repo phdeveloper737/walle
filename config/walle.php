@@ -11,6 +11,11 @@ return [
     'admins' => array_values(array_filter(array_map('intval', explode(',', (string) env('WALLE_ADMINS', ''))))),
     'confirmar_senha_minutos' => 15,
 
+    // Hosts do Help Desk de produção: toda conexão com um deles só faz leitura (App\Support\HelpDesk\TravaHelpDeskProducao).
+    'help_desk' => [
+        'hosts_producao' => array_values(array_filter(array_map('trim', explode(',', (string) (env('WALLE_HELP_HOSTS_PRODUCAO') ?: '192.168.10.254'))))),
+    ],
+
     // Robô das autorizadas: consulta na Sefaz as contingências e marca as que já foram autorizadas
     // (substitui o tools/services/autorizadas.php do sistema antigo)
     'autorizadas' => [

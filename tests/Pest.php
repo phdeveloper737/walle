@@ -18,7 +18,7 @@ use Tests\TestCase;
 |--------------------------------------------------------------------------
 |
 | Os testes de Feature usam o Tests\TestCase: banco walle_testes zerado e a conexão "help"
-| apontando para ele (nunca para o Help Desk de verdade).
+| apontando para um banco próprio, walle_testes_help (nunca para o Help Desk de verdade).
 |
 */
 
