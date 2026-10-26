@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Schema;
 const TABELAS_NA_ORIGEM = ['task_scheduler_querys_log', 'task_scheduler_querys', 'painel_sentinela'];
 
 beforeEach(function () {
+    // Cria a origem se faltar (CI, volume novo). Conexão avulsa e sem banco: o CREATE DATABASE faz commit
+    // implícito e não pode rodar na conexão mysql, que está na transação do RefreshDatabase.
+    DB::build(array_merge(config('database.connections.mysql'), ['database' => null]))
+        ->statement('CREATE DATABASE IF NOT EXISTS walle_testes_origem CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
+
     config(['database.connections.suporte' => array_merge(config('database.connections.mysql'), ['database' => 'walle_testes_origem'])]);
     DB::purge('suporte');
 });
