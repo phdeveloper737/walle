@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0004",
+    "titulo":  "Agente walle-hooks para hooks, scripts do RAG e settings",
+    "origem":  "pedido do usuário de 26/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0004-agente-walle-hooks-para-hooks-scripts-do",
+    "pr":  18,
+    "base":  "5c17c656f03460b0b57483e35ce8b8a23c456115",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-26 20:00:46",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0004-agente-walle-hooks-para-hooks-scripts-do a partir de 5c17c656f03460b0b57483e35ce8b8a23c456115"
+                    },
+                    {
+                        "quando":  "2026-10-26 20:45:30",
+                        "tipo":  "commit",
+                        "detalhe":  "Adiciona o agente walle-hooks para hooks, scripts do RAG e settings"
+                    },
+                    {
+                        "quando":  "2026-10-26 20:45:38",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #18 aberto"
+                    }
+                ]
+}

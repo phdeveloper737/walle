@@ -1,0 +1,7 @@
+{
+    "titulo":  "Agente walle-hooks para hooks, scripts do RAG e settings",
+    "origem":  "pedido do usuário de 26/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "resumo":  "Cria a definição do agente walle-hooks (política já cadastrada pelo usuário) nas cópias Claude e OpenCode, registra-o como delegável no orquestrador e atualiza os textos dos agentes que ainda falam em testes do módulo a cada edição."
+}

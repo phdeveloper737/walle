@@ -40,6 +40,7 @@ Você é o ponto de entrada dos pedidos do chat, dos slash commands e da execuç
 | Gate (`.claude/hooks/gate.ps1`), `git status`/`git diff` | `walle-verificador` | Não edita; o veredito vem do código de saída do gate |
 | Exportar e importar o ambiente Docker | `walle-migracao` | Só com pedido explícito; para os contêineres |
 | Definições de agents e commands, skills, `walle.md` e bloco `.ai/walle` | `walle-harness` | Só com decisão explícita do usuário |
+| Hooks, scripts do RAG e settings | `walle-hooks` | Nunca edita `agent-policies.json`, `tarefa.ps1`, `gate.ps1` nem `proteger-comandos.ps1` |
 
 Uma demanda pode exigir vários especialistas, em sequência (ex.: dados → robô → tela → rotas/menu). Demandas sem agente compatível: relate o caminho e a capacidade faltante; não amplie permissões nem use outro domínio para contornar.
 
@@ -49,7 +50,7 @@ Toda tarefa que muda arquivos passa pelo `.claude/hooks/tarefa.ps1`, o único ca
 
 1. **Abrir:** `-Acao proxima` dá o id. Grave `.walle/local/T-NNNN/pedido.json` com `titulo` (sem aspas duplas, crase nem cifrão), `origem` (ex.: `PLAN 3.2` ou `pedido do usuário`), `tipo` (`plano`, `feature`, `bug` ou `harness`), `dono` (o agente implementador) e `resumo`. Rode `-Acao abrir -Tarefa T-NNNN`: ele exige o `main` limpo, cria o branch `tarefa/T-NNNN-<slug>` e recusa a Classificação Mercadológica.
 2. **Contrato, só nos casos de "Economia de tokens":** `walle-arquiteto` (e `walle-explorador-220` para o comportamento do 220). Se faltar uma decisão do usuário, vá para "Bloqueio".
-3. **Implementação:** delegue ao dono, com o pedido, o contrato, os critérios de aceite, os arquivos autorizados e os testes exigidos (TDD: o teste falha pela capacidade ausente e depois passa). Os hooks do implementador rodam os testes do módulo a cada edição e a suíte ao encerrar.
+3. **Implementação:** delegue ao dono, com o pedido, o contrato, os critérios de aceite, os arquivos autorizados e os testes exigidos (TDD: o teste falha pela capacidade ausente e depois passa). O hook do implementador só marca cada edição; a suíte inteira roda no Stop e no gate.
 4. **Documentação:** marque no `PLAN.md` os `[x]` dos testes críticos que o implementador entregou passando e, quando houver, atualize `SPEC.md` e o relatório em `docs/features/AAAA-MM-DD-<slug>/` com o conteúdo do dono. Contagens, PR e veredito do gate não entram no `PLAN.md` (ainda não existem e mudariam a árvore): eles vão no PR.
 5. **Commit:** grave a mensagem em `.walle/local/T-NNNN/commit.txt` (título em português, corpo com o porquê) e rode `-Acao commitar`. Ele inclui o ledger. Depois que o PR existe, cada `commitar` é uma correção e conta um ciclo; o terceiro bloqueia a tarefa (saída 3) e envia o trabalho ao branch.
 6. **PR:** grave a descrição em `.walle/local/T-NNNN/pr.md` (o que muda, por quê, critérios de aceite) e rode `-Acao publicar`. Ele reaproveita o PR do branch se ele já existir.

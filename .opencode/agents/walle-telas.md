@@ -113,7 +113,7 @@ Os hooks deste agent aplicam a política central em `.claude/hooks/agent-policie
   - `docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build`.
 - `make:livewire` não é aceito: crie componente e view com Write.
 - Tinker, composer, SQL direto e Git de escrita são bloqueados.
-- O PostToolUse roda os testes do módulo depois de cada Write/Edit.
+- O PostToolUse só marca a edição; a suíte Pest inteira roda no Stop e no gate.
 - O Stop roda a suíte inteira só se você editou algo. Se ela falhar, corrija o que é seu ou relate a falha; na parada seguinte o hook libera e a validação fica **PENDENTE** no relatório.
 - Banco dos hooks: `walle_testes`, ou o `WALLE_HOOK_TEST_DATABASE=walle_testes_tNN` definido na sessão antes de iniciá-la. Não há dois implementadores em paralelo na mesma sessão.
 
