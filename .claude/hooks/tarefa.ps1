@@ -100,10 +100,26 @@ function TextoLocal([string]$Nome) {
     return [IO.File]::ReadAllText($caminho, $utf8).Trim()
 }
 # Commit de tudo (inclusive o ledger) e push do branch, para nada se perder num bloqueio.
-function CommitarTudo([string]$Mensagem, $Estado) {
-    Repo @('add', '-A') | Out-Null
-    if ((Repo @('diff', '--cached', '--quiet') -PodeFalhar).codigo -ne 0) { Repo @('commit', '-q', '-m', $Mensagem) | Out-Null }
+# Se o commit falhar, o estado.json volta a $Original: nada fica registrado sem commit.
+function CommitarTudo([string]$Mensagem, $Estado, [string]$Original) {
+    try {
+        Repo @('add', '-A') | Out-Null
+        if ((Repo @('diff', '--cached', '--quiet') -PodeFalhar).codigo -ne 0) { Repo @('commit', '-q', '-m', $Mensagem) | Out-Null }
+    } catch {
+        if ($Original) {
+            [IO.File]::WriteAllText($arquivoEstado, $Original, $utf8)
+            Repo @('reset', '-q') -PodeFalhar | Out-Null
+        }
+        throw
+    }
     if (TemOrigem) { Repo @('push', '-q', '-u', 'origin', $Estado.branch) | Out-Null }
+}
+# Bloqueada so volta com uma decisao: notas.md preenchido e diferente do texto do bloqueio.
+function ConferirDecisao($Estado) {
+    if ($Estado.estado -cne 'bloqueada') { return '' }
+    $decisao = TextoLocal 'notas.md'
+    if (-not $decisao -or (Hash $decisao) -ceq [string]$Estado.notas_bloqueio) { Recusar "a tarefa esta bloqueada; registre em .walle/local/$Tarefa/notas.md a decisao do usuario que resolve o bloqueio (o texto do bloqueio nao vale)." }
+    return $decisao
 }
 # Commit so do ledger da tarefa (o resto da arvore fica como esta) e push do branch.
 function CommitarLedger([string]$Mensagem, $Estado) {
@@ -179,15 +195,20 @@ switch ($Acao) {
         if ((TemOrigem) -and (NoMain $Tarefa)) { Recusar "$Tarefa ja foi integrada (esta no main)." }
         $locais = @((Repo @('branch', '--list', "tarefa/$Tarefa-*", '--format=%(refname:short)') -PodeFalhar).texto -split "`n" | Where-Object { $_ })
         $remotos = @(BranchesRemotos $Tarefa)
+        # Confere a decisao antes de trocar de branch: uma recusa deixa a sessao onde estava.
+        if (-not $noBranch) {
+            foreach ($ref in @($locais | Select-Object -First 1) + @($remotos | Select-Object -First 1)) {
+                $previa = Repo @('show', "${ref}:.walle/tarefas/$Tarefa/estado.json") -PodeFalhar
+                if ($previa.codigo -eq 0) { ConferirDecisao ($previa.texto | ConvertFrom-Json) | Out-Null }
+            }
+        }
         if ($noBranch) { if ($remotos.Count) { Repo @('merge', '-q', '--ff-only', $remotos[0]) -PodeFalhar | Out-Null } }
         elseif ($locais.Count) { Repo @('switch', '-q', $locais[0]) | Out-Null; if ($remotos.Count) { Repo @('merge', '-q', '--ff-only', $remotos[0]) -PodeFalhar | Out-Null } }
         elseif ($remotos.Count) { Repo @('switch', '-q', '--track', $remotos[0]) | Out-Null }
         else { Recusar "nao achei o branch da tarefa $Tarefa (local nem no origin)." }
         $estado = Estado
         if ($estado.estado -ceq 'bloqueada') {
-            # O texto que explicou o bloqueio nao vale como decisao: notas.md tem de mudar.
-            $decisao = TextoLocal 'notas.md'
-            if (-not $decisao -or (Hash $decisao) -ceq [string]$estado.notas_bloqueio) { Recusar "a tarefa esta bloqueada; registre em .walle/local/$Tarefa/notas.md a decisao do usuario que resolve o bloqueio (o texto do bloqueio nao vale)." }
+            $decisao = ConferirDecisao $estado
             $estado.estado = if ([int]$estado.pr -gt 0) { 'em_revisao' } else { 'em_execucao' }
             $estado.ciclos = 0
             Registrar $estado 'desbloqueada' $decisao
@@ -203,10 +224,11 @@ switch ($Acao) {
         ExigirBranch $estado
         $motivo = TextoLocal 'notas.md'
         if (-not $motivo) { Recusar "explique o bloqueio em .walle/local/$Tarefa/notas.md." }
+        $estadoOriginal = [IO.File]::ReadAllText($arquivoEstado, $utf8)
         $estado.estado = 'bloqueada'
         Definir $estado 'notas_bloqueio' (Hash $motivo)
         Registrar $estado 'bloqueada' $motivo
-        CommitarTudo "Ledger: $Tarefa bloqueada" $estado
+        CommitarTudo "Ledger: $Tarefa bloqueada" $estado $estadoOriginal
         Write-Output "[tarefa] $Tarefa bloqueada e enviada ao origin: $motivo"
         exit 0
     }
@@ -271,10 +293,12 @@ switch ($Acao) {
                 $numero = NumeroDoPr $criado.texto
                 if (-not $numero) { throw "gh pr create nao devolveu o numero do PR: $($criado.texto)" }
             }
+            # Se o commit falhar, o estado volta sem o PR; publicar de novo reaproveita o PR do branch.
+            $estadoOriginal = [IO.File]::ReadAllText($arquivoEstado, $utf8)
             $estado.pr = $numero
             $estado.estado = 'em_revisao'
             Registrar $estado 'pr' "PR #$numero aberto"
-            CommitarTudo "Ledger: $Tarefa PR #$numero" $estado
+            CommitarTudo "Ledger: $Tarefa PR #$numero" $estado $estadoOriginal
         }
         Write-Output "[tarefa] $Tarefa publicada: PR #$($estado.pr), HEAD $((Repo @('rev-parse', 'HEAD')).texto)"
         exit 0
