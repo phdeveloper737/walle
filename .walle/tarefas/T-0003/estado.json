@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0003",
+    "titulo":  "Reduzir o consumo de tokens do harness",
+    "origem":  "pedido do usuário de 26/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0003-reduzir-o-consumo-de-tokens-do-harness",
+    "pr":  15,
+    "base":  "09950f04b9da34683a7c5fd69b9595658ba8eab8",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-26 16:35:06",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0003-reduzir-o-consumo-de-tokens-do-harness a partir de 09950f04b9da34683a7c5fd69b9595658ba8eab8"
+                    },
+                    {
+                        "quando":  "2026-10-26 16:42:03",
+                        "tipo":  "commit",
+                        "detalhe":  "Reduz o consumo de tokens do harness"
+                    },
+                    {
+                        "quando":  "2026-10-26 16:42:22",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #15 aberto"
+                    }
+                ]
+}
