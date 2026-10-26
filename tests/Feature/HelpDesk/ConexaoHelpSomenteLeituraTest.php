@@ -25,13 +25,13 @@ function travaForaDosTestes(): TravaHelpDeskProducao
     return new TravaHelpDeskProducao(app(ClassificadorSql::class), emTestes: false);
 }
 
-/** Conexão com nome na lista de somente leitura e host fora da lista de produção, sem rede. */
-function conexaoHelpPeloNome(?TravaHelpDeskProducao $trava = null, string $banco = 'nao_existe'): Connection
+/** Conexão com nome na lista de somente leitura (por padrão com host fora da lista de produção), sem rede. */
+function conexaoHelpPeloNome(?TravaHelpDeskProducao $trava = null, string $banco = 'nao_existe', string $host = '127.0.0.1'): Connection
 {
     config([
         'walle.help_desk.conexoes_somente_leitura' => ['help', CONEXAO_HELP_PELO_NOME],
         'database.connections.'.CONEXAO_HELP_PELO_NOME => array_merge(config('database.connections.mysql'), [
-            'host' => '127.0.0.1',
+            'host' => $host,
             'port' => 1,
             'database' => $banco,
             'username' => 'guarda',
@@ -135,6 +135,25 @@ test('nos testes, a trava pelo nome libera a conexão da lista só no banco de t
 
     expect(fn () => $conexao->insert('insert into a_user (name) values (?)', ['x']))
         ->toThrow(QueryException::class, 'TENTOU CONECTAR');
+})->with([
+    'sessão única' => 'walle_testes_help',
+    'sessão paralela' => 'walle_testes_t07_help',
+]);
+
+/*
+ * Ordem da trava: o host de produção é conferido ANTES da isenção pelo nome. Mesmo nos testes, com a conexão
+ * na lista e o banco de teste do Help Desk (que sozinhos liberariam, como no teste acima), o host de produção barra.
+ * O host é fictício (adicionado à lista só aqui) e o PDO é falso: nada sai do contêiner.
+ */
+test('nos testes, a conexão da lista no banco de teste do Help Desk é barrada se o host for de produção', function (string $banco) {
+    config(['walle.help_desk.hosts_producao' => [...config('walle.help_desk.hosts_producao'), 'help.producao.local']]);
+    $trava = new TravaHelpDeskProducao(app(ClassificadorSql::class), emTestes: true);
+    $conexao = conexaoHelpPeloNome($trava, $banco, 'help.producao.local');
+
+    expect(fn () => $conexao->insert('insert into a_user (name) values (?)', ['x']))->toThrow(
+        EscritaNoHelpDeskDeProducao::class,
+        'O Help Desk de produção (help.producao.local) é somente consulta: o walle não grava nada lá.',
+    );
 })->with([
     'sessão única' => 'walle_testes_help',
     'sessão paralela' => 'walle_testes_t07_help',

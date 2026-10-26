@@ -15,6 +15,11 @@
                         "quando":  "2026-10-26 16:13:46",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0002-sugestoes-da-revisao-da-trava-do-help-de a partir de 2e1f8bcb464f35ab2821a0bfea5de7f188d0992b"
+                    },
+                    {
+                        "quando":  "2026-10-26 16:20:26",
+                        "tipo":  "commit",
+                        "detalhe":  "Testes das sugestões da revisão da trava do Help Desk (13.1c)"
                     }
                 ]
 }

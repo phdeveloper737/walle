@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 test('nos testes, a conexão help usa o banco <banco de testes>_help', function () {
     $principal = DB::connection('mysql')->getDatabaseName();
 
-    expect($principal)->toMatch('/^walle_testes(_t[0-9]+)?$/')
+    expect($principal)->toMatch('/^walle_testes(_t[0-9]+)?\z/')
         ->and(DB::connection('help')->getDatabaseName())->toBe($principal.'_help');
 });
 
@@ -27,6 +27,21 @@ test('nos testes, a conexão auditoria usa o banco de testes do walle, em transa
     expect($auditoria->transactionLevel())->toBeGreaterThanOrEqual(1)
         ->and($auditoria->getDatabaseName())->toBe(DB::connection('mysql')->getDatabaseName())
         ->and(TravaHelpDeskProducao::hostDeProducao($auditoria->getConfig()))->toBeNull();
+});
+
+/*
+ * O tests/TestCase.php sobrescreve a conexão "auditoria" com a config da "mysql", então os testes acima não
+ * enxergam o arquivo real. Este lê o config/database.php de verdade e compara só as arrays entre si: a
+ * mensagem de falha não mostra host, usuário nem senha.
+ */
+test('no config/database.php real, a conexão auditoria é idêntica à mysql', function () {
+    /** @var array{connections: array<string, mixed>} $config */
+    $config = require config_path('database.php');
+    $conexoes = $config['connections'];
+
+    expect(is_array($conexoes['mysql'] ?? null))->toBeTrue()
+        ->and(array_key_exists('auditoria', $conexoes))->toBeTrue()
+        ->and($conexoes['auditoria'] === $conexoes['mysql'])->toBeTrue();
 });
 
 test('exigirBancoDeTeste aceita só walle_testes e walle_testes_tNN, sem nada depois', function (string $banco, bool $aceito) {
