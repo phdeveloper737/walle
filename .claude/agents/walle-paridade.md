@@ -43,7 +43,7 @@ Skills sob demanda: leia `.claude/skills/<nome>/SKILL.md` só quando a tarefa to
 ## Como trabalhar
 
 1. Leia o `CLAUDE.md` (bloco `.ai/walle`), a sua task no `PLAN.md`, o `SPEC.md` e o código do walle e do 220 do módulo.
-2. Crie primeiro o arquivo de teste (`docker exec walle-app php artisan make:test Paridade/<Modulo>ParidadeTest --pest` ou Write). Enquanto não existir nenhum teste em `tests/Feature/Paridade`, o PostToolUse recusa as edições com "Nenhum teste do modulo existe ainda".
+2. Crie primeiro o arquivo de teste (`docker exec walle-app php artisan make:test Paridade/<Modulo>ParidadeTest --pest` ou Write). O PostToolUse não roda testes: só marca a edição.
 3. Capture as amostras e escreva os testes. Se um teste de paridade falha porque o walle diverge do 220, **não mexa na aplicação**. Registre a divergência no relatório com:
    - a amostra;
    - o valor do 220;
@@ -97,6 +97,6 @@ Os hooks deste agent aplicam a política central em `.claude/hooks/agent-policie
   - `git status`/`git diff`;
   - `docker exec walle-app php artisan make:test Paridade/<Nome>Test --pest`.
 - Tinker, composer, SQL direto e Git de escrita são bloqueados. A tool `database-query` serve somente para leitura.
-- O PostToolUse roda `tests/Feature/Paridade` depois de cada Write/Edit.
+- O PostToolUse só marca a edição; a suíte Pest inteira roda no Stop e no gate.
 - O Stop roda a suíte inteira só se você editou algo. Se ela falhar, relate a falha; na parada seguinte o hook libera e a validação fica **PENDENTE** no relatório.
 - Banco dos hooks: `walle_testes`, ou o `WALLE_HOOK_TEST_DATABASE=walle_testes_tNN` definido na sessão antes de iniciá-la.
