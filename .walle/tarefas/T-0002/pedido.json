@@ -1,0 +1,7 @@
+{
+    "titulo":  "Sugestões da revisão da trava do Help Desk",
+    "origem":  "pedido do usuário (sugestões da revisão do PR #13, T-0001)",
+    "tipo":  "feature",
+    "dono":  "walle-seguranca",
+    "resumo":  "Teste que prende a ordem host de produção antes da isenção do banco de teste; teste que confere no config/database.php real que auditoria é cópia da mysql; varredura de PDO detecta também new PDO( e Pdo Mysql connect; asserção do BancoDeTesteDoHelpDeskTest com \\z."
+}
