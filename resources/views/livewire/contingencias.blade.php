@@ -20,11 +20,12 @@
                 @forelse ($this->clientes as $cliente)
                     @php $selecionado = $cliente->id === $clienteId; @endphp
                     <button type="button" wire:key="cliente-{{ $cliente->id }}" wire:click="selecionar({{ $cliente->id }})"
+                        wire:loading.attr="disabled" wire:target="selecionar"
                         {{-- No celular o detalhe fica embaixo da lista: rola até ele --}}
                         x-on:click="if (window.innerWidth < 1024) setTimeout(() => document.getElementById('detalhe-cliente')?.scrollIntoView({ behavior: 'smooth' }), 200)"
                         @if ($selecionado) aria-current="true" @endif
                         @class([
-                            'relative w-full shrink-0 overflow-hidden rounded-md px-3 py-2.5 text-left transition',
+                            'relative w-full shrink-0 overflow-hidden rounded-md px-3 py-2.5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait',
                             'before:absolute before:inset-0 before:bg-on-surface before:opacity-0 before:transition-opacity hover:before:opacity-8',
                             'bg-secondary-container text-on-secondary-container' => $selecionado,
                             'bg-surface-container-high' => ! $selecionado,
@@ -54,6 +55,10 @@
 
     {{-- Cliente escolhido --}}
     <section id="detalhe-cliente" class="min-w-0 flex-1 scroll-mt-16 rounded-lg bg-surface-container-low p-3 sm:p-4" aria-label="Cliente escolhido">
+        <div wire:loading wire:target="selecionar" class="w-full">
+            @include('livewire.contingencias.do-cliente-carregando')
+        </div>
+        <div wire:loading.remove wire:target="selecionar">
         @if ($cliente = $this->clienteSelecionado)
             <header class="flex flex-col gap-2 border-b border-outline-variant pb-3">
                 <div>
@@ -86,5 +91,6 @@
                 Selecione um cliente na lista para ver as contingências dele.
             </x-ui.vazio>
         @endif
+        </div>
     </section>
 </div>
