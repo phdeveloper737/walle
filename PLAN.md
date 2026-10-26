@@ -80,11 +80,12 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [x] `tests/Feature/ImportarSuporteTest.php`: importar só `painel_sentinela` copia as linhas da origem e rodar de novo não duplica
   - [x] pedir uma tabela fora de `TABELAS` encerra com erro e não importa nada
 
-## Sprint 2 — Os robôs do 220 mantidos no escopo rodam no walle, desligados por padrão (`WALLE_*_ATIVO=false`), e gravam nas mesmas tabelas que o 220 (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Sentinela tests/Feature/Mercadologica tests/Feature/CleanTax tests/Feature/Ferramentas tests/Feature/Sactus` passa)
+## Sprint 2 — Os robôs do 220 mantidos no escopo rodam no walle, desligados por padrão (`WALLE_*_ATIVO=false`), e gravam nas mesmas tabelas que o 220 (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Sentinela tests/Feature/CleanTax tests/Feature/Ferramentas tests/Feature/Sactus` passa)
 
-### Fase 3 — Robôs de coleta · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias/RoboContingenciasTest.php tests/Feature/Sentinela/RoboSentinelaTest.php tests/Feature/Mercadologica/RoboMercadologicaTest.php tests/Feature/CleanTax/RoboCleanTaxTest.php tests/Feature/Ferramentas/RoboTarefasTest.php`
+### Fase 3 — Robôs de coleta · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias/RoboContingenciasTest.php tests/Feature/Sentinela/RoboSentinelaTest.php tests/Feature/CleanTax/RoboCleanTaxTest.php tests/Feature/Ferramentas/RoboTarefasTest.php`
 > Dependências: Fase 2
-> Paralelismo: 3.1, 3.2, 3.3, 3.4 e 3.5 rodam em paralelo (cada uma só cria arquivos dentro da sua pasta de domínio, um Job e os seus testes; nenhuma mexe em `routes/console.php` nem em `config/`)
+> Fora desta fase: a task 3.3 (Classificação Mercadológica) foi para a seção manual no fim do plano (decisão de 26/10/2026).
+> Paralelismo: 3.1, 3.2, 3.4 e 3.5 rodam em paralelo (cada uma só cria arquivos dentro da sua pasta de domínio, um Job e os seus testes; nenhuma mexe em `routes/console.php` nem em `config/`)
 
 #### Task 3.0 — Histórico local dos ciclos e coletas de contingências
 - Agent: Backend Laravel — dados
@@ -115,14 +116,6 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [ ] `tests/Feature/Sentinela/RoboSentinelaTest.php`: com `Http::fake` devolvendo o JSON do sentinela, o painel do cliente fica igual ao que o 220 gravaria para o mesmo JSON
   - [ ] timeout ou JSON inválido grava o cliente como "sem resposta" com a mensagem, sem derrubar o ciclo
 
-#### Task 3.3 — Classificação Mercadológica (substitui `mercadological.worker.php` e `set.mercadological.worker.php`)
-- Agent: Backend Laravel — robôs
-- Input: models da task 1.3
-- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena após o limite de falhas consecutivas do 220; registrar limite e duração exatos no contrato antes de implementar), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`
-- Testes críticos:
-  - [ ] `tests/Feature/Mercadologica/RoboMercadologicaTest.php`: cliente habilitado sem cadastro técnico aparece como aviso (não some em silêncio, correção do 220) e o cliente com cadastro é sincronizado e logado
-  - [ ] cliente atinge o limite documentado de falhas, fica de fora pela duração documentada da quarentena e volta depois; testar também o ciclo anterior ao limite
-
 #### Task 3.4 — CleanTax BOT (substitui `cleantax.php`)
 - Agent: Backend Laravel — robôs
 - Input: model da task 1.4
@@ -145,17 +138,18 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 
 #### Task 5.1 — Agenda, configuração e filas dos robôs novos
 - Agent: Backend Laravel — infraestrutura
-- Input: Jobs das tasks 3.1 a 3.5; valores exatos de frequência, timeout, limite de falhas e duração da quarentena extraídos dos scripts do 220 e registrados no contrato de cada robô, com unidade e teste de fronteira. Se o legado não fornecer valor inequívoco, pedir decisão ao usuário antes de implementar o parâmetro.
-- Output: entradas em `routes/console.php` (`walle:robo-contingencias`, `walle:robo-sentinela`, `walle:robo-mercadologica`, `walle:robo-cleantax`, `walle:robo-tarefas`, cada uma com `->when(fn ($robo) => $robo->ligado())`), blocos em `config/walle.php` com `WALLE_CONTINGENCIAS_ATIVO`, `WALLE_SENTINELA_ATIVO`, `WALLE_MERCADOLOGICA_ATIVO`, `WALLE_CLEANTAX_ATIVO`, `WALLE_TAREFAS_ATIVO` (todos `false`), supervisores na conexão `robos` em `config/horizon.php` e as variáveis no `.env.example`
+- Input: Jobs das tasks 3.1, 3.2, 3.4 e 3.5 (a Mercadológica fica de fora); valores exatos de frequência, timeout, limite de falhas e duração da quarentena extraídos dos scripts do 220 e registrados no contrato de cada robô, com unidade e teste de fronteira. Se o legado não fornecer valor inequívoco, pedir decisão ao usuário antes de implementar o parâmetro.
+- Output: entradas em `routes/console.php` (`walle:robo-contingencias`, `walle:robo-sentinela`, `walle:robo-cleantax`, `walle:robo-tarefas`, cada uma com `->when(fn ($robo) => $robo->ligado())`), blocos em `config/walle.php` com `WALLE_CONTINGENCIAS_ATIVO`, `WALLE_SENTINELA_ATIVO`, `WALLE_CLEANTAX_ATIVO`, `WALLE_TAREFAS_ATIVO` (todos `false`), supervisores na conexão `robos` em `config/horizon.php` e as variáveis no `.env.example`
 - Testes críticos:
   - [ ] `tests/Feature/AgendadorTest.php`: com cada `WALLE_*_ATIVO=true`, o evento do robô aparece como devido no agendador
   - [ ] com o robô desligado (padrão), o evento não dispara o Job
 
 ## Sprint 3 — Todas as telas do newsuporte que faltam abrem no walle, no padrão walle-ui, com os dados do banco `walle` (`docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php tests/Feature/Relatorios` passa)
 
-### Fase 6 — Telas · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Relatorios tests/Feature/Contingencias/PainelRoboContingenciasTest.php tests/Feature/Sentinela/PainelSentinelaTest.php tests/Feature/Mercadologica/PainelMercadologicaTest.php tests/Feature/CleanTax/PainelCleanTaxTest.php tests/Feature/Ferramentas/PainelFerramentasTest.php tests/Feature/CrontabTest.php`
+### Fase 6 — Telas · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Relatorios tests/Feature/Contingencias/PainelRoboContingenciasTest.php tests/Feature/Sentinela/PainelSentinelaTest.php tests/Feature/CleanTax/PainelCleanTaxTest.php tests/Feature/Ferramentas/PainelFerramentasTest.php tests/Feature/CrontabTest.php`
 > Dependências: Fase 2 (dados); novas telas com tabela dependem também da task 6.0. As telas leem as tabelas e não dependem dos robôs estarem ligados.
-> Paralelismo: depois de 6.0 para telas com tabela, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 e 6.7 rodam em paralelo (cada uma cria o seu componente Livewire, as suas views e o seu teste; rotas e menu ficam para a Fase 7)
+> Fora desta fase: a task 6.4 (painel da Classificação Mercadológica) foi para a seção manual no fim do plano.
+> Paralelismo: depois de 6.0 para telas com tabela, 6.1, 6.2, 6.3, 6.5, 6.6 e 6.7 rodam em paralelo (cada uma cria o seu componente Livewire, as suas views e o seu teste; rotas e menu ficam para a Fase 7)
 
 #### Task 6.0 — Componente reutilizável de tabela (pré-requisito das novas telas com tabela)
 - Agent: Frontend Livewire (walle-ui)
@@ -187,14 +181,6 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [ ] `tests/Feature/Sentinela/PainelSentinelaTest.php`: a tela mostra cada cliente com o estado coletado e filtra pelo cliente da URL
   - [ ] cliente inexistente na URL mostra o vazio, sem erro
 
-#### Task 6.4 — Painel da Classificação Mercadológica (substitui `mercadological.dash.php`)
-- Agent: Frontend Livewire (walle-ui)
-- Input: models da task 1.3
-- Output: `app/Livewire/Mercadologica.php` e `resources/views/livewire/mercadologica.blade.php` (KPIs, clientes, histórico do cliente aberto, "sem sinal" pela régua de ciclos do 220)
-- Testes críticos:
-  - [ ] `tests/Feature/Mercadologica/PainelMercadologicaTest.php`: os KPIs batem com a contagem das linhas semeadas e o histórico abre o cliente certo
-  - [ ] cliente que passou da régua de ciclos aparece como "sem sinal"
-
 #### Task 6.5 — Painel do CleanTax (substitui `cleantax.dash.php`)
 - Agent: Frontend Livewire (walle-ui)
 - Input: model da task 1.4
@@ -225,8 +211,8 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 
 #### Task 7.1 — Registrar as telas novas
 - Agent: Backend Laravel — infraestrutura
-- Input: componentes das tasks 6.1 a 6.7 e robôs da Fase 5
-- Output: rotas `relatorios`, `sentinela`, `mercadologica`, `clean-tax`, `ferramentas` e `crontab` em `routes/web.php` (grupo `auth`), itens com `<x-ui.menu-item>` em `resources/views/layouts/app.blade.php` (Programação só para admin) e um item por robô novo em `App\Livewire\Saude`
+- Input: componentes das tasks 6.1 a 6.7 (sem a 6.4) e robôs da Fase 5
+- Output: rotas `relatorios`, `sentinela`, `clean-tax`, `ferramentas` e `crontab` em `routes/web.php` (grupo `auth`), itens com `<x-ui.menu-item>` em `resources/views/layouts/app.blade.php` (Programação só para admin) e um item por robô novo em `App\Livewire\Saude`
 - Testes críticos:
   - [ ] `tests/Feature/TelasTest.php`: cada rota nova abre (`200`) para usuário logado e a Saúde mostra os robôs novos como "Desligado neste servidor"
   - [ ] visitante é redirecionado para `entrar`; usuário que não é admin não vê o menu Programação
@@ -301,13 +287,13 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [ ] `tests/Feature/TelasTest.php`: as três rotas abrem para admin logado
   - [ ] usuário que não é admin recebe `403` nas três
 
-## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
+## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados, exceto a Classificação Mercadológica, que segue no 220 até a seção manual no fim do plano (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
 
 ### Fase 12 — Paridade com o newsuporte · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade`
 > Dependências: Sprints 1 a 4
 > Paralelismo: 12.1, 12.2 e 12.4 rodam em paralelo (cada uma cria só o seu teste e as suas amostras em `tests/Fixtures/legado/<modulo>/`)
 
-#### Task 12.1 — Paridade dos robôs de coleta (Contingência BOT, Sentinela, Classificação Mercadológica, CleanTax)
+#### Task 12.1 — Paridade dos robôs de coleta (Contingência BOT, Sentinela, CleanTax)
 - Agent: QA — paridade com o newsuporte
 - Input: respostas reais de clientes capturadas no `testes220` (JSON do sentinela, contingências, retorno do CleanTax) e as linhas que o 220 gravou para elas
 - Output: `tests/Feature/Paridade/RobosDeColetaParidadeTest.php` e amostras em `tests/Fixtures/legado/robos/`
@@ -381,3 +367,37 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 #### Pendências fora do walle
 - [ ] Restringir o `root@%` do 192.168.10.254 e trocar a senha dele (a API do Help ainda a entrega).
 - [ ] Apagar os logs do 220 que guardam a senha do root em texto puro (`response.log` e `login.class.php`).
+
+## Manual, fora da automação — Classificação Mercadológica (por último)
+
+> Decisão de 26/10/2026: o robô da Classificação Mercadológica grava (`INSERT`, `UPDATE` e `DELETE`) nos bancos dos clientes, então fica fora de todo o fluxo automático (orquestrador, comandos, agenda, paridade automática). Só começa depois de todo o resto do plano, com pedido explícito do usuário em cada passo; nenhum agente inicia estas tasks por conta própria. As tabelas da task 1.3 já existem e continuam no importador. Ordem: 3.3, 6.4 e por fim 7.2.
+
+#### Task 3.3 — Classificação Mercadológica (substitui `mercadological.worker.php` e `set.mercadological.worker.php`)
+- Agent: Backend Laravel — robôs, só com pedido explícito do usuário
+- Input: models da task 1.3
+- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena após o limite de falhas consecutivas do 220; registrar limite e duração exatos no contrato antes de implementar), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`
+- Contrato obrigatório antes de implementar (revisão de 26/10/2026):
+  - No 220, a "primeira execução" depende de `data_exec_bot_class_mercadologica` vazia no `c_cliente` do Help Desk e roda `UPDATE produto SET fk_p_grupo=1, fk_p_categoria=1, fk_p_familia=1` no banco do cliente (`set.mercadological.worker.php`); depois do sucesso, o 220 grava essa data no Help Desk. O walle não grava no Help Desk: a data da última execução fica numa tabela do walle e **só ela** decide a primeira execução. Sem isso, cada ciclo viraria "primeira execução" e zeraria a classificação dos produtos de novo.
+  - O 220 abre atendimento no Help Desk (`health.mercadological.worker.php`, `INSERT INTO s_atendimento`); no walle isso é proibido e não é portado.
+  - As credenciais da base de origem que o script guarda em constantes vão para o `.env`.
+  - A paridade (amostras do 220 e cliente falso) é definida no contrato desta task, já que a 12.1 não cobre a Mercadológica.
+- Testes críticos:
+  - [ ] `tests/Feature/Mercadologica/RoboMercadologicaTest.php`: cliente habilitado sem cadastro técnico aparece como aviso (não some em silêncio, correção do 220) e o cliente com cadastro é sincronizado e logado
+  - [ ] cliente atinge o limite documentado de falhas, fica de fora pela duração documentada da quarentena e volta depois; testar também o ciclo anterior ao limite
+  - [ ] o reset da classificação (grupo, categoria e família = 1) roda no máximo uma vez por cliente, decidido pela data guardada no walle, e nenhuma escrita vai ao Help Desk
+
+#### Task 6.4 — Painel da Classificação Mercadológica (substitui `mercadological.dash.php`)
+- Agent: Frontend Livewire (walle-ui), só com pedido explícito do usuário
+- Input: models da task 1.3
+- Output: `app/Livewire/Mercadologica.php` e `resources/views/livewire/mercadologica.blade.php` (KPIs, clientes, histórico do cliente aberto, "sem sinal" pela régua de ciclos do 220)
+- Testes críticos:
+  - [ ] `tests/Feature/Mercadologica/PainelMercadologicaTest.php`: os KPIs batem com a contagem das linhas semeadas e o histórico abre o cliente certo
+  - [ ] cliente que passou da régua de ciclos aparece como "sem sinal"
+
+#### Task 7.2 — Agenda, rota, menu e Saúde da Classificação Mercadológica
+- Agent: Backend Laravel — infraestrutura, só com pedido explícito do usuário, depois da 3.3 e da 6.4
+- Input: Job da task 3.3 e componente da task 6.4
+- Output: `walle:robo-mercadologica` em `routes/console.php` com `->when(fn ($robo) => $robo->ligado())`; bloco em `config/walle.php` com `WALLE_MERCADOLOGICA_ATIVO` (padrão `false`) e a variável no `.env.example`; supervisor na conexão `robos` em `config/horizon.php`; rota `mercadologica` em `routes/web.php`, item no menu de `resources/views/layouts/app.blade.php` e item do robô em `App\Livewire\Saude`
+- Testes críticos:
+  - [ ] `tests/Feature/AgendadorTest.php`: com `WALLE_MERCADOLOGICA_ATIVO=true` o evento aparece como devido; desligado (padrão), não dispara o Job
+  - [ ] `tests/Feature/TelasTest.php`: a rota `mercadologica` abre (`200`) para usuário logado e a Saúde mostra o robô como "Desligado neste servidor"
