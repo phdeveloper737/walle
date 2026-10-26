@@ -1,5 +1,8 @@
 {
     "permissions": {
+        "additionalDirectories": [
+            "C:/docker/testes220/newsuporte"
+        ],
         "deny": [
             "Read(./.env)",
             "Read(./.env.backup)",
@@ -25,10 +28,47 @@
             "Edit(./.opencode/plugin/**)",
             "Write(./.opencode/plugin/**)",
             "Edit(./opencode.json)",
-            "Write(./opencode.json)"
+            "Write(./opencode.json)",
+            "Edit(./.claude/settings*.json)",
+            "Write(./.claude/settings*.json)",
+            "Edit(./.claude/hooks/**)",
+            "Write(./.claude/hooks/**)",
+            "Edit(./.github/workflows/**)",
+            "Write(./.github/workflows/**)",
+            "Edit(./.githooks/**)",
+            "Write(./.githooks/**)",
+            "Edit(./.walle/gate/**)",
+            "Write(./.walle/gate/**)",
+            "Edit(./.walle/tarefas/**)",
+            "Write(./.walle/tarefas/**)"
         ],
         "allow": [
-            "Bash(gh pr merge:*)"
+            "Edit(./**)",
+            "Write(./**)",
+            "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1:*)",
+            "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1:*)",
+            "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/agent-policy.Tests.ps1)",
+            "Bash(docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine node --test .opencode/plugin/agent-hooks.test.mjs)",
+            "Bash(docker exec walle-app ./vendor/bin/pest:*)",
+            "Bash(docker exec -e DB_DATABASE=walle_testes walle-app ./vendor/bin/pest:*)",
+            "Bash(docker exec walle-app ./vendor/bin/pint:*)",
+            "Bash(docker exec walle-app ./vendor/bin/phpstan analyse:*)",
+            "Bash(docker exec walle-app php artisan make:*)",
+            "Bash(docker exec walle-app php artisan optimize:clear)",
+            "Bash(docker exec walle-app php artisan schedule:list)",
+            "Bash(docker exec walle-app php artisan route:list:*)",
+            "Bash(docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build)",
+            "Bash(git status)",
+            "Bash(git status --short)",
+            "Bash(git diff)",
+            "Bash(git diff --stat)",
+            "Bash(git diff --name-only)",
+            "mcp__laravel-boost__search-docs",
+            "mcp__laravel-boost__database-schema",
+            "mcp__laravel-boost__database-query",
+            "mcp__laravel-boost__application-info",
+            "mcp__laravel-boost__browser-logs",
+            "mcp__laravel-boost__get-absolute-url"
         ]
     },
     "hooks": {
