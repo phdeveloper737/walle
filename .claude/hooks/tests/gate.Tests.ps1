@@ -44,8 +44,8 @@ try {
     Garantir (Test-Path -LiteralPath (Join-Path $temporario 'historico.jsonl')) 'historico gravado'
 
     # A arvore so e igual a do commit quando nao ha nada pendente (rastreado ou novo e nao ignorado).
-    $pendente = [string](& git -C $raiz status --porcelain)
-    $arvoreDoCommit = ([string](& git -C $raiz rev-parse 'HEAD^{tree}')).Trim()
+    $pendente = "$(& git -C $raiz status --porcelain)"
+    $arvoreDoCommit = "$(& git -C $raiz rev-parse 'HEAD^{tree}')".Trim()
     Garantir ($e.arvore_igual_ao_commit -eq (-not $pendente.Trim())) 'arvore_igual_ao_commit segue o git status'
     if (-not $pendente.Trim()) { Garantir ($e.arvore -eq $arvoreDoCommit) 'sem pendencias, arvore = arvore do commit' }
 

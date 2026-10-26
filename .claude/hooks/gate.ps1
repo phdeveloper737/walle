@@ -42,8 +42,11 @@ function Arvore {
     $ErrorActionPreference = 'Continue'
     try {
         $env:GIT_INDEX_FILE = $indice
+        # Parte do HEAD: com core.fileMode=false (Windows) o git so preserva o bit de executavel do que ja
+        # esta no indice; num indice vazio tudo viraria 644 e a arvore nunca bateria com a do commit.
+        & git -C $raiz read-tree HEAD 2>&1 | Out-Null
         & git -C $raiz add -A 2>&1 | Out-Null
-        return ([string](& git -C $raiz write-tree 2>$null)).Trim()
+        return "$(& git -C $raiz write-tree 2>$null)".Trim()
     } finally {
         $ErrorActionPreference = $preferencia
         if ($anterior) { $env:GIT_INDEX_FILE = $anterior } else { Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue }
@@ -54,7 +57,8 @@ function Arvore {
 function ConsultarGit([string[]]$Argumentos) {
     $preferencia = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    try { return ([string](& git -C $raiz @Argumentos 2>$null)).Trim() } finally { $ErrorActionPreference = $preferencia }
+    # "$(...)" e nao [string](...): sem saida (ex.: branch em HEAD destacado no CI) o cast daria nulo.
+    try { return "$(& git -C $raiz @Argumentos 2>$null)".Trim() } finally { $ErrorActionPreference = $preferencia }
 }
 
 # Chamada com & (e nao Process.Start) para achar duplos .cmd no PATH, como nos testes das politicas.
