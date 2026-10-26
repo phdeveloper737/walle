@@ -67,16 +67,12 @@ jobs:
       - name: Testes (Pest)
         run: ./vendor/bin/pest
 
-  # Harness dos agentes: políticas dos hooks, gate e plugin do OpenCode (os hooks são Windows PowerShell)
+  # Harness dos agentes: políticas dos hooks e gate (os hooks são Windows PowerShell)
   harness:
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24"
 
       - name: Políticas dos agentes
         shell: powershell
@@ -86,10 +82,7 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/gate.Tests.ps1
 
-      - name: Plugin do OpenCode
-        run: node --test .opencode/plugin/agent-hooks.test.mjs
-
-  # Memória local dos agentes (RAG): extração, indexação, busca e isolamento
+  # Node: memória local dos agentes (RAG) e plugin do OpenCode (o duplo do PowerShell no teste é /bin/sh)
   rag:
     runs-on: ubuntu-latest
 
@@ -111,3 +104,7 @@ jobs:
 
       - name: Testes do RAG
         run: node --test tests/rag.test.ts
+
+      - name: Plugin do OpenCode
+        working-directory: ${{ github.workspace }}
+        run: node --test .opencode/plugin/agent-hooks.test.mjs
