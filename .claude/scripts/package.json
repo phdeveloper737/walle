@@ -1,0 +1,20 @@
+{
+  "name": "walle-rag",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "node worker.ts",
+    "smoke": "node tests/model-smoke.ts"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.1",
+    "sqlite-vec": "0.1.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,3 @@
+# Memorias, indice e arquivos temporarios locais nao sao versionados.
+*
+!.gitignore

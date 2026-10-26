@@ -1,0 +1,22 @@
+{
+  "model": "Xenova/all-MiniLM-L6-v2",
+  "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+  "dimensions": 384,
+  "chunkTokens": 250,
+  "overlapTokens": 30,
+  "topK": 3,
+  "minimumSimilarity": 0.25,
+  "categoryBonus": 0.06,
+  "agentCategories": {
+    "walle-orquestrador": "arquitetura",
+    "walle-arquiteto": "arquitetura",
+    "walle-explorador-220": "padroes",
+    "walle-dados": "padroes",
+    "walle-robos": "bugs_resolvidos",
+    "walle-seguranca": "arquitetura",
+    "walle-infra": "arquitetura",
+    "walle-telas": "padroes",
+    "walle-verificador": "tentativas_falhas",
+    "walle-paridade": "tentativas_falhas"
+  }
+}

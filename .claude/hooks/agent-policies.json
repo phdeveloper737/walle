@@ -1,0 +1,41 @@
+{
+    "walle-dados": {
+        "tipo": "implementacao",
+        "testes": ["tests/Migrations", "tests/Feature/ImportarSuporteTest.php", "tests/Feature/Contingencias/ListaDeClientesAcoesTest.php"],
+        "arquivos": "^(database/migrations/[^/]+\\.php|database/(factories|seeders)/[^/]+\\.php|app/Models/[^/]+\\.php|app/Console/Commands/ImportarSuporte\\.php|app/Contingencias/RemocaoDeCliente\\.php|app/Livewire/Contingencias\\.php|tests/(Migrations/.*|Feature/(ImportarSuporteTest\\.php|Contingencias/ListaDeClientesAcoesTest\\.php)))$"
+    },
+    "walle-robos": {
+        "tipo": "implementacao",
+        "testes": ["tests/Feature/Contingencias", "tests/Feature/Sentinela", "tests/Feature/Mercadologica", "tests/Feature/CleanTax", "tests/Feature/Ferramentas", "tests/Feature/Sactus", "tests/Feature/Sefaz", "tests/Feature/Autorizadas", "tests/Unit/Sactus", "tests/Unit/ChaveDeAcessoTest.php", "tests/Unit/ItemContingenciaTest.php", "tests/Unit/ParametrosConexaoTest.php"],
+        "arquivos": "^(app/(Contingencias|Sentinela|Mercadologica|CleanTax|Ferramentas|Sactus|Sefaz|Autorizadas)/.+\\.php|app/Jobs/[^/]+\\.php|app/Livewire/Contingencias/DoCliente\\.php|resources/views/livewire/contingencias/do-cliente\\.blade\\.php|tests/(Feature|Unit)/(Contingencias|Sentinela|Mercadologica|CleanTax|Ferramentas|Sactus|Sefaz|Autorizadas)/.+\\.php|tests/Unit/(ChaveDeAcesso|ItemContingencia|ParametrosConexao)Test\\.php)$"
+    },
+    "walle-telas": {
+        "tipo": "implementacao",
+        "testes": ["tests/Feature/TelasTest.php", "tests/Feature/Contingencias", "tests/Feature/Relatorios", "tests/Feature/Sentinela", "tests/Feature/Mercadologica", "tests/Feature/CleanTax", "tests/Feature/Ferramentas", "tests/Feature/CrontabTest.php", "tests/Feature/InformacoesTecnicas", "tests/Feature/Updates", "tests/Feature/Autorizadas", "tests/Feature/Sactus", "tests/Feature/ConcorrentesTest.php", "tests/Feature/EntrarTest.php"],
+        "arquivos": "^(app/Livewire/(?!Saude\\.php$|Conversor\\.php$|Concerns/ConfirmaSenha\\.php$).+\\.php|app/(InformacoesTecnicas|Concorrentes)/.+\\.php|resources/css/app\\.css|resources/views/(livewire/(?!conversor[/.]|saude\\.blade\\.php$)|components/(ui|grafico)/).+\\.blade\\.php|tests/Feature/(Relatorios|Contingencias|Sentinela|Mercadologica|CleanTax|Ferramentas|InformacoesTecnicas|Updates|Autorizadas|Sactus)/.+\\.php|tests/Feature/(Crontab|Telas|Concorrentes|Entrar)Test\\.php)$"
+    },
+    "walle-infra": {
+        "tipo": "implementacao",
+        "testes": ["tests/Feature/AgendadorTest.php", "tests/Feature/TelasTest.php", "tests/Feature/SaudeTest.php", "tests/Unit/NumeroTest.php", "tests/Unit/TextoTest.php"],
+        "arquivos": "^(routes/(console|web)\\.php|config/(walle|horizon)\\.php|\\.env\\.example|resources/views/layouts/(app|convidado)\\.blade\\.php|app/Livewire/Saude\\.php|resources/views/livewire/saude\\.blade\\.php|app/(Providers|Http|Listeners|Auth)/.+\\.php|app/Support/[^/]+\\.php|tests/(Support/[^/]+\\.php|Pest\\.php|TestCase\\.php)|tests/Unit/(Numero|Texto)Test\\.php|tests/Feature/(Agendador|Telas|Saude)Test\\.php)$"
+    },
+    "walle-seguranca": {
+        "tipo": "implementacao",
+        "testes": ["tests/Feature/Conversor", "tests/Feature/HelpDesk", "tests/Feature/Ferramentas"],
+        "arquivos": "^(app/(Conversor|Support/HelpDesk|Ferramentas)/.+\\.php|app/Livewire/(Conversor|Ferramentas)\\.php|app/Livewire/Concerns/ConfirmaSenha\\.php|app/Models/Concerns/SomenteLeitura\\.php|config/database\\.php|resources/views/livewire/(conversor|ferramentas)(/.*)?\\.blade\\.php|tests/Feature/(Conversor|HelpDesk|Ferramentas)/.+\\.php)$"
+    },
+    "walle-paridade": {
+        "tipo": "implementacao",
+        "testes": ["tests/Feature/Paridade"],
+        "arquivos": "^tests/(Feature/Paridade|Fixtures/legado)/.+$"
+    },
+    "walle-harness": {
+        "tipo": "harness",
+        "arquivos": "^(\\.claude/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.opencode/agents/(?!walle-harness\\.md$)walle-[a-z0-9-]+\\.md|\\.(claude|opencode)/commands/[a-z0-9-]+\\.md|\\.(claude|agents)/skills/.+\\.md|\\.ai/guidelines/walle\\.md|CLAUDE\\.md|AGENTS\\.md)$"
+    },
+    "walle-verificador": { "tipo": "verificacao" },
+    "walle-orquestrador": { "tipo": "orquestrador" },
+    "walle-explorador-220": { "tipo": "leitura" },
+    "walle-arquiteto": { "tipo": "leitura" },
+    "walle-migracao": { "tipo": "operacao" }
+}

@@ -1,0 +1,27 @@
+{
+  "default_agent": "walle-orquestrador",
+    "$schema":  "https://opencode.ai/config.json",
+    "mcp":  {
+                "laravel-boost":  {
+                                      "type":  "local",
+                                      "command":  [
+                                                      "docker",
+                                                      "exec",
+                                                      "-i",
+                                                      "walle-app",
+                                                      "php",
+                                                      "artisan",
+                                                      "boost:mcp"
+                                                  ],
+                                      "enabled":  true
+                                  }
+            },
+    "tools":  {
+                  "laravel-boost_read-log-entries":  false,
+                  "laravel-boost_last-error":  false,
+                  "laravel-boost_record-rule":  false
+              },
+    "plugin":  [
+                   "./.opencode/plugin/agent-hooks.ts"
+               ]
+}

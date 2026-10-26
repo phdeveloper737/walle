@@ -1,0 +1,26 @@
+name: walle-rag
+services:
+  rag:
+    build: .
+    image: walle-rag:local
+    container_name: walle-rag
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:size=128m
+    volumes:
+      - ../knowledge:/knowledge
+      - models:/models
+    mem_limit: 1536m
+    cpus: 2
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:7391/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+volumes:
+  models:
