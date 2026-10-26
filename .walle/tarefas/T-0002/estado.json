@@ -4,10 +4,10 @@
     "origem":  "pedido do usuário (sugestões da revisão do PR #13, T-0001)",
     "tipo":  "feature",
     "dono":  "walle-seguranca",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0002-sugestoes-da-revisao-da-trava-do-help-de",
-    "pr":  0,
+    "pr":  14,
     "base":  "2e1f8bcb464f35ab2821a0bfea5de7f188d0992b",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-26 16:20:26",
                         "tipo":  "commit",
                         "detalhe":  "Testes das sugestões da revisão da trava do Help Desk (13.1c)"
+                    },
+                    {
+                        "quando":  "2026-10-26 16:20:45",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #14 aberto"
                     }
                 ]
 }
