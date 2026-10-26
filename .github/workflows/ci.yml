@@ -51,7 +51,8 @@ jobs:
       - name: Ambiente
         run: cp .env.example .env && php artisan key:generate
 
-      # Os testes criam walle_testes_help (imitação do Help Desk) e, em sessão paralela, walle_testes_tNN
+      # Os testes criam walle_testes_help (imitação do Help Desk) e walle_testes_origem (origem do importador).
+      # Aspas simples de propósito: com aspas duplas o bash executaria as crases.
       - name: Bancos de teste
         run: |
           mysql -h 127.0.0.1 -uroot -proot -e 'GRANT ALL PRIVILEGES ON `walle\_testes%`.* TO `walle`@`%`; FLUSH PRIVILEGES;'
