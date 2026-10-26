@@ -287,7 +287,7 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [ ] `tests/Feature/TelasTest.php`: as três rotas abrem para admin logado
   - [ ] usuário que não é admin recebe `403` nas três
 
-## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
+## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados, exceto a Classificação Mercadológica, que segue no 220 até a seção manual no fim do plano (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
 
 ### Fase 12 — Paridade com o newsuporte · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade`
 > Dependências: Sprints 1 a 4
@@ -370,20 +370,34 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 
 ## Manual, fora da automação — Classificação Mercadológica (por último)
 
-> Decisão de 26/10/2026: o robô da Classificação Mercadológica dá `UPDATE` nos bancos dos clientes, então fica fora de todo o fluxo automático (orquestrador, comandos, agenda, paridade automática). Só começa depois de todo o resto do plano, com pedido explícito do usuário em cada passo; nenhum agente inicia estas tasks por conta própria. As tabelas da task 1.3 já existem e continuam no importador.
+> Decisão de 26/10/2026: o robô da Classificação Mercadológica grava (`INSERT`, `UPDATE` e `DELETE`) nos bancos dos clientes, então fica fora de todo o fluxo automático (orquestrador, comandos, agenda, paridade automática). Só começa depois de todo o resto do plano, com pedido explícito do usuário em cada passo; nenhum agente inicia estas tasks por conta própria. As tabelas da task 1.3 já existem e continuam no importador. Ordem: 3.3, 6.4 e por fim 7.2.
 
 #### Task 3.3 — Classificação Mercadológica (substitui `mercadological.worker.php` e `set.mercadological.worker.php`)
 - Agent: Backend Laravel — robôs, só com pedido explícito do usuário
 - Input: models da task 1.3
-- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena após o limite de falhas consecutivas do 220; registrar limite e duração exatos no contrato antes de implementar), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`; agenda e `WALLE_MERCADOLOGICA_ATIVO=false` entram junto, nesta task
+- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena após o limite de falhas consecutivas do 220; registrar limite e duração exatos no contrato antes de implementar), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`
+- Contrato obrigatório antes de implementar (revisão de 26/10/2026):
+  - No 220, a "primeira execução" depende de `data_exec_bot_class_mercadologica` vazia no `c_cliente` do Help Desk e roda `UPDATE produto SET fk_p_grupo=1, fk_p_categoria=1, fk_p_familia=1` no banco do cliente (`set.mercadological.worker.php`); depois do sucesso, o 220 grava essa data no Help Desk. O walle não grava no Help Desk: a data da última execução fica numa tabela do walle e **só ela** decide a primeira execução. Sem isso, cada ciclo viraria "primeira execução" e zeraria a classificação dos produtos de novo.
+  - O 220 abre atendimento no Help Desk (`health.mercadological.worker.php`, `INSERT INTO s_atendimento`); no walle isso é proibido e não é portado.
+  - As credenciais da base de origem que o script guarda em constantes vão para o `.env`.
+  - A paridade (amostras do 220 e cliente falso) é definida no contrato desta task, já que a 12.1 não cobre a Mercadológica.
 - Testes críticos:
   - [ ] `tests/Feature/Mercadologica/RoboMercadologicaTest.php`: cliente habilitado sem cadastro técnico aparece como aviso (não some em silêncio, correção do 220) e o cliente com cadastro é sincronizado e logado
   - [ ] cliente atinge o limite documentado de falhas, fica de fora pela duração documentada da quarentena e volta depois; testar também o ciclo anterior ao limite
+  - [ ] o reset da classificação (grupo, categoria e família = 1) roda no máximo uma vez por cliente, decidido pela data guardada no walle, e nenhuma escrita vai ao Help Desk
 
 #### Task 6.4 — Painel da Classificação Mercadológica (substitui `mercadological.dash.php`)
 - Agent: Frontend Livewire (walle-ui), só com pedido explícito do usuário
 - Input: models da task 1.3
-- Output: `app/Livewire/Mercadologica.php` e `resources/views/livewire/mercadologica.blade.php` (KPIs, clientes, histórico do cliente aberto, "sem sinal" pela régua de ciclos do 220); rota `mercadologica` e item no menu entram junto, nesta task
+- Output: `app/Livewire/Mercadologica.php` e `resources/views/livewire/mercadologica.blade.php` (KPIs, clientes, histórico do cliente aberto, "sem sinal" pela régua de ciclos do 220)
 - Testes críticos:
   - [ ] `tests/Feature/Mercadologica/PainelMercadologicaTest.php`: os KPIs batem com a contagem das linhas semeadas e o histórico abre o cliente certo
   - [ ] cliente que passou da régua de ciclos aparece como "sem sinal"
+
+#### Task 7.2 — Agenda, rota, menu e Saúde da Classificação Mercadológica
+- Agent: Backend Laravel — infraestrutura, só com pedido explícito do usuário, depois da 3.3 e da 6.4
+- Input: Job da task 3.3 e componente da task 6.4
+- Output: `walle:robo-mercadologica` em `routes/console.php` com `->when(fn ($robo) => $robo->ligado())`; bloco em `config/walle.php` com `WALLE_MERCADOLOGICA_ATIVO` (padrão `false`) e a variável no `.env.example`; supervisor na conexão `robos` em `config/horizon.php`; rota `mercadologica` em `routes/web.php`, item no menu de `resources/views/layouts/app.blade.php` e item do robô em `App\Livewire\Saude`
+- Testes críticos:
+  - [ ] `tests/Feature/AgendadorTest.php`: com `WALLE_MERCADOLOGICA_ATIVO=true` o evento aparece como devido; desligado (padrão), não dispara o Job
+  - [ ] `tests/Feature/TelasTest.php`: a rota `mercadologica` abre (`200`) para usuário logado e a Saúde mostra o robô como "Desligado neste servidor"
