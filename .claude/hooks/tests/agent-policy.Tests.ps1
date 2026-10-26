@@ -85,6 +85,7 @@ foreach ($agent in $permitidos.Keys) {
 $dominio = @(
     @('walle-robos','app/Autorizadas/RoboAutorizadas.php',0), @('walle-robos','tests/Unit/ChaveDeAcessoTest.php',0),
     @('walle-seguranca','app/Models/Concerns/SomenteLeitura.php',0), @('walle-seguranca','config/database.php',0), @('walle-seguranca','app/Livewire/Conversor.php',0),
+    @('walle-seguranca','app/Models/Auditoria.php',0), @('walle-seguranca','tests/TestCase.php',0),
     @('walle-telas','app/Livewire/Concerns/ConfirmaSenha.php',2), @('walle-telas','app/Livewire/Conversor.php',2),
     @('walle-telas','resources/views/livewire/conversor.blade.php',2), @('walle-telas','resources/views/livewire/saude.blade.php',2),
     @('walle-telas','app/Livewire/Sentinela.php',0), @('walle-telas','tests/Feature/EntrarTest.php',0), @('walle-telas','app/Concorrentes/AnaliseConcorrentes.php',0),
@@ -200,17 +201,15 @@ try {
     $env:PATH = $temporario + ';' + $env:PATH
     foreach ($agent in $permitidos.Keys) {
         Remove-Item -LiteralPath (Marcador $agent) -ErrorAction SilentlyContinue
-        $semTestes = $agent -eq 'walle-paridade' -and -not (Test-Path -LiteralPath (Join-Path $raiz 'tests/Feature/Paridade'))
-        $esperadoPost = if ($semTestes) { 2 } else { 0 }
         $env:WALLE_TEST_DOCKER_EXIT = '1'
         Conferir $agent '' @{} 0 'Stop'                                    # sem edicao, nao roda a suite
-        Conferir $agent 'Bash' @{command='git status'} 0 'PostToolUse'     # Bash nao dispara testes
+        Conferir $agent 'Bash' @{command='git status'} 0 'PostToolUse'     # Bash nao marca edicao
         $env:WALLE_TEST_DOCKER_EXIT = '0'
-        Conferir $agent 'Write' @{file_path=$permitidos[$agent]} $esperadoPost 'PostToolUse'
+        Conferir $agent 'Write' @{file_path=$permitidos[$agent]} 0 'PostToolUse'
         Conferir $agent '' @{} 0 'Stop'
         $env:WALLE_TEST_DOCKER_EXIT = '1'
         Conferir $agent '' @{} 0 'Stop'                                    # Stop verde limpou a marca
-        Conferir $agent 'Write' @{file_path=$permitidos[$agent]} 2 'PostToolUse'
+        Conferir $agent 'Write' @{file_path=$permitidos[$agent]} 0 'PostToolUse'   # so marca; o Pest fica para o Stop
         Conferir $agent '' @{} 2 'Stop'
         Conferir $agent '' @{} 0 'Stop' @{stop_hook_active=$true}          # segunda parada libera
         Conferir $agent '' @{} 0 'Stop'                                    # e limpa a marca

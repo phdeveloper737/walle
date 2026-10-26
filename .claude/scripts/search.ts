@@ -5,7 +5,7 @@ import { loadEngine, type EmbeddingEngine } from './model.ts';
 
 export async function search(question: string, agent: string, db: KnowledgeDatabase, engine: EmbeddingEngine): Promise<Match[]> {
   const safeQuestion = redact(question).trim().slice(0, 4000);
-  if (!safeQuestion) { return []; }
+  if (safeQuestion.length < 25) { return []; }
   return db.nearest(await engine.embed(safeQuestion), config.agentCategories[slug(agent)]);
 }
 
