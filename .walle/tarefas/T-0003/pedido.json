@@ -1,0 +1,7 @@
+{
+    "titulo":  "Reduzir o consumo de tokens do harness",
+    "origem":  "pedido do usuário de 26/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "resumo":  "Skills lidas sob demanda em vez de pré-carregadas; arquiteto e orquestrador no sonnet, com opus só em tarefa sensível; regras de economia no orquestrador (contrato só com ambiguidade real, relatórios curtos); implementador não repete a suíte que o hook de Stop e o gate já rodam."
+}
