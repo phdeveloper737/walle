@@ -1,0 +1,11 @@
+#!/bin/sh
+# walle: o main só muda por PR com o CI verde (o GitHub deste plano não protege branch).
+# Ativar depois de clonar: git config core.hooksPath .githooks
+# Emergência, com decisão do usuário: WALLE_PUSH_MAIN=1 git push ...
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "refs/heads/main" ] && [ "$WALLE_PUSH_MAIN" != "1" ]; then
+        echo "walle: push direto no main bloqueado. Abra um PR; o merge acontece depois do CI verde." >&2
+        exit 1
+    fi
+done
+exit 0
