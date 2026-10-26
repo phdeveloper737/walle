@@ -21,6 +21,7 @@ Tabelas que vêm do banco `suporte` mantêm exatamente o mesmo nome de tabela e 
 ```powershell
 cd C:\docker\walle
 docker compose up -d
+git config core.hooksPath .githooks   # uma vez por clone: o main só muda por PR com o CI verde
 ```
 
 | Endereço | O quê |

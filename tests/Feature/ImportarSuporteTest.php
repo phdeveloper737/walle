@@ -4,15 +4,27 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * A origem do importador (conexão "suporte") aponta para o banco walle_testes_origem, nunca para o testes220.
+ * A origem do importador (conexão "suporte") aponta para o banco `<DB_DATABASE>_origem` (walle_testes_origem, ou
+ * walle_testes_tNN_origem em sessão paralela), nunca para o testes220.
  * As tabelas da origem são criadas pelas próprias migrations do walle e apagadas no fim de cada teste.
  */
 
 /** Tabelas criadas na origem, na ordem de apagar (filho antes do pai). */
 const TABELAS_NA_ORIGEM = ['task_scheduler_querys_log', 'task_scheduler_querys', 'painel_sentinela'];
 
+/** Um banco de origem por banco de testes: sessões paralelas não apagam as tabelas umas das outras. */
+function bancoDaOrigem(): string
+{
+    return config('database.connections.mysql.database').'_origem';
+}
+
 beforeEach(function () {
-    config(['database.connections.suporte' => array_merge(config('database.connections.mysql'), ['database' => 'walle_testes_origem'])]);
+    // Cria a origem se faltar (CI, volume novo). Conexão avulsa e sem banco: o CREATE DATABASE faz commit
+    // implícito e não pode rodar na conexão mysql, que está na transação do RefreshDatabase.
+    DB::build(array_merge(config('database.connections.mysql'), ['database' => null]))
+        ->statement('CREATE DATABASE IF NOT EXISTS `'.bancoDaOrigem().'` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
+
+    config(['database.connections.suporte' => array_merge(config('database.connections.mysql'), ['database' => bancoDaOrigem()])]);
     DB::purge('suporte');
 });
 
@@ -20,8 +32,8 @@ afterEach(function () {
     $origem = DB::connection('suporte');
 
     // Trava de segurança: só apaga se a origem for mesmo o banco de testes
-    if ($origem->getDatabaseName() !== 'walle_testes_origem' || $origem->getConfig('host') !== config('database.connections.mysql.host')) {
-        throw new RuntimeException('A conexão suporte não aponta para o walle_testes_origem: nada foi apagado.');
+    if ($origem->getDatabaseName() !== bancoDaOrigem() || $origem->getConfig('host') !== config('database.connections.mysql.host')) {
+        throw new RuntimeException('A conexão suporte não aponta para o banco de origem dos testes: nada foi apagado.');
     }
 
     foreach (TABELAS_NA_ORIGEM as $tabela) {
