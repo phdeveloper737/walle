@@ -344,6 +344,16 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - [x] a varredura de PDO direto cobre também `routes/`, `database/`, `config/` e `bootstrap/`
   - [x] a regex de banco de teste do `tests/TestCase.php` usa `\z` em vez de `$`
 
+#### Task 13.1c — Sugestões da revisão da 13.1b
+- Agent: Backend Laravel — segurança
+- Input: sugestões do `walle-arquiteto` na revisão do PR #13; pedido do usuário de 26/10/2026
+- Output: testes em `tests/Feature/HelpDesk/`
+- Testes críticos:
+  - [x] nos testes, conexão da lista com banco `walle_testes_help` e host de produção continua barrada (o host vem antes da isenção)
+  - [x] no `config/database.php` real, a conexão `auditoria` é idêntica à `mysql`
+  - [x] a varredura de PDO direto detecta também `new PDO(`, `new Pdo\Mysql(` e `::connect(`
+  - [x] a asserção de banco do `BancoDeTesteDoHelpDeskTest` usa `\z`
+
 #### Task 13.2 e 13.3 — Imitação do Help Desk num banco de teste separado
 - Agent: Backend Laravel — dados (13.2), infraestrutura (13.3) e segurança (13.3b)
 - Output: `tests/Migrations/HelpDesk/` (imitação de `a_user`, `c_cliente`, `informacao_tecnica_dataserver`...) aplicada no banco `<DB_DATABASE>_help`; `tests/TestCase.php` aponta a conexão `help` para ele e recusa banco fora de `walle_testes` ou `walle_testes_tNN`
