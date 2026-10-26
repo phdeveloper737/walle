@@ -200,6 +200,9 @@ textuais dos assistentes; não é um arquivo integral da conversa nem um mecanis
 - Help Desk somente leitura em duas camadas: no banco, o usuário `walle` só tem `SELECT`; na aplicação,
   `TravaHelpDeskProducao` deixa passar só `SELECT`, `SHOW`, `DESCRIBE` e `EXPLAIN` na conexão `help` e no host de
   produção, e registra cada tentativa barrada na auditoria (`help_desk.escrita_barrada`), sem SQL nem valores.
+  Esse registro vai pela conexão `auditoria` (cópia da `mysql`, mesmo banco `walle`, sessão própria), para não se
+  perder quando a transação em curso é desfeita. Nos testes, a trava pelo nome só fica desligada quando o banco da
+  própria conexão é `walle_testes_help` ou `walle_testes_tNN_help`.
 - Ações de admin exigem `Gate::allows('admin')` (ids configurados em `WALLE_ADMINS`).
 - No Livewire, o trait `ConfirmaSenha` (`app/Livewire/Concerns/ConfirmaSenha.php`) pede a senha do
   Help Desk de novo antes de executar a ação; o método precisa estar listado em `ACOES_COM_SENHA` e

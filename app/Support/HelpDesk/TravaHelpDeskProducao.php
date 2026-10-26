@@ -15,11 +15,13 @@ use WeakMap;
  * Connection::beforeExecuting(): antes de cada consulta e antes de o Laravel abrir o PDO. Uma conexão é
  * protegida quando:
  * - o host dela está em walle.help_desk.hosts_producao (config viva ou config/database.php com o mesmo nome); ou
- * - fora dos testes, o nome dela é "help" ou está em walle.help_desk.conexoes_somente_leitura, qualquer que
- *   seja o host (nos testes a "help" aponta para o banco de testes e precisa gravar as fixtures).
+ * - o nome dela é "help" ou está em walle.help_desk.conexoes_somente_leitura, qualquer que seja o host.
+ *   A única isenção é nos testes, e só quando o banco da própria conexão é o de teste do Help Desk
+ *   (walle_testes_help ou walle_testes_tNN_help), onde as fixtures precisam ser gravadas.
  *
  * Numa conexão protegida só passa leitura (ClassificadorSql); o resto fica na auditoria
- * (help_desk.escrita_barrada, sem SQL nem valores) e lança EscritaNoHelpDeskDeProducao.
+ * (help_desk.escrita_barrada, sem SQL nem valores, gravada pela conexão "auditoria" para não ser desfeita
+ * junto com a transação em curso) e lança EscritaNoHelpDeskDeProducao.
  * Os comandos que o conector do MySQL roda ao conectar (use, SET NAMES, sql_mode) vão direto no PDO
  * e não passam por aqui.
  */
@@ -29,6 +31,15 @@ class TravaHelpDeskProducao
 
     /** A conexão do Help Desk é sempre somente leitura, mesmo que a lista do config venha vazia. */
     private const CONEXAO_HELP = 'help';
+
+    /**
+     * Conexão onde a tentativa barrada é registrada: cópia da "mysql" numa sessão própria, para a auditoria
+     * não ser desfeita junto com a transação em curso. Nunca aponta para o Help Desk.
+     */
+    private const CONEXAO_AUDITORIA = 'auditoria';
+
+    /** Único banco em que, nos testes, a conexão protegida pelo nome pode gravar (as fixtures do Help Desk). */
+    private const BANCO_DE_TESTE_DO_HELP_DESK = '/^walle_testes(_t[0-9]+)?_help\z/';
 
     /** Palavras que podem ir para a auditoria como "instrucao"; o resto vira "desconhecida". */
     private const INSTRUCOES = [
@@ -88,7 +99,7 @@ class TravaHelpDeskProducao
             return $host;
         }
 
-        if ($nome !== null && $this->somenteLeituraPeloNome($nome)) {
+        if ($nome !== null && $this->somenteLeituraPeloNome($nome, $conexao->getConfig('database'))) {
             return self::hostOuNome($conexao->getConfig('host'), $nome);
         }
 
@@ -96,27 +107,10 @@ class TravaHelpDeskProducao
     }
 
     /**
-     * Lança a exceção (e registra a tentativa) se o destino é protegido e a instrução não é só leitura.
-     *
-     * @param  array<string, mixed>  $config  configuração da conexão
-     * @param  string|null  $conexao  nome da conexão: com ele vale também a trava pelo nome
-     */
-    public function conferir(string $sql, array $config, ?string $conexao = null): void
-    {
-        $destino = self::hostDeProducao($config);
-
-        if ($destino === null && $conexao !== null && $this->somenteLeituraPeloNome($conexao)) {
-            $destino = self::hostOuNome($config['host'] ?? null, $conexao);
-        }
-
-        if ($destino !== null) {
-            $this->barrarEscrita($sql, $destino, $conexao);
-        }
-    }
-
-    /**
      * Registra na auditoria uma tentativa de escrita barrada. Nunca recebe SQL nem valores: só o nome
      * da conexão, o host e a instrução (uma palavra conhecida, ex.: "insert" ou "eloquent_save").
+     * Grava sempre pela conexão "auditoria" (sessão própria no banco do walle): o registro fica mesmo que a
+     * transação em curso na conexão padrão seja desfeita pela exceção.
      * Se a gravação falhar (inclusive barrada por esta mesma trava), fica um Log::warning no lugar.
      */
     public static function registrarTentativa(string $conexao, string $host, string $instrucao): void
@@ -135,7 +129,7 @@ class TravaHelpDeskProducao
         ];
 
         try {
-            Auditoria::registrar(self::ACAO_AUDITORIA, null, $detalhes);
+            Auditoria::registrar(self::ACAO_AUDITORIA, null, $detalhes, self::CONEXAO_AUDITORIA);
         } catch (Throwable) {
             Log::warning('Escrita no Help Desk barrada; a auditoria não pôde ser gravada.', $detalhes);
         } finally {
@@ -192,16 +186,27 @@ class TravaHelpDeskProducao
         throw new EscritaNoHelpDeskDeProducao($destino);
     }
 
-    private function somenteLeituraPeloNome(string $nome): bool
+    /**
+     * Se a conexão é somente leitura pelo nome ("help" ou da lista walle.help_desk.conexoes_somente_leitura).
+     * Nos testes, a conexão da lista só fica livre quando o banco dela é o de teste do Help Desk
+     * (walle_testes_help ou walle_testes_tNN_help, comparação exata); fora dos testes nunca há isenção.
+     *
+     * @param  mixed  $banco  banco da própria conexão verificada (config viva)
+     */
+    private function somenteLeituraPeloNome(string $nome, mixed $banco): bool
     {
-        if ($this->emTestes) {
-            return false;
-        }
-
         $configurada = config('walle.help_desk.conexoes_somente_leitura', [self::CONEXAO_HELP]);
         $lista = [self::CONEXAO_HELP, ...(is_string($configurada) ? explode(',', $configurada) : (array) $configurada)];
 
-        return in_array(self::normalizar($nome), array_map(self::normalizar(...), $lista), true);
+        if (! in_array(self::normalizar($nome), array_map(self::normalizar(...), $lista), true)) {
+            return false;
+        }
+
+        if ($this->emTestes && is_string($banco) && preg_match(self::BANCO_DE_TESTE_DO_HELP_DESK, $banco) === 1) {
+            return false;
+        }
+
+        return true;
     }
 
     /** Nome da conexão como está no config/database.php (sem o "::read", "::write" ou "::direct"). */

@@ -15,6 +15,11 @@
                         "quando":  "2026-10-26 15:19:30",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0001-reforcos-da-trava-do-help-desk-apontados a partir de cdeb1244842cef7516cd51ee166defd998b7e6d0"
+                    },
+                    {
+                        "quando":  "2026-10-26 15:57:18",
+                        "tipo":  "commit",
+                        "detalhe":  "Reforça a trava de leitura do Help Desk (PLAN 13.1b)"
                     }
                 ]
 }

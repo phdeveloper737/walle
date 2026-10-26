@@ -26,14 +26,14 @@ function travaForaDosTestes(): TravaHelpDeskProducao
 }
 
 /** Conexão com nome na lista de somente leitura e host fora da lista de produção, sem rede. */
-function conexaoHelpPeloNome(?TravaHelpDeskProducao $trava = null): Connection
+function conexaoHelpPeloNome(?TravaHelpDeskProducao $trava = null, string $banco = 'nao_existe'): Connection
 {
     config([
         'walle.help_desk.conexoes_somente_leitura' => ['help', CONEXAO_HELP_PELO_NOME],
         'database.connections.'.CONEXAO_HELP_PELO_NOME => array_merge(config('database.connections.mysql'), [
             'host' => '127.0.0.1',
             'port' => 1,
-            'database' => 'nao_existe',
+            'database' => $banco,
             'username' => 'guarda',
             'password' => 'x',
         ]),
@@ -113,12 +113,32 @@ test('fora dos testes, a leitura na conexão da lista passa pela trava (só para
         ->toThrow(QueryException::class, 'TENTOU CONECTAR');
 });
 
-test('nos testes, a trava pelo nome não vale: só o host de produção barra', function () {
-    $conexao = conexaoHelpPeloNome(new TravaHelpDeskProducao(app(ClassificadorSql::class), emTestes: true));
+test('nos testes, a trava pelo nome barra a conexão da lista quando o banco não é o de teste do Help Desk', function (string $banco) {
+    $conexao = conexaoHelpPeloNome(new TravaHelpDeskProducao(app(ClassificadorSql::class), emTestes: true), $banco);
+
+    expect(fn () => $conexao->insert('insert into a_user (name) values (?)', ['x']))
+        ->toThrow(EscritaNoHelpDeskDeProducao::class);
+})->with([
+    'banco qualquer' => 'nao_existe',
+    'Help Desk' => 'suporte',
+    'banco de desenvolvimento' => 'walle',
+    'banco de testes do walle' => 'walle_testes',
+    'sufixo depois do _help' => 'walle_testes_help_x',
+    'sessão paralela sem número' => 'walle_testes_t_help',
+    'maiúsculas' => 'WALLE_TESTES_HELP',
+    'quebra de linha no fim' => "walle_testes_help\n",
+    'vazio' => '',
+]);
+
+test('nos testes, a trava pelo nome libera a conexão da lista só no banco de teste do Help Desk', function (string $banco) {
+    $conexao = conexaoHelpPeloNome(new TravaHelpDeskProducao(app(ClassificadorSql::class), emTestes: true), $banco);
 
     expect(fn () => $conexao->insert('insert into a_user (name) values (?)', ['x']))
         ->toThrow(QueryException::class, 'TENTOU CONECTAR');
-});
+})->with([
+    'sessão única' => 'walle_testes_help',
+    'sessão paralela' => 'walle_testes_t07_help',
+]);
 
 test('a escrita barrada pelo nome gera uma única auditoria com as chaves exatas, sem SQL nem valores', function () {
     $conexao = conexaoHelpPeloNome();
@@ -126,7 +146,7 @@ test('a escrita barrada pelo nome gera uma única auditoria com as chaves exatas
     expect(fn () => $conexao->update("update a_user set tx_senha = 'segredo-xyz' where name = ?", ['segredo-xyz']))
         ->toThrow(EscritaNoHelpDeskDeProducao::class);
 
-    $auditoria = Auditoria::where('acao', 'help_desk.escrita_barrada')->sole();
+    $auditoria = Auditoria::on('auditoria')->where('acao', 'help_desk.escrita_barrada')->sole();
 
     expect($auditoria->detalhes)->toEqual([
         'conexao' => CONEXAO_HELP_PELO_NOME,
@@ -143,13 +163,26 @@ test('Usuario->save() e delete() são barrados e cada tentativa fica na auditori
     expect(fn () => $usuario->forceFill(['name' => 'segredo-xyz'])->save())->toThrow(LogicException::class)
         ->and(fn () => $usuario->delete())->toThrow(LogicException::class);
 
-    $instrucoes = Auditoria::where('acao', 'help_desk.escrita_barrada')->orderBy('id')->get()
+    $instrucoes = Auditoria::on('auditoria')->where('acao', 'help_desk.escrita_barrada')->orderBy('id')->get()
         ->map(fn (Auditoria $auditoria) => $auditoria->detalhes);
 
     expect($instrucoes->pluck('instrucao')->all())->toBe(['eloquent_save', 'eloquent_delete'])
         ->and($instrucoes->pluck('conexao')->unique()->all())->toBe(['help'])
         ->and(array_keys($instrucoes->first()))->toEqualCanonicalizing(['conexao', 'host', 'instrucao', 'contexto'])
         ->and($instrucoes->toJson())->not->toContain('segredo-xyz');
+});
+
+test('a auditoria do save barrado no model somente leitura fica mesmo quando a transação do walle é desfeita', function () {
+    $usuario = Usuario::find(criarUsuarioHelpDesk());
+
+    expect(fn () => DB::transaction(fn () => $usuario->forceFill(['name' => 'segredo-xyz'])->save()))
+        ->toThrow(LogicException::class);
+
+    $auditoria = Auditoria::on('auditoria')->where('acao', 'help_desk.escrita_barrada')->sole();
+
+    expect($auditoria->detalhes)->toMatchArray(['conexao' => 'help', 'instrucao' => 'eloquent_save'])
+        ->and(array_keys($auditoria->detalhes))->toEqualCanonicalizing(['conexao', 'host', 'instrucao', 'contexto'])
+        ->and(json_encode($auditoria->getAttributes()))->not->toContain('segredo-xyz');
 });
 
 /*

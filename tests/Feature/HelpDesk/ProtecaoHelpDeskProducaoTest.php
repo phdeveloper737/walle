@@ -161,7 +161,7 @@ test('a escrita barrada na conexão de produção gera uma única auditoria, sem
     expect(fn () => $conexao->insert("insert into a_user (name, tx_senha) values ('segredo-xyz', ?)", ['segredo-xyz']))
         ->toThrow(EscritaNoHelpDeskDeProducao::class);
 
-    $auditoria = Auditoria::where('acao', 'help_desk.escrita_barrada')->sole();
+    $auditoria = Auditoria::on('auditoria')->where('acao', 'help_desk.escrita_barrada')->sole();
 
     expect($auditoria->detalhes)->toEqual([
         'conexao' => CONEXAO_PRODUCAO_FALSA,
@@ -170,6 +170,23 @@ test('a escrita barrada na conexão de produção gera uma única auditoria, sem
         'contexto' => 'console',
     ])
         ->and($auditoria->fk_c_cliente)->toBeNull()
+        ->and(json_encode($auditoria->getAttributes()))->not->toContain('segredo-xyz')->not->toContain('a_user');
+});
+
+test('a auditoria da escrita barrada fica mesmo quando a transação do walle em volta é desfeita', function () {
+    $conexao = conexaoDeProducaoFalsa();
+
+    expect(fn () => DB::transaction(fn () => $conexao->insert("insert into a_user (name, tx_senha) values ('segredo-xyz', ?)", ['segredo-xyz'])))
+        ->toThrow(EscritaNoHelpDeskDeProducao::class);
+
+    $auditoria = Auditoria::on('auditoria')->where('acao', 'help_desk.escrita_barrada')->sole();
+
+    expect($auditoria->detalhes)->toEqual([
+        'conexao' => CONEXAO_PRODUCAO_FALSA,
+        'host' => '192.168.10.254',
+        'instrucao' => 'insert',
+        'contexto' => 'console',
+    ])
         ->and(json_encode($auditoria->getAttributes()))->not->toContain('segredo-xyz')->not->toContain('a_user');
 });
 
@@ -188,7 +205,7 @@ test('se a própria auditoria é barrada, não entra em laço: a escrita é barr
         'instrucao' => 'delete',
         'contexto' => 'console',
     ]);
-    expect(Auditoria::count())->toBe(0);
+    expect(Auditoria::on('auditoria')->count())->toBe(0);
 });
 
 test('o host é comparado sem maiúsculas nem espaços e a lista vem do config', function () {

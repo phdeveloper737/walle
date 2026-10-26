@@ -37,12 +37,13 @@ class Auditoria extends Model
      * Registra a ação de quem está logado. Nunca passe senha em $detalhes.
      *
      * @param  array<string, mixed>  $detalhes
+     * @param  string|null  $conexao  Conexão onde gravar; null usa a padrão. A conexão `auditoria` serve para o registro que não pode ser desfeito junto com a transação em curso (ex.: escrita barrada no Help Desk).
      */
-    public static function registrar(string $acao, ?int $clienteId = null, array $detalhes = []): self
+    public static function registrar(string $acao, ?int $clienteId = null, array $detalhes = [], ?string $conexao = null): self
     {
         $usuario = auth()->user();
 
-        return self::create([
+        return static::on($conexao)->create([
             'usuario_id' => $usuario instanceof Usuario ? $usuario->id : null,
             'usuario' => Usuario::nomeDoLogado(),
             'acao' => $acao,
