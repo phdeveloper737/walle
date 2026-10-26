@@ -218,11 +218,11 @@ try {
     }
     if ($politica.tipo -ne 'implementacao') { exit 0 }
     if ($Event -eq 'PostToolUse') {
-        # Testes do modulo so depois de edicao; make: so marca a edicao.
+        # So marca a edicao; a suite inteira roda no Stop e no gate.
         if (-not ($edicao -or $ehMake)) { exit 0 }
         [IO.Directory]::CreateDirectory((Split-Path -Parent $marcador)) | Out-Null
         [IO.File]::WriteAllText($marcador, [DateTime]::Now.ToString('o'))
-        if ($ehMake) { exit 0 }
+        exit 0
     }
     if ($Event -eq 'Stop') {
         if (-not (Test-Path -LiteralPath $marcador)) { exit 0 }
@@ -241,11 +241,6 @@ try {
             $banco = $env:WALLE_HOOK_TEST_DATABASE
         }
         $argumentos = @('exec', '-e', "DB_DATABASE=$banco", 'walle-app', './vendor/bin/pest')
-        if ($Event -eq 'PostToolUse') {
-            $existentes = @($politica.testes | Where-Object { Test-Path -LiteralPath (Join-Path $raiz $_) })
-            if ($existentes.Count -eq 0) { Bloquear 'Nenhum teste do modulo existe ainda. Crie os testes antes de concluir.' }
-            $argumentos += $existentes
-        }
         & docker @argumentos
         if ($LASTEXITCODE -ne 0) {
             $motivo = 'Os testes falharam ou nao puderam executar. Corrija o que e do seu dominio ou relate a pendencia; validacao nao concluida.'

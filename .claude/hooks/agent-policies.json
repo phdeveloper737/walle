@@ -22,7 +22,7 @@
     "walle-seguranca": {
         "tipo": "implementacao",
         "testes": ["tests/Feature/Conversor", "tests/Feature/HelpDesk", "tests/Feature/Ferramentas"],
-        "arquivos": "^(app/(Conversor|Support/HelpDesk|Ferramentas)/.+\\.php|app/Livewire/(Conversor|Ferramentas)\\.php|app/Livewire/Concerns/ConfirmaSenha\\.php|app/Models/Concerns/SomenteLeitura\\.php|config/database\\.php|resources/views/livewire/(conversor|ferramentas)(/.*)?\\.blade\\.php|tests/Feature/(Conversor|HelpDesk|Ferramentas)/.+\\.php)$"
+        "arquivos": "^(app/(Conversor|Support/HelpDesk|Ferramentas)/.+\\.php|app/Livewire/(Conversor|Ferramentas)\\.php|app/Livewire/Concerns/ConfirmaSenha\\.php|app/Models/Concerns/SomenteLeitura\\.php|config/database\\.php|app/Models/Auditoria\\.php|tests/TestCase\\.php|resources/views/livewire/(conversor|ferramentas)(/.*)?\\.blade\\.php|tests/Feature/(Conversor|HelpDesk|Ferramentas)/.+\\.php)$"
     },
     "walle-paridade": {
         "tipo": "implementacao",
