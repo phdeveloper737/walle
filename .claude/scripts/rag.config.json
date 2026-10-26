@@ -4,8 +4,8 @@
   "dimensions": 384,
   "chunkTokens": 250,
   "overlapTokens": 30,
-  "topK": 3,
-  "minimumSimilarity": 0.25,
+  "topK": 1,
+  "minimumSimilarity": 0.45,
   "categoryBonus": 0.06,
   "agentCategories": {
     "walle-orquestrador": "arquitetura",

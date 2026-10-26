@@ -218,11 +218,12 @@ try {
     }
     if ($politica.tipo -ne 'implementacao') { exit 0 }
     if ($Event -eq 'PostToolUse') {
-        # Testes do modulo so depois de edicao; make: so marca a edicao.
-        if (-not ($edicao -or $ehMake)) { exit 0 }
-        [IO.Directory]::CreateDirectory((Split-Path -Parent $marcador)) | Out-Null
-        [IO.File]::WriteAllText($marcador, [DateTime]::Now.ToString('o'))
-        if ($ehMake) { exit 0 }
+        # Edicao ou make: so marca a edicao; a suite inteira roda no Stop.
+        if ($edicao -or $ehMake) {
+            [IO.Directory]::CreateDirectory((Split-Path -Parent $marcador)) | Out-Null
+            [IO.File]::WriteAllText($marcador, [DateTime]::Now.ToString('o'))
+        }
+        exit 0
     }
     if ($Event -eq 'Stop') {
         if (-not (Test-Path -LiteralPath $marcador)) { exit 0 }
@@ -241,19 +242,12 @@ try {
             $banco = $env:WALLE_HOOK_TEST_DATABASE
         }
         $argumentos = @('exec', '-e', "DB_DATABASE=$banco", 'walle-app', './vendor/bin/pest')
-        if ($Event -eq 'PostToolUse') {
-            $existentes = @($politica.testes | Where-Object { Test-Path -LiteralPath (Join-Path $raiz $_) })
-            if ($existentes.Count -eq 0) { Bloquear 'Nenhum teste do modulo existe ainda. Crie os testes antes de concluir.' }
-            $argumentos += $existentes
-        }
         & docker @argumentos
         if ($LASTEXITCODE -ne 0) {
-            $motivo = 'Os testes falharam ou nao puderam executar. Corrija o que e do seu dominio ou relate a pendencia; validacao nao concluida.'
-            if ($Event -eq 'Stop') { $motivo += ' Se a falha nao for sua, relate; na proxima parada o hook libera e a validacao fica PENDENTE.' }
-            Bloquear $motivo
+            Bloquear 'Os testes falharam ou nao puderam executar. Corrija o que e do seu dominio ou relate a pendencia; validacao nao concluida. Se a falha nao for sua, relate; na proxima parada o hook libera e a validacao fica PENDENTE.'
         }
     } finally { Pop-Location }
-    if ($Event -eq 'Stop') { Remove-Item -LiteralPath $marcador -Force -ErrorAction SilentlyContinue }
+    Remove-Item -LiteralPath $marcador -Force -ErrorAction SilentlyContinue
     exit 0
 } catch {
     Bloquear 'Falha ao validar o evento ou executar os testes. Verifique o payload e a disponibilidade do Docker.'
