@@ -11,7 +11,7 @@ $ARGUMENTS
 
 ## 1. Situação antes de começar
 
-1. Rode `-Acao status` do `tarefa.ps1`: ele lista as tarefas integradas (no `origin/main`), abertas e bloqueadas (pelos branches no origin). Tarefa `em_execucao` ou `em_revisao` é retomada antes de qualquer outra (`-Acao retomar`), do passo em que parou. Tarefa `bloqueada` só volta quando o usuário tiver decidido (registre a decisão em `notas.md` e use `-Acao retomar`).
+1. Rode `-Acao status` do `tarefa.ps1`: ele lista as tarefas integradas (no `origin/main`), abertas e bloqueadas (pelos branches no origin). Tarefa `em_execucao` ou `em_revisao` é retomada antes de qualquer outra (`-Acao retomar`), do passo em que parou. Tarefa `bloqueada` só volta quando o usuário tiver decidido (grave a decisão em `notas.md` no lugar do motivo e use `-Acao retomar`).
 2. Leia o `PLAN.md` inteiro: sprints, fases, dependências ("Dependências:"), paralelismo e checkboxes. Uma task está feita quando todos os testes críticos dela estão `[x]` (as tasks feitas antes do ledger existir não têm tarefa no ledger e continuam feitas). Uma task com tarefa integrada no ledger também está feita.
 3. Leia `docs/harness/roadmap-automacao.md` e as regras (`CLAUDE.md`).
 

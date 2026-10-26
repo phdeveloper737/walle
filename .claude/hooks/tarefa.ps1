@@ -48,6 +48,12 @@ function GravarJson([string]$Caminho, $Objeto) {
     [IO.File]::WriteAllText($Caminho, ($Objeto | ConvertTo-Json -Depth 6), $utf8)
 }
 function Agora { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') }
+function Hash([string]$Texto) {
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return (($sha.ComputeHash($utf8.GetBytes($Texto)) | ForEach-Object { $_.ToString('x2') }) -join '') } finally { $sha.Dispose() }
+}
+# Estados antigos podem nao ter o campo: Add-Member cria ou substitui.
+function Definir($Objeto, [string]$Nome, $Valor) { $Objeto | Add-Member -NotePropertyName $Nome -NotePropertyValue $Valor -Force }
 
 function SemAcento([string]$Texto) {
     return (($Texto.Normalize([Text.NormalizationForm]::FormD).ToCharArray() | Where-Object { [Globalization.CharUnicodeInfo]::GetUnicodeCategory($_) -ne 'NonSpacingMark' }) -join '').ToLowerInvariant()
@@ -99,6 +105,13 @@ function CommitarTudo([string]$Mensagem, $Estado) {
     if ((Repo @('diff', '--cached', '--quiet') -PodeFalhar).codigo -ne 0) { Repo @('commit', '-q', '-m', $Mensagem) | Out-Null }
     if (TemOrigem) { Repo @('push', '-q', '-u', 'origin', $Estado.branch) | Out-Null }
 }
+# Commit so do ledger da tarefa (o resto da arvore fica como esta) e push do branch.
+function CommitarLedger([string]$Mensagem, $Estado) {
+    $caminho = ".walle/tarefas/$Tarefa"
+    Repo @('add', '--', $caminho) | Out-Null
+    if ((Repo @('diff', '--cached', '--quiet', '--', $caminho) -PodeFalhar).codigo -ne 0) { Repo @('commit', '-q', '-m', $Mensagem, '--', $caminho) | Out-Null }
+    if (TemOrigem) { Repo @('push', '-q', '-u', 'origin', $Estado.branch) | Out-Null }
+}
 function NumeroDoPr([string]$Texto) {
     if ($Texto -match '/pull/([0-9]+)') { return [int]$Matches[1] }
     return 0
@@ -148,31 +161,37 @@ switch ($Acao) {
         if ((Repo @('rev-parse', '--verify', '--quiet', "refs/heads/$branch") -PodeFalhar).codigo -eq 0) { Recusar "o branch $branch ja existe; use retomar." }
         Repo @('switch', '-q', '-c', $branch) | Out-Null
         GravarJson (Join-Path $pastaLedger 'pedido.json') $pedido
-        GravarJson $arquivoEstado ([ordered]@{ tarefa = $Tarefa; titulo = [string]$pedido.titulo; origem = [string]$pedido.origem; tipo = [string]$pedido.tipo; dono = [string]$pedido.dono; estado = 'em_execucao'; ciclos = 0; branch = $branch; pr = 0; base = (Repo @('rev-parse', 'HEAD')).texto; eventos = @() })
+        GravarJson $arquivoEstado ([ordered]@{ tarefa = $Tarefa; titulo = [string]$pedido.titulo; origem = [string]$pedido.origem; tipo = [string]$pedido.tipo; dono = [string]$pedido.dono; estado = 'em_execucao'; ciclos = 0; branch = $branch; pr = 0; base = (Repo @('rev-parse', 'HEAD')).texto; notas_bloqueio = ''; eventos = @() })
         $estado = Estado
         Registrar $estado 'aberta' "branch $branch a partir de $($estado.base)"
+        # Ja no origin: a tarefa aberta aparece no status e no proxima de qualquer maquina.
+        CommitarLedger "Ledger: $Tarefa aberta" $estado
         Write-Output "[tarefa] $Tarefa aberta no branch $branch"
         exit 0
     }
 
     'retomar' {
         ExigirTarefa
-        if ((Repo @('status', '--porcelain')).texto) { Recusar 'ha alteracoes pendentes; retome a partir de uma arvore limpa.' }
+        # No proprio branch, alteracoes pendentes sao o trabalho interrompido: ficam como estao.
+        $noBranch = (Repo @('branch', '--show-current')).texto -clike "tarefa/$Tarefa-*"
+        if (-not $noBranch -and (Repo @('status', '--porcelain')).texto) { Recusar 'ha alteracoes pendentes em outro branch; retome a partir de uma arvore limpa.' }
         Buscar
         if ((TemOrigem) -and (NoMain $Tarefa)) { Recusar "$Tarefa ja foi integrada (esta no main)." }
         $locais = @((Repo @('branch', '--list', "tarefa/$Tarefa-*", '--format=%(refname:short)') -PodeFalhar).texto -split "`n" | Where-Object { $_ })
         $remotos = @(BranchesRemotos $Tarefa)
-        if ($locais.Count) { Repo @('switch', '-q', $locais[0]) | Out-Null; if ($remotos.Count) { Repo @('merge', '-q', '--ff-only', $remotos[0]) -PodeFalhar | Out-Null } }
+        if ($noBranch) { if ($remotos.Count) { Repo @('merge', '-q', '--ff-only', $remotos[0]) -PodeFalhar | Out-Null } }
+        elseif ($locais.Count) { Repo @('switch', '-q', $locais[0]) | Out-Null; if ($remotos.Count) { Repo @('merge', '-q', '--ff-only', $remotos[0]) -PodeFalhar | Out-Null } }
         elseif ($remotos.Count) { Repo @('switch', '-q', '--track', $remotos[0]) | Out-Null }
         else { Recusar "nao achei o branch da tarefa $Tarefa (local nem no origin)." }
         $estado = Estado
         if ($estado.estado -ceq 'bloqueada') {
+            # O texto que explicou o bloqueio nao vale como decisao: notas.md tem de mudar.
             $decisao = TextoLocal 'notas.md'
-            if (-not $decisao) { Recusar "a tarefa esta bloqueada; registre em .walle/local/$Tarefa/notas.md a decisao do usuario que resolve o bloqueio." }
+            if (-not $decisao -or (Hash $decisao) -ceq [string]$estado.notas_bloqueio) { Recusar "a tarefa esta bloqueada; registre em .walle/local/$Tarefa/notas.md a decisao do usuario que resolve o bloqueio (o texto do bloqueio nao vale)." }
             $estado.estado = if ([int]$estado.pr -gt 0) { 'em_revisao' } else { 'em_execucao' }
             $estado.ciclos = 0
             Registrar $estado 'desbloqueada' $decisao
-            CommitarTudo "Ledger: $Tarefa desbloqueada" $estado
+            CommitarLedger "Ledger: $Tarefa desbloqueada" $estado
         }
         Write-Output "[tarefa] $Tarefa retomada no branch $($estado.branch) (estado $($estado.estado), PR #$($estado.pr), ciclos $($estado.ciclos))"
         exit 0
@@ -185,6 +204,7 @@ switch ($Acao) {
         $motivo = TextoLocal 'notas.md'
         if (-not $motivo) { Recusar "explique o bloqueio em .walle/local/$Tarefa/notas.md." }
         $estado.estado = 'bloqueada'
+        Definir $estado 'notas_bloqueio' (Hash $motivo)
         Registrar $estado 'bloqueada' $motivo
         CommitarTudo "Ledger: $Tarefa bloqueada" $estado
         Write-Output "[tarefa] $Tarefa bloqueada e enviada ao origin: $motivo"
@@ -199,12 +219,15 @@ switch ($Acao) {
         $mensagem = TextoLocal 'commit.txt'
         if (-not $mensagem) { Recusar "grave a mensagem em .walle/local/$Tarefa/commit.txt." }
         # Depois do PR, todo commit e uma correcao: conta o ciclo aqui, sem depender do orquestrador lembrar.
+        # Se o commit falhar, o estado volta ao que era: o ciclo so conta com o commit feito.
+        $estadoOriginal = [IO.File]::ReadAllText($arquivoEstado, $utf8)
         $bloqueou = $false
         if ([int]$estado.pr -gt 0) {
             $estado.ciclos = [int]$estado.ciclos + 1
             if ($estado.ciclos -gt $maxCiclos) {
                 $estado.estado = 'bloqueada'
                 $bloqueou = $true
+                Definir $estado 'notas_bloqueio' (Hash (TextoLocal 'notas.md'))
                 Registrar $estado 'bloqueada' "passou de $maxCiclos ciclos de correcao: escalar ao usuario. $(TextoLocal 'notas.md')"
             } else {
                 $estado.estado = 'em_revisao'
@@ -213,8 +236,14 @@ switch ($Acao) {
         } else {
             Registrar $estado 'commit' (($mensagem -split "`n")[0])
         }
-        Repo @('add', '-A') | Out-Null
-        Repo @('commit', '-q', '-F', (Join-Path $pastaLocal 'commit.txt')) | Out-Null
+        try {
+            Repo @('add', '-A') | Out-Null
+            Repo @('commit', '-q', '-F', (Join-Path $pastaLocal 'commit.txt')) | Out-Null
+        } catch {
+            [IO.File]::WriteAllText($arquivoEstado, $estadoOriginal, $utf8)
+            Repo @('reset', '-q') -PodeFalhar | Out-Null
+            throw
+        }
         Remove-Item -LiteralPath (Join-Path $pastaLocal 'commit.txt') -Force
         if ($bloqueou) {
             if (TemOrigem) { Repo @('push', '-q', '-u', 'origin', $estado.branch) | Out-Null }
@@ -253,6 +282,11 @@ switch ($Acao) {
 
     'integrar' {
         ExigirTarefa
+        # Sem ledger neste branch, mas ja no origin/main: o merge aconteceu e a finalizacao caiu no meio.
+        if (-not (Test-Path -LiteralPath $arquivoEstado)) {
+            Buscar
+            if ((TemOrigem) -and (NoMain $Tarefa)) { Finalizar ((Repo @('show', "origin/main:.walle/tarefas/$Tarefa/estado.json")).texto | ConvertFrom-Json) '' }
+        }
         $estado = Estado
         if (EhMercadologica $estado) { Recusar 'a Classificacao Mercadologica e manual: o merge e do usuario.' }
         # Idempotente: se o merge ja aconteceu (queda depois do gh pr merge), so finaliza.
@@ -278,14 +312,14 @@ switch ($Acao) {
         $revisao = TextoLocal 'revisao.md'
         if (-not $revisao) { Recusar "sem o parecer do walle-arquiteto em .walle/local/$Tarefa/revisao.md." }
         if ($revisao -notmatch '(?im)^\s*Commit revisado:\s*([0-9a-f]{7,40})\b' -or -not $head.StartsWith($Matches[1])) { Recusar "a revisao precisa da linha 'Commit revisado: <sha>' com o HEAD $head." }
-        $vereditos = @([regex]::Matches($revisao, '(?im)^\s*Veredito:\s*(.+?)\s*$') | ForEach-Object { $_.Groups[1].Value })
-        if ($vereditos.Count -ne 1 -or $vereditos[0] -notmatch '^(?i)APROVADO\b') { Recusar "a revisao precisa de exatamente uma linha 'Veredito: APROVADO' (achadas: $($vereditos -join ' / '))." }
-
-        $comentado = Join-Path $pastaLocal "comentado-$head"
+        # Todo parecer deste HEAD vai para o PR, inclusive o que reprova; cada texto uma vez so.
+        $comentado = Join-Path $pastaLocal "comentado-$head-$((Hash $revisao).Substring(0, 12))"
         if (-not (Test-Path -LiteralPath $comentado)) {
             Rodar 'gh' @('pr', 'comment', [string]$estado.pr, '--body-file', (Join-Path $pastaLocal 'revisao.md')) | Out-Null
             [IO.File]::WriteAllText($comentado, (Agora), $utf8)
         }
+        $vereditos = @([regex]::Matches($revisao, '(?im)^\s*Veredito:\s*(.+?)\s*$') | ForEach-Object { $_.Groups[1].Value })
+        if ($vereditos.Count -ne 1 -or $vereditos[0] -notmatch '^(?i)APROVADO\b') { Recusar "a revisao precisa de exatamente uma linha 'Veredito: APROVADO' (achadas: $($vereditos -join ' / '))." }
 
         # CI: verde segue; vermelho recusa; pendente espera ate $esperaCi segundos e devolve 4 (tente de novo).
         $relogio = [Diagnostics.Stopwatch]::StartNew()
