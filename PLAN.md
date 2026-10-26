@@ -1,58 +1,72 @@
 # PLAN.md
 
-## Sprint 1 — O banco `walle` tem todas as tabelas locais do 220 que ainda faltam, com os dados importados, e a escrita controlada no Help Desk existe e começa desligada (`docker exec walle-app ./vendor/bin/pest tests/Migrations tests/Feature/HelpDesk tests/Feature/ImportarSuporteTest.php` passa)
+> `.ai/guidelines/walle.md` é a fonte central. Decisões de 24/10/2026: nenhuma escrita no Help Desk; auditoria também nas operações automáticas abrangidas; SQL manual, inclusive SELECT, só para admin com confirmação válida na sessão; certificados nunca em disco.
+> Revisão documental de escopo, sem alterar o código existente. Funcionalidades de escrita no Help Desk foram retiradas do plano. A numeração restante foi preservada para manter referências estáveis.
+> Comandos filtrados abaixo são verificações intermediárias. Para concluir alterações de código, o agente executa Pint nos PHP alterados, PHPStan completo e toda a suíte Pest.
+> Paridade com o 220 vale apenas para funcionalidades mantidas no escopo e ressalva desvios explicitamente aprovados; não reintroduz escritas no Help Desk.
 
-### Fase 1 — Tabelas locais do 220 e escrita controlada no Help Desk · conclui com `docker exec walle-app ./vendor/bin/pest tests/Migrations tests/Feature/HelpDesk`
+## Infraestrutura de desenvolvimento — RAG local dos agentes
+
+Pedido explícito do usuário: capturar aprendizados ao terminar agente/sessão e recuperá-los no
+prompt seguinte. Resumo extrativo local, sem modelos pagos, aprovado no chat. Independente das
+fases de migração do 220; não altera sua numeração nem autoriza tarefas funcionais adicionais.
+
+- [x] `.claude/scripts/schema.sql`: SQLite com sqlite-vec, metadados dos chunks e reindexação atômica.
+- [x] `.claude/scripts/summarize.ts`: quatro categorias, escopo por agente/sessão e sanitização.
+- [x] `.claude/scripts/embed.ts`: chunks pelo tokenizer e embeddings locais all-MiniLM-L6-v2.
+- [x] `.claude/scripts/search.ts`: top-3, preferência configurável de categoria e contexto delimitado.
+- [x] Hooks `SubagentStop`/`Stop` assíncronos e `UserPromptSubmit` síncrono, preservando os hooks anteriores.
+- [x] Testes isolados de extração, indexação, recuperação, isolamento e modelo real; typecheck dos scripts.
+- [x] PHPStan completo e suíte Pest completa no Docker; relatar falhas preexistentes separadamente.
+  - Execução inicial de 24/10/2026: PHPStan completo sem erros; Pest completo com `tests/Unit`, `tests/Feature` e `tests/Migrations`: 227 passaram, 9 falharam (938 assertions). Falhas em `tests/Feature/Contingencias/RoboContingenciasTest.php`: métodos ausentes no robô e Job sem `ShouldBeUnique`, artefatos da task 3.1 anterior à implementação do RAG. Nenhum PHP foi alterado pelo RAG; naquela execução essas falhas ficaram pendentes.
+  - Retomada de 24/10/2026, após implementar a task 3.1: Pint dos quatro PHP da task e PHPStan completo passaram; `docker exec -e DB_DATABASE=walle_testes walle-app ./vendor/bin/pest tests/Unit tests/Feature tests/Migrations --compact` terminou com exit 0, `243 passed (1033 assertions)`, em 257,54 s. As nove falhas anteriores foram encerradas; o RAG não exigiu alterações adicionais.
+
+
+## Sprint 1 — Tabelas locais do 220 e importação dos dados (`docker exec walle-app ./vendor/bin/pest tests/Migrations tests/Feature/ImportarSuporteTest.php` passa)
+
+### Fase 1 — Tabelas locais do 220 · verificação: `docker exec walle-app ./vendor/bin/pest tests/Migrations`
 > Dependências: nenhuma
-> Paralelismo: 1.1, 1.2, 1.3, 1.4, 1.5 e 1.6 rodam em paralelo (cada uma cria só os seus arquivos de migration, model e teste)
+> Paralelismo: 1.1, 1.2, 1.3, 1.4 e 1.5 rodam em paralelo (cada uma cria só os seus arquivos de migration, model e teste)
 
 #### Task 1.1 — Tabela `painel_sentinela` (Bot Sentinela)
 - Agent: Backend Laravel — dados
 - Input: `SHOW CREATE TABLE painel_sentinela` do MySQL do contêiner `testes220`
 - Output: `database/migrations/<data>_create_painel_sentinela_table.php` com exatamente as mesmas colunas e índices do 220 (collation `utf8mb4_general_ci`) e `app/Models/PainelSentinela.php` (`protected $table = 'painel_sentinela'`, `$timestamps` conforme a tabela, casts de data/JSON)
 - Testes críticos:
-  - [ ] `tests/Migrations/PainelSentinelaTest.php`: depois de `migrate`, a tabela tem a mesma lista de colunas do 220 (lista fixada no teste) e o model grava e lê uma linha
-  - [ ] gravar uma linha sem a coluna obrigatória do cliente (`fk_c_cliente`) falha com `QueryException`
+  - [x] `tests/Migrations/PainelSentinelaTest.php`: depois de `migrate`, a tabela tem a mesma lista de colunas do 220 (lista fixada no teste) e o model grava e lê uma linha
+  - [x] gravar uma linha sem a coluna obrigatória do cliente (`fk_c_cliente`) falha com `QueryException`
 
 #### Task 1.2 — Tabelas do Contingência BOT (`painel_contingency_crawler` e `informacao_tecnica_painel_contingencias`)
 - Agent: Backend Laravel — dados
 - Input: `SHOW CREATE TABLE` das duas tabelas no `testes220`
 - Output: duas migrations (`<data>_create_painel_contingency_crawler_table.php`, `<data>_create_informacao_tecnica_painel_contingencias_table.php`) com nomes de tabela e coluna idênticos ao 220 e os models `app/Models/PainelContingencyCrawler.php` e `app/Models/InformacaoTecnicaPainelContingencias.php`
 - Testes críticos:
-  - [ ] `tests/Migrations/TabelasContingencyCrawlerTest.php`: as duas tabelas existem com as colunas do 220 e os models fazem ida e volta de uma linha
-  - [ ] a mesma configuração técnica (`fk_c_cliente`) não pode ser gravada duas vezes (índice único do 220 reproduzido)
+  - [x] `tests/Migrations/TabelasContingencyCrawlerTest.php`: as duas tabelas existem com as colunas do 220 e os models fazem ida e volta de uma linha
+  - [x] a mesma configuração técnica (`fk_c_cliente`) não pode ser gravada duas vezes (índice único do 220 reproduzido)
 
 #### Task 1.3 — Tabelas da Classificação Mercadológica (`painel_mercadological_worker` e `painel_mercadological_worker_log`)
 - Agent: Backend Laravel — dados
 - Input: `SHOW CREATE TABLE` das duas tabelas no `testes220`
 - Output: migrations `<data>_create_painel_mercadological_worker_table.php` e `<data>_create_painel_mercadological_worker_log_table.php` e os models `app/Models/PainelMercadologicalWorker.php` e `app/Models/PainelMercadologicalWorkerLog.php` (relação `hasMany` do painel para o log por `fk_c_cliente`)
 - Testes críticos:
-  - [ ] `tests/Migrations/TabelasMercadologicaTest.php`: colunas iguais às do 220 e o histórico de um cliente volta pela relação
-  - [ ] log de cliente inexistente não aparece na relação de outro cliente
+  - [x] `tests/Migrations/TabelasMercadologicaTest.php`: colunas iguais às do 220 e o histórico de um cliente volta pela relação
+  - [x] log de cliente inexistente não aparece na relação de outro cliente
 
 #### Task 1.4 — Tabela `painel_cleantax_worker` (CleanTax BOT)
 - Agent: Backend Laravel — dados
 - Input: `SHOW CREATE TABLE painel_cleantax_worker` no `testes220`
 - Output: `database/migrations/<data>_create_painel_cleantax_worker_table.php` (com o `ON UPDATE CURRENT_TIMESTAMP` do 220) e `app/Models/PainelCleantaxWorker.php`
 - Testes críticos:
-  - [ ] `tests/Migrations/PainelCleantaxWorkerTest.php`: colunas iguais às do 220 e a coluna de atualização muda sozinha num `UPDATE`
-  - [ ] gravar sem a coluna obrigatória do cliente falha com `QueryException`
+  - [x] `tests/Migrations/PainelCleantaxWorkerTest.php`: colunas iguais às do 220 e a coluna de atualização muda sozinha num `UPDATE`
+  - [x] gravar sem a coluna obrigatória do cliente falha com `QueryException`
 
 #### Task 1.5 — Tabelas do Task Scheduler (`task_scheduler_querys` e `task_scheduler_querys_log`, menu Programação → Ferramentas)
 - Agent: Backend Laravel — dados
 - Input: `SHOW CREATE TABLE` das duas tabelas no `testes220`
 - Output: migrations `<data>_create_task_scheduler_querys_table.php` e `<data>_create_task_scheduler_querys_log_table.php` e os models `app/Models/TaskSchedulerQuery.php` e `app/Models/TaskSchedulerQueryLog.php` (`belongsTo` do log para a query)
 - Testes críticos:
-  - [ ] `tests/Migrations/TabelasTaskSchedulerTest.php`: colunas iguais às do 220 e o log aponta para a query certa
-  - [ ] apagar uma query com logs segue a regra do 220 (bloqueia ou apaga em cascata — conforme a FK do `SHOW CREATE TABLE`)
-
-#### Task 1.6 — Escrita controlada no Help Desk (desligada)
-- Agent: Backend Laravel — segurança
-- Input: aprovação do usuário para o walle gravar no Help Desk (hoje somente leitura — SPEC §4) e um usuário MySQL próprio no 192.168.10.254 com `GRANT` apenas em `s_atendimento`, `versionamentos`, `informacao_tecnica_dataserver`, `software_cliente` e `software_cliente_usuario`
-- Output: conexão `help_escrita` em `config/database.php` (variáveis `HELP_ESCRITA_*` no `.env.example`, chave `walle.help_escrita.ativo` com `WALLE_HELP_ESCRITA_ATIVO=false`) e `app/Support/HelpDesk/EscritaHelpDesk.php` com `inserir(string $tabela, array $dados, string $acao, ?int $clienteId = null): int` e `atualizar(string $tabela, array $dados, array $onde, string $acao, ?int $clienteId = null): int`, que recusam tabela fora da lista permitida e chamam `Auditoria::registrar()` em toda escrita
-- Testes críticos:
-  - [ ] `tests/Feature/HelpDesk/EscritaHelpDeskTest.php`: com a escrita ligada, `inserir('s_atendimento', ...)` grava pela conexão `help_escrita` e cria um registro de `Auditoria` sem nenhum valor do campo de senha
-  - [ ] tabela fora da lista (ex.: `a_user`) ou escrita desligada lança exceção e não toca o banco; a conexão `help` continua somente leitura
+  - [x] `tests/Migrations/TabelasTaskSchedulerTest.php`: colunas iguais às do 220 e o log aponta para a query certa
+  - [x] apagar uma query com logs segue a regra do 220 (bloqueia ou apaga em cascata — conforme a FK do `SHOW CREATE TABLE`)
 
 ### Fase 2 — Importação dos dados locais do 220 · conclui com `docker exec walle-app ./vendor/bin/pest --filter=ImportarSuporte`
 > Dependências: Fase 1
@@ -63,27 +77,40 @@
 - Input: migrations das tasks 1.1 a 1.5
 - Output: `app/Console/Commands/ImportarSuporte.php` com `painel_sentinela`, `painel_contingency_crawler`, `informacao_tecnica_painel_contingencias`, `painel_mercadological_worker`, `painel_mercadological_worker_log`, `painel_cleantax_worker`, `task_scheduler_querys` e `task_scheduler_querys_log` em `TABELAS`, na ordem que respeita as FKs
 - Testes críticos:
-  - [ ] `tests/Feature/ImportarSuporteTest.php`: importar só `painel_sentinela` copia as linhas da origem e rodar de novo não duplica
-  - [ ] pedir uma tabela fora de `TABELAS` encerra com erro e não importa nada
+  - [x] `tests/Feature/ImportarSuporteTest.php`: importar só `painel_sentinela` copia as linhas da origem e rodar de novo não duplica
+  - [x] pedir uma tabela fora de `TABELAS` encerra com erro e não importa nada
 
-## Sprint 2 — Todos os robôs que ainda rodam no 220 rodam no walle, desligados por padrão (`WALLE_*_ATIVO=false`), e gravam nas mesmas tabelas que o 220 (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Sentinela tests/Feature/Mercadologica tests/Feature/CleanTax tests/Feature/Ferramentas tests/Feature/Sactus` passa)
+## Sprint 2 — Os robôs do 220 mantidos no escopo rodam no walle, desligados por padrão (`WALLE_*_ATIVO=false`), e gravam nas mesmas tabelas que o 220 (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Sentinela tests/Feature/Mercadologica tests/Feature/CleanTax tests/Feature/Ferramentas tests/Feature/Sactus` passa)
 
 ### Fase 3 — Robôs de coleta · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias/RoboContingenciasTest.php tests/Feature/Sentinela/RoboSentinelaTest.php tests/Feature/Mercadologica/RoboMercadologicaTest.php tests/Feature/CleanTax/RoboCleanTaxTest.php tests/Feature/Ferramentas/RoboTarefasTest.php`
 > Dependências: Fase 2
 > Paralelismo: 3.1, 3.2, 3.3, 3.4 e 3.5 rodam em paralelo (cada uma só cria arquivos dentro da sua pasta de domínio, um Job e os seus testes; nenhuma mexe em `routes/console.php` nem em `config/`)
 
+#### Task 3.0 — Histórico local dos ciclos e coletas de contingências
+- Agent: Backend Laravel — dados
+- Decisão aprovada no chat em 24/10/2026: criar duas tabelas próprias do walle antes da task 3.1, sem alterar a estrutura das tabelas herdadas nem gravar no Help Desk.
+- Output: migrations de `contingencias_ciclos` e `contingencias_coletas`, models `CicloContingencias` e `ColetaContingencias` e associação da última coleta em `PainelContingencyCrawler`.
+- Comportamento: registrar início, término, estado e contagens do ciclo; cada coleta registra cliente, ciclo, estado, totais e erro sanitizado. Falha mantém a última métrica válida, com a desatualização identificável pela última coleta; sucesso posterior não apaga o histórico de falhas. Nenhuma FK aponta ao Help Desk e nenhuma retenção automática é acrescentada.
+- Testes críticos:
+  - [x] `tests/Feature/Contingencias/ColetasContingenciasTest.php`: ciclos e coletas persistem somente no banco local, com relações e distinção entre falha e total zero.
+  - [x] última coleta é isolada por cliente, mantendo o histórico anterior e a estrutura legada do painel.
+
 #### Task 3.1 — Contingência BOT (substitui `contingency.crawler.php` e `set.history.cont.php`)
 - Agent: Backend Laravel — robôs
-- Input: tabelas da task 1.2, `history_contingencia` já existente e `ConectorDeCliente`/`ConexaoComCliente` de `app/Contingencias/Cliente`
+- Input: tabelas da task 1.2, histórico local da task 3.0, `history_contingencia` já existente e `ConectorDeCliente`/`ConexaoComCliente` de `app/Contingencias/Cliente`
 - Output: `app/Contingencias/RoboContingencias.php` (`ligado(): bool`, `rodarCiclo(): void`, `coletarCliente(int $clienteId): ResultadoContingencias`), que lê as contingências de cada cliente e grava em `history_contingencia` e `painel_contingency_crawler`, e `app/Jobs/RodarCicloContingencias.php` (`ShouldBeUnique`, conexão `robos`)
 - Testes críticos:
-  - [ ] `tests/Feature/Contingencias/RoboContingenciasTest.php`: com um conector falso devolvendo 3 contingências, o ciclo grava 3 linhas em `history_contingencia` e atualiza a métrica do cliente em `painel_contingency_crawler`
-  - [ ] cliente que falha na conexão (`FalhaConexaoCliente`) é registrado com o erro no painel e o ciclo segue para o próximo; com o robô desligado nada roda
+  - [x] `tests/Feature/Contingencias/RoboContingenciasTest.php`: com um conector falso devolvendo 3 contingências, o ciclo grava 3 linhas em `history_contingencia` e atualiza a métrica do cliente em `painel_contingency_crawler`
+  - [x] cliente que falha na conexão (`FalhaConexaoCliente`) tem erro sanitizado registrado na coleta local associada ao painel, preservando as métricas e o histórico válidos, e o ciclo segue para o próximo; com o robô desligado nada roda
+- Verificação em 24/10/2026: 16 cenários do robô; Pint e PHPStan completo verdes; suíte completa com `tests/Unit`, `tests/Feature` e `tests/Migrations`: `243 passed (1033 assertions)`, 257,54 s. Agenda/configuração/ativação continuam fora desta task.
+- Revisão final de `walle-arquiteto`: VERDE, sem achados BLOQUEANTE ou IMPORTANTE. Revisão somente leitura; gates executados por `walle-robos`. Paridade herdada de Sactus e unicidade global de `history_contingencia.chave` preservadas; sem validação contra serviços reais.
+- Documentação da entrega: [relatório técnico](docs/features/2026-10-24-contingencia-bot-task-3-1/relatorio-tecnico.md) e [relatório de uso](docs/features/2026-10-24-contingencia-bot-task-3-1/relatorio-uso.md), complementados a pedido do usuário em 24/10/2026; aceite final do usuário permanece pendente.
+- Revisão documental de `walle-arquiteto`: VERDE, sem problemas materiais; 14 links locais conferidos. Revisão de consistência sem executar a aplicação novamente, separada do parecer da implementação.
 
 #### Task 3.2 — Bot Sentinela (substitui `sentinela.php`)
 - Agent: Backend Laravel — robôs
 - Input: model da task 1.1
-- Output: `app/Sentinela/RoboSentinela.php` (`ligado(): bool`, `rodarCiclo(): void`) que faz `GET http://<host>/sentinela.php?json=S` em cada cliente (timeout folgado, como no 220) e grava em `painel_sentinela`; `app/Sentinela/ColetaSentinela.php` (valor lido de um cliente); `app/Jobs/RodarCicloSentinela.php`
+- Output: `app/Sentinela/RoboSentinela.php` (`ligado(): bool`, `rodarCiclo(): void`) que faz `GET http://<host>/sentinela.php?json=S` em cada cliente (timeout com valor e unidade documentados a partir do script do 220) e grava em `painel_sentinela`; `app/Sentinela/ColetaSentinela.php` (valor lido de um cliente); `app/Jobs/RodarCicloSentinela.php`
 - Testes críticos:
   - [ ] `tests/Feature/Sentinela/RoboSentinelaTest.php`: com `Http::fake` devolvendo o JSON do sentinela, o painel do cliente fica igual ao que o 220 gravaria para o mesmo JSON
   - [ ] timeout ou JSON inválido grava o cliente como "sem resposta" com a mensagem, sem derrubar o ciclo
@@ -91,10 +118,10 @@
 #### Task 3.3 — Classificação Mercadológica (substitui `mercadological.worker.php` e `set.mercadological.worker.php`)
 - Agent: Backend Laravel — robôs
 - Input: models da task 1.3
-- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena depois de N falhas seguidas), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`
+- Output: `app/Mercadologica/RoboMercadologica.php` (ciclo sequencial, um cliente por vez, só clientes com `executar_bot_class_mercadologica = 'S'`, quarentena após o limite de falhas consecutivas do 220; registrar limite e duração exatos no contrato antes de implementar), `app/Mercadologica/SincronizacaoMercadologica.php` (`sincronizar(int $clienteId): ResultadoSincronizacao`) e `app/Jobs/RodarCicloMercadologica.php`
 - Testes críticos:
   - [ ] `tests/Feature/Mercadologica/RoboMercadologicaTest.php`: cliente habilitado sem cadastro técnico aparece como aviso (não some em silêncio, correção do 220) e o cliente com cadastro é sincronizado e logado
-  - [ ] cliente que falha N ciclos seguidos fica de fora pelos ciclos de quarentena e volta depois
+  - [ ] cliente atinge o limite documentado de falhas, fica de fora pela duração documentada da quarentena e volta depois; testar também o ciclo anterior ao limite
 
 #### Task 3.4 — CleanTax BOT (substitui `cleantax.php`)
 - Agent: Backend Laravel — robôs
@@ -112,42 +139,14 @@
   - [ ] `tests/Feature/Ferramentas/RoboTarefasTest.php`: uma query agendada para agora roda no cliente falso uma vez e gera um log com o resultado
   - [ ] erro de SQL no cliente vira log de erro e não reexecuta a query no mesmo ciclo
 
-### Fase 4 — Robôs que gravam no Help Desk · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Sactus/SincronizacaoVpnTest.php tests/Feature/Sentinela/AlertaSentinelaTest.php tests/Feature/Mercadologica/AlertaMercadologicaTest.php`
-> Dependências: Fase 1 (task 1.6) e Fase 3 (tasks 3.2 e 3.3)
-> Paralelismo: 4.1, 4.2 e 4.3 rodam em paralelo (arquivos próprios em `app/Sactus`, `app/Sentinela` e `app/Mercadologica`)
-
-#### Task 4.1 — Bot VPN (substitui `vpn.sync.inc.php`)
-- Agent: Backend Laravel — robôs
-- Input: `EscritaHelpDesk` (task 1.6) e o endereço do `status.log` publicado pelo painel Python da VPN
-- Output: `app/Sactus/SincronizacaoVpn.php` (`sincronizar(bool $simular = false): ResultadoSincronizacaoVpn`) com as etapas do 220 (lê `CLIENT_LIST`, propaga o IP para os clientes do mesmo `unify_database`, compara com o banco, pinga só os que mudaram, grava só os que responderam) e `app/Jobs/SincronizarVpn.php`
-- Testes críticos:
-  - [ ] `tests/Feature/Sactus/SincronizacaoVpnTest.php`: com um `status.log` de exemplo, só os IPs que mudaram e responderam ao ping são atualizados no Help Desk, com auditoria
-  - [ ] `simular: true` faz todas as etapas e não grava nada; `status.log` indisponível encerra com erro sem gravar
-
-#### Task 4.2 — Alerta do Sentinela em atendimento (substitui `health.sentinela.worker.php`)
-- Agent: Backend Laravel — robôs
-- Input: `RoboSentinela` (task 3.2) e `EscritaHelpDesk` (task 1.6)
-- Output: `app/Sentinela/AlertaSentinela.php` (`verificar(): int` — quantidade de atendimentos abertos) que lê `painel_sentinela` e abre `s_atendimento` no Help Desk com as mesmas regras do 220, sem abrir de novo para o mesmo problema já aberto
-- Testes críticos:
-  - [ ] `tests/Feature/Sentinela/AlertaSentinelaTest.php`: cliente com falha no sentinela gera um atendimento com o texto do 220
-  - [ ] com atendimento já aberto para o mesmo cliente e problema, não abre outro; escrita no Help Desk desligada não abre nada
-
-#### Task 4.3 — Alerta da Classificação Mercadológica em atendimento (substitui `health.mercadological.worker.php`)
-- Agent: Backend Laravel — robôs
-- Input: `RoboMercadologica` (task 3.3) e `EscritaHelpDesk` (task 1.6)
-- Output: `app/Mercadologica/AlertaMercadologica.php` (`verificar(): int`) que lê `painel_mercadological_worker` e abre `s_atendimento` para cliente mudo ou com erro, com as regras do 220
-- Testes críticos:
-  - [ ] `tests/Feature/Mercadologica/AlertaMercadologicaTest.php`: cliente sem sinal há mais ciclos que o limite gera um atendimento
-  - [ ] cliente em dia ou já com atendimento aberto não gera atendimento
-
 ### Fase 5 — Ligar os robôs no agendador e nas filas · conclui com `docker exec walle-app ./vendor/bin/pest --filter=Agendador && docker exec walle-app php artisan schedule:list`
-> Dependências: Fase 3 e Fase 4
+> Dependências: Fase 3
 > Paralelismo: nenhum (uma task: arquivos compartilhados)
 
 #### Task 5.1 — Agenda, configuração e filas dos robôs novos
 - Agent: Backend Laravel — infraestrutura
-- Input: Jobs das tasks 3.1 a 3.5 e 4.1 a 4.3
-- Output: entradas em `routes/console.php` (`walle:robo-contingencias`, `walle:robo-sentinela`, `walle:robo-mercadologica`, `walle:robo-cleantax`, `walle:robo-tarefas`, `walle:sincronizar-vpn`, `walle:alerta-sentinela`, `walle:alerta-mercadologica`, cada uma com `->when(fn ($robo) => $robo->ligado())`), blocos em `config/walle.php` com `WALLE_CONTINGENCIAS_ATIVO`, `WALLE_SENTINELA_ATIVO`, `WALLE_MERCADOLOGICA_ATIVO`, `WALLE_CLEANTAX_ATIVO`, `WALLE_TAREFAS_ATIVO`, `WALLE_VPN_ATIVO` (todos `false`), supervisores na conexão `robos` em `config/horizon.php` e as variáveis no `.env.example`
+- Input: Jobs das tasks 3.1 a 3.5; valores exatos de frequência, timeout, limite de falhas e duração da quarentena extraídos dos scripts do 220 e registrados no contrato de cada robô, com unidade e teste de fronteira. Se o legado não fornecer valor inequívoco, pedir decisão ao usuário antes de implementar o parâmetro.
+- Output: entradas em `routes/console.php` (`walle:robo-contingencias`, `walle:robo-sentinela`, `walle:robo-mercadologica`, `walle:robo-cleantax`, `walle:robo-tarefas`, cada uma com `->when(fn ($robo) => $robo->ligado())`), blocos em `config/walle.php` com `WALLE_CONTINGENCIAS_ATIVO`, `WALLE_SENTINELA_ATIVO`, `WALLE_MERCADOLOGICA_ATIVO`, `WALLE_CLEANTAX_ATIVO`, `WALLE_TAREFAS_ATIVO` (todos `false`), supervisores na conexão `robos` em `config/horizon.php` e as variáveis no `.env.example`
 - Testes críticos:
   - [ ] `tests/Feature/AgendadorTest.php`: com cada `WALLE_*_ATIVO=true`, o evento do robô aparece como devido no agendador
   - [ ] com o robô desligado (padrão), o evento não dispara o Job
@@ -155,8 +154,14 @@
 ## Sprint 3 — Todas as telas do newsuporte que faltam abrem no walle, no padrão walle-ui, com os dados do banco `walle` (`docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php tests/Feature/Relatorios` passa)
 
 ### Fase 6 — Telas · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Relatorios tests/Feature/Contingencias/PainelRoboContingenciasTest.php tests/Feature/Sentinela/PainelSentinelaTest.php tests/Feature/Mercadologica/PainelMercadologicaTest.php tests/Feature/CleanTax/PainelCleanTaxTest.php tests/Feature/Ferramentas/PainelFerramentasTest.php tests/Feature/CrontabTest.php`
-> Dependências: Fase 2 (dados) — as telas leem as tabelas e não dependem dos robôs estarem ligados
-> Paralelismo: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 e 6.7 rodam em paralelo (cada uma cria o seu componente Livewire, as suas views e o seu teste; rotas e menu ficam para a Fase 7)
+> Dependências: Fase 2 (dados); novas telas com tabela dependem também da task 6.0. As telas leem as tabelas e não dependem dos robôs estarem ligados.
+> Paralelismo: depois de 6.0 para telas com tabela, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 e 6.7 rodam em paralelo (cada uma cria o seu componente Livewire, as suas views e o seu teste; rotas e menu ficam para a Fase 7)
+
+#### Task 6.0 — Componente reutilizável de tabela (pré-requisito das novas telas com tabela)
+- Agent: Frontend Livewire (walle-ui)
+- Input: tabelas existentes, tokens do tema e regras de acessibilidade do walle-ui.
+- Output: `resources/views/components/ui/tabela.blade.php` e subcomponentes necessários, em tarefa própria antes das telas dependentes. Preservar telas atuais até tarefa explícita de migração; tabelas de gráficos continuam usando `<x-grafico.tabela>`.
+- Critérios: tema claro/escuro, cabeçalhos com `scope`, números alinhados, rolagem horizontal e compatibilidade com `wire:key`. Validar renderização e comportamento próprios, sem testes que apenas repitam classes CSS.
 
 #### Task 6.1 — Relatórios (substitui `consultorias/relatorios`: Clientes, Contingência NFC-e, Motivos)
 - Agent: Frontend Livewire (walle-ui)
@@ -226,7 +231,7 @@
   - [ ] `tests/Feature/TelasTest.php`: cada rota nova abre (`200`) para usuário logado e a Saúde mostra os robôs novos como "Desligado neste servidor"
   - [ ] visitante é redirecionado para `entrar`; usuário que não é admin não vê o menu Programação
 
-## Sprint 4 — Toda ação que o newsuporte fazia fora do walle existe no walle, só para admin, com senha confirmada (`ConfirmaSenha`) e registro em `Auditoria` (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Ferramentas tests/Feature/Sactus tests/Feature/Portas tests/Feature/Conversor tests/Feature/InformacoesTecnicas tests/Feature/Updates` passa)
+## Sprint 4 — As ações do newsuporte mantidas no escopo existem no walle (excluídas escritas no Help Desk), só para admin, com senha confirmada (`ConfirmaSenha`) e registro em `Auditoria` (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Ferramentas tests/Feature/Sactus tests/Feature/Conversor tests/Feature/InformacoesTecnicas tests/Feature/Updates` passa)
 
 ### Fase 8 — Ações nos servidores dos clientes e no banco `walle` · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias/AcoesContingenciasTest.php tests/Feature/Contingencias/ListaDeClientesAcoesTest.php tests/Feature/Ferramentas/ExecucaoDeQueryTest.php tests/Feature/InformacoesTecnicas`
 > Dependências: Fase 7
@@ -251,10 +256,10 @@
 #### Task 8.3 — Execução de query e ferramentas de debug (substitui `execute.query.php`, `execute.query.available.php` e `debugs.tools.php`)
 - Agent: Backend Laravel — segurança
 - Input: `ConectorDeCliente` e tela `Ferramentas` (task 6.6)
-- Output: `app/Ferramentas/ExecucaoDeQuery.php` (`executar(int $clienteId, string $sql): ResultadoQuery`, só `SELECT` sem ser admin; escrita só admin com senha) e a aba `executar` em `App\Livewire\Ferramentas`
+- Output: `app/Ferramentas/ExecucaoDeQuery.php` (`executar(int $clienteId, string $sql): ResultadoQuery`, qualquer SQL manual, inclusive `SELECT`, somente admin com confirmação válida na sessão) e a aba `executar` em `App\Livewire\Ferramentas`
 - Testes críticos:
-  - [ ] `tests/Feature/Ferramentas/ExecucaoDeQueryTest.php`: um `SELECT` no cliente falso devolve as linhas e registra `Auditoria` com o SQL (sem valores sensíveis)
-  - [ ] `UPDATE`/`DELETE` sem ser admin com senha é recusado antes de conectar no cliente
+  - [ ] `tests/Feature/Ferramentas/ExecucaoDeQueryTest.php`: admin com confirmação válida executa `SELECT` no cliente falso e recebe as linhas e registra `Auditoria` com o SQL (sem valores sensíveis)
+  - [ ] `SELECT`/`UPDATE`/`DELETE` sem ser admin ou sem confirmação válida é recusado antes de conectar no cliente; confirmação expirada pede senha novamente
 
 #### Task 8.4 — Informações Técnicas do cliente (substitui `consultorias/config`: Configurações do Servidor e de PDV, `config/api/import.php`, `sets.php`, `gets.php`)
 - Agent: Frontend Livewire (walle-ui)
@@ -264,34 +269,6 @@
   - [ ] `tests/Feature/InformacoesTecnicas/InformacoesTecnicasTest.php`: salvar as configurações de servidor e PDV grava a linha do cliente e reabrir mostra os mesmos valores
   - [ ] campo obrigatório vazio ou porta fora do intervalo mostra o erro de validação e não grava
 
-### Fase 9 — Ações que gravam no Help Desk · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Sactus/VersoesSactusTest.php tests/Feature/Portas tests/Feature/Contingencias/SoftwareHelpDeskTest.php`
-> Dependências: Fase 1 (task 1.6 aprovada e ligada) e Fase 8
-> Paralelismo: 9.1, 9.2 e 9.3 rodam em paralelo (9.1 só mexe em `app/Sactus` e `Livewire\Sactus`, 9.2 cria o módulo Portas, 9.3 só mexe em `app/Contingencias/SoftwareHelpDesk.php` e no seu botão)
-
-#### Task 9.1 — Versões Sactus (substitui `crontab/versoes_sactus.php`, Deploy Sactus)
-- Agent: Backend Laravel — robôs
-- Input: `EscritaHelpDesk` (task 1.6)
-- Output: `app/Sactus/VersoesSactus.php` (`adicionar(string $versao, string $descricao): int` em `versionamentos`) e `app/Livewire/Sactus/Versoes.php` com a aba `versoes` em `App\Livewire\Sactus::ABAS`
-- Testes críticos:
-  - [ ] `tests/Feature/Sactus/VersoesSactusTest.php`: admin adiciona uma versão e ela aparece na lista lida do Help Desk, com `Auditoria`
-  - [ ] versão repetida ou vazia é recusada sem gravar
-
-#### Task 9.2 — Portas (substitui `portas.php` e `api_portas.php`)
-- Agent: Backend Laravel — robôs
-- Input: `EscritaHelpDesk` (task 1.6) e a lista de portas usada hoje pelo `portas.php`
-- Output: `app/Portas/AtualizacaoDePortas.php` (`aplicar(array $linhas): ResultadoPortas`, extrai o id de `srv-cli-NNNN` e a primeira porta de `9396 - 9406`, atualiza `servidor_docker` e `range_pdv_de` em `informacao_tecnica_dataserver`) e `app/Livewire/Portas.php` com `resources/views/livewire/portas.blade.php`
-- Testes críticos:
-  - [ ] `tests/Feature/Portas/AtualizacaoDePortasTest.php`: as linhas `srv-cli-1193` / `9396 - 9406` viram cliente 1193 e porta 9396 e só os clientes que mudaram são atualizados
-  - [ ] linha em formato inválido é ignorada e listada como erro, sem atualizar nada dela
-
-#### Task 9.3 — Software do cliente no Help Desk (substitui `update.software.help.desk.php`)
-- Agent: Backend Laravel — dados
-- Input: `EscritaHelpDesk` (task 1.6) e tela `Contingencias\DoCliente`
-- Output: `app/Contingencias/SoftwareHelpDesk.php` (`atualizar(int $clienteId): ResultadoAcao`, grava `software_cliente` e `software_cliente_usuario` como o 220) e o botão em `Contingencias\DoCliente`
-- Testes críticos:
-  - [ ] `tests/Feature/Contingencias/SoftwareHelpDeskTest.php`: cliente sem `software_cliente` ganha o cabeçalho e os usuários, com `Auditoria`
-  - [ ] rodar de novo não duplica cabeçalho nem usuários
-
 ### Fase 10 — Ferramentas auxiliares · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Conversor tests/Feature/Updates`
 > Dependências: Fase 7
 > Paralelismo: 10.1 e 10.2 rodam em paralelo (módulos próprios)
@@ -299,10 +276,10 @@
 #### Task 10.1 — Conversor de certificado (substitui `menu/conversor.php`)
 - Agent: Backend Laravel — segurança
 - Input: nenhuma além da Fase 7
-- Output: `app/Conversor/ConversorCertificado.php` (`converter(string $conteudoPfx, string $senha): CertificadoConvertido`, tudo em memória, nada gravado em disco nem em log) e `app/Livewire/Conversor.php` com upload temporário apagado depois da conversão
+- Output: `app/Conversor/ConversorCertificado.php` (`converter(string $conteudoPfx, string $senha): CertificadoConvertido`, tudo em memória, nada gravado em disco nem em log) e interface de conversão com recebimento e entrega inteiramente em memória, sem upload temporário. Definir o transporte antes de implementar, garantindo que servidor web, PHP e interface não gravem o corpo em disco; não usar upload temporário convencional do Livewire
 - Testes críticos:
   - [ ] `tests/Feature/Conversor/ConversorCertificadoTest.php`: um `.pfx` de teste com a senha certa vira PEM com certificado e chave, e `Auditoria` registra a conversão sem a senha
-  - [ ] senha errada ou arquivo que não é `.pfx` mostra o erro e não deixa arquivo temporário
+  - [ ] senha errada ou conteúdo que não é `.pfx` mostra o erro; sucesso e falha não criam arquivos, inclusive temporários de upload, nem persistem senha/PFX/PEM/chave em sessão, cache, fila ou log
 
 #### Task 10.2 — Updates (substitui `programacao/updates`, árvore de `sistema/app`)
 - Agent: Frontend Livewire (walle-ui)
@@ -313,22 +290,22 @@
   - [ ] caminho com `../` ou fora da raiz mostra "Caminho inválido" e não lista nada
 
 ### Fase 11 — Rotas e menu das telas do Sprint 4 · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php`
-> Dependências: Fase 8, Fase 9 e Fase 10
+> Dependências: Fase 8 e Fase 10
 > Paralelismo: nenhum (uma task: arquivos compartilhados)
 
-#### Task 11.1 — Registrar Informações Técnicas, Portas, Conversor e Updates
+#### Task 11.1 — Registrar Informações Técnicas, Conversor e Updates
 - Agent: Backend Laravel — infraestrutura
-- Input: componentes das tasks 8.4, 9.2, 10.1 e 10.2
-- Output: rotas `informacoes-tecnicas`, `portas`, `conversor` e `updates` em `routes/web.php` e itens no menu Programação de `resources/views/layouts/app.blade.php`
+- Input: componentes das tasks 8.4, 10.1 e 10.2
+- Output: rotas `informacoes-tecnicas`, `conversor` e `updates` em `routes/web.php` e itens no menu Programação de `resources/views/layouts/app.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/TelasTest.php`: as quatro rotas abrem para admin logado
-  - [ ] usuário que não é admin recebe `403` nas quatro
+  - [ ] `tests/Feature/TelasTest.php`: as três rotas abrem para admin logado
+  - [ ] usuário que não é admin recebe `403` nas três
 
 ## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
 
 ### Fase 12 — Paridade com o newsuporte · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade`
 > Dependências: Sprints 1 a 4
-> Paralelismo: 12.1, 12.2, 12.3 e 12.4 rodam em paralelo (cada uma cria só o seu teste e as suas amostras em `tests/Fixtures/legado/<modulo>/`)
+> Paralelismo: 12.1, 12.2 e 12.4 rodam em paralelo (cada uma cria só o seu teste e as suas amostras em `tests/Fixtures/legado/<modulo>/`)
 
 #### Task 12.1 — Paridade dos robôs de coleta (Contingência BOT, Sentinela, Classificação Mercadológica, CleanTax)
 - Agent: QA — paridade com o newsuporte
@@ -346,14 +323,6 @@
   - [ ] Clientes, Contingência NFC-e e Motivos mostram os mesmos totais do 220 para o mesmo período
   - [ ] semana sem contingências mostra zero nos dois
 
-#### Task 12.3 — Paridade das escritas no Help Desk (VPN, alertas, versões, portas, software)
-- Agent: QA — paridade com o newsuporte
-- Input: entradas e o resultado gravado pelo 220 em `s_atendimento`, `versionamentos`, `informacao_tecnica_dataserver`, `software_cliente` e `software_cliente_usuario`
-- Output: `tests/Feature/Paridade/EscritasHelpDeskParidadeTest.php` e amostras em `tests/Fixtures/legado/help-desk/`
-- Testes críticos:
-  - [ ] com as mesmas entradas, o walle gera os mesmos `INSERT`/`UPDATE` (mesmas colunas e valores) que o 220
-  - [ ] entrada que o 220 ignorava também é ignorada pelo walle
-
 #### Task 12.4 — Paridade das ações de contingência e ferramentas
 - Agent: QA — paridade com o newsuporte
 - Input: comandos que o 220 enviou aos clientes (reenviar ao PDV, alíquotas, queries agendadas) capturados no `testes220`
@@ -361,3 +330,54 @@
 - Testes críticos:
   - [ ] para cada ação, o conector falso do walle recebe exatamente o mesmo SQL ou comando que o 220 enviou
   - [ ] ação recusada no walle (sem senha, sem admin) não envia nada ao cliente
+
+## Segurança — o Help Desk é só consultado, ao vivo (`docker exec walle-app ./vendor/bin/pest tests/Feature/HelpDesk` passa)
+
+### Fase 13 — Help Desk somente leitura · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/HelpDesk`
+> Origem: pedido do usuário em `.claude/commands/PLANSNOVO.md.txt` (auditoria da integração com o 192.168.10.254).
+> Decisão de 25/10/2026: o walle não mantém cópia (espelho) das tabelas do Help Desk. Consulta ao vivo, pela conexão `help`, com o usuário `walle` do .254, que só tem `SELECT` no banco `suporte`. As tasks do espelho (13.4 tabelas locais, 13.5 sincronização e edições, 13.6 Job, 13.7 configuração e agenda, 13.9 tela de edição) foram canceladas e o código escrito delas foi removido.
+> Dependências: nenhuma. Paralelismo: nenhum (as tasks mexem nos mesmos arquivos de `app/Support/HelpDesk`).
+
+#### Task 13.1 — Trava de leitura na conexão `help`
+- Agent: Backend Laravel — segurança
+- Output: `app/Support/HelpDesk/TravaHelpDeskProducao.php` (registrada em toda conexão pelo `AppServiceProvider`), `ClassificadorSql.php`, `EscritaNoHelpDeskDeProducao.php`, `PermissoesHelpDesk.php`, `ResultadoPermissoes.php` e `app/Models/Concerns/SomenteLeitura.php`
+- Testes críticos:
+  - [x] `tests/Feature/HelpDesk/ProtecaoHelpDeskProducaoTest.php`: no host de produção, toda instrução que não é leitura é barrada antes de conectar, inclusive em conexão recriada ou dinâmica; a leitura passa
+  - [x] `tests/Feature/HelpDesk/ConexaoHelpSomenteLeituraTest.php`: fora dos testes, a conexão `help` só lê em qualquer host; `Usuario->save()` e `delete()` são barrados; cada tentativa vira uma auditoria `help_desk.escrita_barrada`, sem SQL nem valores
+  - [x] `tests/Feature/HelpDesk/PermissoesHelpDeskTest.php`: o `SHOW GRANTS` é interpretado sem guardar a linha bruta nem o hash da senha
+  - [x] `tests/Feature/HelpDesk/SemAcessoDiretoAoPdoTest.php`: nada em `app/` usa o PDO direto, fora do conector de cliente
+
+#### Task 13.1b — Reforços da trava apontados na revisão
+- Agent: Backend Laravel — segurança
+- Input: revisão do `walle-arquiteto` de 25/10/2026
+- Output: ajustes em `app/Support/HelpDesk/` e nos testes de `tests/Feature/HelpDesk/`
+- Testes críticos:
+  - [ ] nos testes, a trava pelo nome só fica desligada quando o banco da `help` casa com `^walle_testes(_t[0-9]+)?_help$`
+  - [ ] a auditoria da escrita barrada não se perde quando a transação do walle é desfeita
+  - [ ] `WITH ... GRANT OPTION` com outras palavras no meio conta como escrita; `TravaHelpDeskProducao::conferir()` é removido ou ganha teste
+  - [ ] a varredura de PDO direto cobre também `routes/`, `database/`, `config/` e `bootstrap/`
+  - [ ] a regex de banco de teste do `tests/TestCase.php` usa `\z` em vez de `$`
+
+#### Task 13.2 e 13.3 — Imitação do Help Desk num banco de teste separado
+- Agent: Backend Laravel — dados (13.2), infraestrutura (13.3) e segurança (13.3b)
+- Output: `tests/Migrations/HelpDesk/` (imitação de `a_user`, `c_cliente`, `informacao_tecnica_dataserver`...) aplicada no banco `<DB_DATABASE>_help`; `tests/TestCase.php` aponta a conexão `help` para ele e recusa banco fora de `walle_testes` ou `walle_testes_tNN`
+- Testes críticos:
+  - [x] `tests/Feature/HelpDesk/BancoDeTesteDoHelpDeskTest.php`: nos testes a `help` usa `<banco>_help` e nunca um host de produção; banco fora do padrão é recusado antes de criar qualquer banco
+
+#### Task 13.8 — Regras do projeto
+- Agent: Harness
+- Output: `.ai/guidelines/walle.md`, `CLAUDE.md` e `AGENTS.md` (Help Desk somente leitura por nome e por host, sempre consultado ao vivo, tentativas barradas na auditoria) e as duas cópias da skill `portar-tabela-220` (tabela do Help Desk não vira migration)
+- Testes críticos:
+  - [x] cópias sincronizadas e teste da política do harness: 327 casos
+
+#### Task 13.10 — Usuário `walle` só com `SELECT` e fim da API do Help
+- Agent: sessão principal; o usuário `walle` foi criado no 192.168.10.254 pelo usuário em 25/10/2026
+- Output: `config/database.php` com `HELP_DB_USERNAME=walle` e a senha só do `.env` (`HELP_DB_SENHA_RESERVA`); removidos `app/Support/HelpDesk/SenhaHelpDesk.php` (que buscava a senha do root na API do Help) e o bloco `services.help`; a Saúde mostra o usuário da conexão
+- Testes críticos:
+  - [x] conferência real no .254 em 25/10/2026, só com leitura: a conexão chega como `walle@192.168.99.237` e `PermissoesHelpDesk::verificar()` dá somente leitura, sem privilégio de escrita
+  - [x] `tests/Feature/HelpDesk/ConexaoHelpSomenteLeituraTest.php`: nada em `app/` nem em `config/` pede a senha à API do Help
+  - [ ] a Saúde mostra o resultado de `PermissoesHelpDesk` (somente leitura ou não)
+
+#### Pendências fora do walle
+- [ ] Restringir o `root@%` do 192.168.10.254 e trocar a senha dele (a API do Help ainda a entrega).
+- [ ] Apagar os logs do 220 que guardam a senha do root em texto puro (`response.log` e `login.class.php`).
