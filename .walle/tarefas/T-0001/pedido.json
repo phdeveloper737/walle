@@ -1,0 +1,7 @@
+{
+    "titulo":  "Reforços da trava do Help Desk apontados na revisão",
+    "origem":  "PLAN 13.1b",
+    "tipo":  "plano",
+    "dono":  "walle-seguranca",
+    "resumo":  "Trava pelo nome desligada nos testes só com banco walle_testes(_tNN)_help; auditoria da escrita barrada sobrevive ao rollback da transação do walle; WITH ... GRANT OPTION com palavras no meio conta como escrita; conferir() removido ou testado; varredura de PDO direto cobre routes, database, config e bootstrap; regex do TestCase usa \\z."
+}
