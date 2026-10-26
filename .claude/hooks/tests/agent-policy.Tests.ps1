@@ -238,7 +238,33 @@ function ConferirProteger([string]$Comando, [int]$Esperado) {
     if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
     $script:casos++
 }
-foreach ($comando in @('git status', 'gh pr merge 9 --squash --delete-branch', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+# Merge: so com o CI do PR todo verde, conferido por "gh pr checks" (aqui um duplo que devolve o codigo pedido).
+$duploGh = Join-Path ([IO.Path]::GetTempPath()) ('walle-gh-' + [guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($duploGh) | Out-Null
+$pathSemGh = $env:PATH
+try {
+    [IO.File]::WriteAllText((Join-Path $duploGh 'gh.cmd'), "@echo off`r`nexit /b %WALLE_TEST_GH_EXIT%`r`n")
+    $env:PATH = $duploGh + ';' + $env:PATH
+    $env:WALLE_TEST_GH_EXIT = '0'
+    ConferirProteger 'gh pr merge 9 --squash --delete-branch' 0
+    foreach ($codigo in @('1', '8')) {                               # 1 = falhou, 8 = pendente
+        $env:WALLE_TEST_GH_EXIT = $codigo
+        ConferirProteger 'gh pr merge 9 --squash --delete-branch' 2
+    }
+    $env:WALLE_TEST_GH_EXIT = '0'
+    foreach ($comando in @('gh pr merge --squash', 'gh pr merge 9 --squash; echo x', 'gh pr merge 9 "--admin"', 'gh.exe pr merge 9 --admin', 'GH PR MERGE 9 --ADMIN', 'gh api -X PUT repos/x/walle/pulls/9/merge')) {
+        ConferirProteger $comando 2
+    }
+} finally {
+    $env:PATH = $pathSemGh
+    Remove-Item Env:WALLE_TEST_GH_EXIT -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $duploGh -Recurse -Force -ErrorAction SilentlyContinue
+}
+# Gate: a regra da politica e sensivel a maiusculas.
+foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -banco walle_testes', 'POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco WALLE_TESTES')) {
+    Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
+}
+foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
     ConferirProteger $comando 0
 }
 foreach ($comando in @('gh pr merge 9 --squash --admin', 'gh pr merge --admin 9', 'cat .env', 'docker exec walle-app php artisan migrate:fresh', 'docker exec walle-app php artisan config:show database', 'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"')) {

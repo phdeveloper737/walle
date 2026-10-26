@@ -123,6 +123,8 @@ $evidencia = [ordered]@{
     verde                  = $false
     valida_para_commit     = $false
     completo               = $completo
+    # Sessao paralela (walle_testes_tNN): gate preliminar; o definitivo roda sozinho, no walle_testes.
+    preliminar             = ($Banco -cne 'walle_testes')
     motivos                = @('em andamento')
     commit                 = $commit
     branch                 = ConsultarGit @('branch', '--show-current')

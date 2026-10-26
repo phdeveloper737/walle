@@ -57,7 +57,7 @@ try {
     $r = RodarGate @('-Saida', $saida)
     Garantir ($r.codigo -eq 0) "completo verde deveria sair com 0: $($r.saida)"
     $e = Evidencia
-    Garantir ($e.verde -eq $true -and $e.completo -eq $true) 'completo e verde'
+    Garantir ($e.verde -eq $true -and $e.completo -eq $true -and $e.preliminar -eq $false) 'completo, verde e definitivo'
     Garantir ((@($e.etapas | ForEach-Object { $_.nome }) -join ',') -eq 'pint,phpstan,pest,politicas,gate,plugin,rag') 'sete etapas na ordem'
     Garantir ($e.arvore -match '^[0-9a-f]{40}$' -and $e.commit -match '^[0-9a-f]{40}$') 'arvore e commit com 40 hex'
     Garantir ($e.banco -eq 'walle_testes' -and $e.etapas[2].comando -match 'DB_DATABASE=walle_testes ') 'banco padrao no pest'
@@ -90,6 +90,7 @@ try {
     $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida)
     $e = Evidencia
     Garantir ($e.banco -eq 'walle_testes_t7' -and $e.etapas[0].comando -match 'DB_DATABASE=walle_testes_t7 ') 'banco da sessao paralela'
+    Garantir ($e.preliminar -eq $true) 'gate de sessao paralela e preliminar'
     $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida, '-Banco', 'walle_testes_t9')
     Garantir ((Evidencia).banco -eq 'walle_testes_t9') '-Banco explicito vence'
 

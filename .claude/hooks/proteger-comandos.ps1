@@ -48,10 +48,32 @@ if ($comando -match $destrutivo -and $comando -notmatch 'DB_DATABASE=walle_teste
     exit 2
 }
 
-# Merge automatico so pelo caminho normal (CI verde e revisao): --admin passaria por cima das protecoes.
-if ($comando -match '\bgh\s+pr\s+merge\b' -and $comando -match '(^|\s)--admin\b') {
-    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: gh pr merge com --admin passa por cima das protecoes. Faca o merge sem --admin, depois do CI verde e da revisao.')
+# Merge automatico so com o CI verde: o plano do GitHub nao protege branch, entao a barreira e este hook.
+# Aspas sao ignoradas na analise ("--admin" entre aspas tambem conta); merge pela API fica proibido.
+$semAspas = $comando -replace '["'']', ''
+if ($semAspas -match '(?i)\bgh(\.exe)?\s+api\b.*\bpulls/\d+/merge\b') {
+    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: merge pela API do GitHub nao e permitido. Use gh pr merge <numero> depois do CI verde.')
     exit 2
+}
+if ($semAspas -match '(?i)\bgh(\.exe)?\s+pr\s+merge\b') {
+    if ($semAspas -match '(^|\s)--admin\b') {
+        [Console]::Error.WriteLine('Bloqueado pelo hook do walle: merge com --admin passa por cima das protecoes. Faca o merge sem --admin, depois do CI verde e da revisao.')
+        exit 2
+    }
+    if ($comando -match '[;&|<>`$\r\n]' -or $semAspas -notmatch '(?i)\bpr\s+merge\s+(\d+)\b') {
+        [Console]::Error.WriteLine('Bloqueado pelo hook do walle: o merge precisa ser um comando simples com o numero do PR (gh pr merge <numero> ...), para o hook conferir o CI.')
+        exit 2
+    }
+    $null = $semAspas -match '(?i)\bpr\s+merge\s+(\d+)\b'
+    $numero = $Matches[1]
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = -1
+    & gh pr checks $numero 2>&1 | Out-Null
+    $codigoChecks = $LASTEXITCODE
+    if ($codigoChecks -ne 0) {
+        [Console]::Error.WriteLine("Bloqueado pelo hook do walle: o CI do PR $numero nao esta todo verde (gh pr checks saiu com ${codigoChecks}: falha, pendente ou gh indisponivel). Espere o CI passar.")
+        exit 2
+    }
 }
 
 exit 0
