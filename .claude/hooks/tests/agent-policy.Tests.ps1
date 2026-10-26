@@ -50,8 +50,15 @@ foreach ($agent in @('walle-arquiteto','walle-explorador-220','walle-orquestrado
 }
 
 # Verificador: le e roda validadores, nunca edita.
-foreach ($comando in @('docker exec walle-app ./vendor/bin/pest','docker exec -e DB_DATABASE=walle_testes_t32 walle-app ./vendor/bin/pest tests/Feature/Contingencias --stop-on-failure','docker exec walle-app ./vendor/bin/pint --test','docker exec walle-app ./vendor/bin/pint --test app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/phpstan analyse --no-progress','git status')) {
+foreach ($comando in @('docker exec walle-app ./vendor/bin/pest','docker exec -e DB_DATABASE=walle_testes_t32 walle-app ./vendor/bin/pest tests/Feature/Contingencias --stop-on-failure','docker exec walle-app ./vendor/bin/pint --test','docker exec walle-app ./vendor/bin/pint --test app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/phpstan analyse --no-progress','git status','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco walle_testes_t32')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 0
+}
+# Gate: so completo (sem escolher etapas), so em banco de testes e so pelo verificador.
+foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco walle','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Etapas pint','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Saida x.json','powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1; git push')) {
+    Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
+}
+foreach ($agent in @('walle-robos','walle-dados','walle-harness','walle-orquestrador')) {
+    Conferir $agent 'Bash' @{command='powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1'} 2
 }
 foreach ($comando in @('git push','docker exec walle-app ./vendor/bin/pest; git push','docker exec walle-app ./vendor/bin/pest --bootstrap=malicioso.php','docker exec walle-app php artisan migrate:fresh','docker exec -e DB_DATABASE=walle walle-app ./vendor/bin/pest','docker exec walle-app ./vendor/bin/pint app/Sefaz/ChaveDeAcesso.php','docker exec walle-app ./vendor/bin/pint --dirty','docker exec walle-app php artisan make:model Exemplo','docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine npm run build')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 2

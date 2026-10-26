@@ -78,3 +78,10 @@ dump.rdb
 /storage/framework/testing/*
 /storage/framework/views/*
 !/storage/framework/**/.gitignore
+
+# Gate e ledger do harness: a evidencia do gate e local (o CI gera a dele)
+/.walle/gate/
+
+# Ferramentas locais
+/.playwright-mcp/
+/.claude/settings.local.json

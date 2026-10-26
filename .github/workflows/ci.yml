@@ -1,4 +1,5 @@
-# walle: confere formatação, análise estática e testes em todo push na main e em todo PR
+# walle: confere formatação, análise estática e testes em todo push na main e em todo PR.
+# São as mesmas etapas do gate local (.claude/hooks/gate.ps1); mudou uma, mude a outra.
 name: ci
 
 on:
@@ -65,3 +66,48 @@ jobs:
 
       - name: Testes (Pest)
         run: ./vendor/bin/pest
+
+  # Harness dos agentes: políticas dos hooks, gate e plugin do OpenCode (os hooks são Windows PowerShell)
+  harness:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Políticas dos agentes
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/agent-policy.Tests.ps1
+
+      - name: Gate
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/gate.Tests.ps1
+
+      - name: Plugin do OpenCode
+        run: node --test .opencode/plugin/agent-hooks.test.mjs
+
+  # Memória local dos agentes (RAG): extração, indexação, busca e isolamento
+  rag:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .claude/scripts
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Dependências
+        run: npm ci --no-audit --no-fund
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
+      - name: Testes do RAG
+        run: node --test tests/rag.test.ts
