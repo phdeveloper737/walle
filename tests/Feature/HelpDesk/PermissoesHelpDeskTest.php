@@ -44,6 +44,26 @@ test('interpreta o SHOW GRANTS', function (array $linhas, bool $somenteLeitura, 
         ["GRANT SELECT ON `suporte`.* TO 'walle'@'%' WITH GRANT OPTION"],
         false, ['GRANT OPTION'],
     ],
+    'WITH com limite antes do GRANT OPTION' => [
+        ["GRANT SELECT ON `suporte`.* TO 'walle'@'%' WITH MAX_QUERIES_PER_HOUR 0 GRANT OPTION"],
+        false, ['GRANT OPTION'],
+    ],
+    'WITH com dois limites antes do GRANT OPTION' => [
+        ["GRANT SELECT ON `suporte`.* TO 'walle'@'%' WITH MAX_QUERIES_PER_HOUR 10 MAX_UPDATES_PER_HOUR 5 GRANT OPTION"],
+        false, ['GRANT OPTION'],
+    ],
+    'WITH GRANT OPTION seguido de limite' => [
+        ["GRANT SELECT ON `suporte`.* TO 'walle'@'%' WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0"],
+        false, ['GRANT OPTION'],
+    ],
+    'WITH só com limite' => [
+        ["GRANT SELECT ON `suporte`.* TO 'walle'@'%' WITH MAX_QUERIES_PER_HOUR 0"],
+        true, [],
+    ],
+    'usuário chamado grant option' => [
+        ["GRANT SELECT ON `suporte`.* TO 'grant option'@'%'"],
+        true, [],
+    ],
     'GRANT PROXY' => [
         ["GRANT PROXY ON ''@'' TO 'root'@'localhost' WITH GRANT OPTION"],
         false, ['PROXY', 'GRANT OPTION'],

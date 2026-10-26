@@ -21,6 +21,29 @@ test('nos testes, a conexão help não aponta para nenhum host do Help Desk de p
         ->and(TravaHelpDeskProducao::hostDeProducao(DB::connection('help')->getConfig()))->toBeNull();
 });
 
+test('nos testes, a conexão auditoria usa o banco de testes do walle, em transação, e nunca um host de produção', function () {
+    $auditoria = DB::connection('auditoria');
+
+    expect($auditoria->transactionLevel())->toBeGreaterThanOrEqual(1)
+        ->and($auditoria->getDatabaseName())->toBe(DB::connection('mysql')->getDatabaseName())
+        ->and(TravaHelpDeskProducao::hostDeProducao($auditoria->getConfig()))->toBeNull();
+});
+
+test('exigirBancoDeTeste aceita só walle_testes e walle_testes_tNN, sem nada depois', function (string $banco, bool $aceito) {
+    $exigir = fn () => $this->exigirBancoDeTeste($banco);
+
+    if ($aceito) {
+        expect($exigir)->not->toThrow(RuntimeException::class);
+    } else {
+        expect($exigir)->toThrow(RuntimeException::class, 'Banco de testes inválido');
+    }
+})->with([
+    'walle_testes' => ['walle_testes', true],
+    'walle_testes_t07' => ['walle_testes_t07', true],
+    'walle_testes com quebra de linha no fim' => ["walle_testes\n", false],
+    'walle_testes_t07 com quebra de linha no fim' => ["walle_testes_t07\n", false],
+]);
+
 test('migrateDatabases recusa banco fora do padrão walle_testes antes de criar qualquer banco', function (string $banco) {
     $bancosAntes = DB::connection('mysql')->table('information_schema.SCHEMATA')->orderBy('SCHEMA_NAME')->pluck('SCHEMA_NAME')->all();
     config(['database.connections.mysql.database' => $banco]);

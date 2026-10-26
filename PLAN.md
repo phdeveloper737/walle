@@ -338,11 +338,11 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 - Input: revisão do `walle-arquiteto` de 25/10/2026
 - Output: ajustes em `app/Support/HelpDesk/` e nos testes de `tests/Feature/HelpDesk/`
 - Testes críticos:
-  - [ ] nos testes, a trava pelo nome só fica desligada quando o banco da `help` casa com `^walle_testes(_t[0-9]+)?_help$`
-  - [ ] a auditoria da escrita barrada não se perde quando a transação do walle é desfeita
-  - [ ] `WITH ... GRANT OPTION` com outras palavras no meio conta como escrita; `TravaHelpDeskProducao::conferir()` é removido ou ganha teste
-  - [ ] a varredura de PDO direto cobre também `routes/`, `database/`, `config/` e `bootstrap/`
-  - [ ] a regex de banco de teste do `tests/TestCase.php` usa `\z` em vez de `$`
+  - [x] nos testes, a trava pelo nome só fica desligada quando o banco da `help` casa com `^walle_testes(_t[0-9]+)?_help$`
+  - [x] a auditoria da escrita barrada não se perde quando a transação do walle é desfeita
+  - [x] `WITH ... GRANT OPTION` com outras palavras no meio conta como escrita; `TravaHelpDeskProducao::conferir()` é removido ou ganha teste
+  - [x] a varredura de PDO direto cobre também `routes/`, `database/`, `config/` e `bootstrap/`
+  - [x] a regex de banco de teste do `tests/TestCase.php` usa `\z` em vez de `$`
 
 #### Task 13.2 e 13.3 — Imitação do Help Desk num banco de teste separado
 - Agent: Backend Laravel — dados (13.2), infraestrutura (13.3) e segurança (13.3b)

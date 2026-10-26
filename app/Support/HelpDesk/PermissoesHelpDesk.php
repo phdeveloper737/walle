@@ -11,7 +11,8 @@ use Throwable;
  * Confere de verdade o que o usuário da conexão "help" pode fazer no Help Desk (SHOW GRANTS FOR CURRENT_USER).
  *
  * Só contam como leitura USAGE, SELECT, SHOW VIEW e SHOW DATABASES; qualquer outro privilégio (inclusive
- * WITH GRANT OPTION, PROXY, papéis e formatos que não reconhece) é escrita possível. A linha bruta nunca
+ * GRANT OPTION em qualquer posição depois do ON, mesmo com limites como MAX_QUERIES_PER_HOUR no meio do WITH,
+ * PROXY, papéis e formatos que não reconhece) é escrita possível. A linha bruta nunca
  * sai daqui: no MySQL 5.x ela traz "IDENTIFIED BY PASSWORD '*hash'". O resultado fica no cache por
  * walle.help_desk.permissoes_cache_minutos; erro não vai para o cache.
  */
@@ -113,7 +114,9 @@ class PermissoesHelpDesk
                 : self::DESCONHECIDO;
         }
 
-        if (preg_match('/\bWITH\s+GRANT\s+OPTION\b/i', substr($mascarado, $on[0][1]))) {
+        // Depois do ON, "GRANT OPTION" em qualquer posição conta (o WITH pode trazer limites antes dele);
+        // usuário, host e senha entre aspas já viraram "%" e não confundem
+        if (preg_match('/\bGRANT\s+OPTION\b/i', substr($mascarado, $on[0][1]))) {
             $privilegios[] = self::GRANT_OPTION;
         }
 
