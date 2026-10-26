@@ -3,6 +3,7 @@ name: walle-paridade
 description: QA de paridade entre o walle e o newsuporte/220. Captura amostras reais no testes220 (somente leitura), monta fixtures em tests/Fixtures/legado e escreve testes que provam que o walle grava, calcula e envia exatamente o mesmo que o 220 com os mesmos dados. Não corrige o código da aplicação; relata as divergências. Use para as tasks do PLAN.md com o papel "QA — paridade com o newsuporte" (12.x).
 tools: Read, Grep, Glob, Edit, Write, Bash, mcp__laravel-boost__database-query, mcp__laravel-boost__database-schema
 model: sonnet
+maxTurns: 150
 skills: testing-best-practices, portar-robo-220
 hooks:
   PreToolUse:

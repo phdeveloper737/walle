@@ -8,7 +8,7 @@ Funcionalidade solicitada:
 
 $ARGUMENTS
 
-Leia `.claude/commands/nova-feature.md` e siga integralmente o fluxo descrito ali, a partir da seção "Fontes de verdade e limites", tratando `$ARGUMENTS` como a funcionalidade solicitada. Atue como `walle-orquestrador`, conforme `.opencode/agents/walle-orquestrador.md`.
+Leia `.claude/commands/nova-feature.md` e siga integralmente o fluxo descrito ali, a partir da seção "Fluxo automático", que prevalece sobre o restante, tratando `$ARGUMENTS` como a funcionalidade solicitada. Atue como `walle-orquestrador`, conforme `.opencode/agents/walle-orquestrador.md`.
 
 Adaptações para o OpenCode:
 

@@ -10,13 +10,13 @@
 param(
     # Banco de testes; sem ele vale WALLE_HOOK_TEST_DATABASE (sessao paralela) e depois walle_testes.
     [string]$Banco,
-    # Separadas por virgula (com -File o PowerShell nao monta lista): pint,phpstan,pest,politicas,gate,plugin,rag
-    [string]$Etapas = 'pint,phpstan,pest,politicas,gate,plugin,rag',
+    # Separadas por virgula (com -File o PowerShell nao monta lista): pint,phpstan,pest,politicas,gate,tarefa,plugin,rag
+    [string]$Etapas = 'pint,phpstan,pest,politicas,gate,tarefa,plugin,rag',
     [string]$Saida
 )
 
 $ErrorActionPreference = 'Stop'
-$conhecidas = @('pint', 'phpstan', 'pest', 'politicas', 'gate', 'plugin', 'rag')
+$conhecidas = @('pint', 'phpstan', 'pest', 'politicas', 'gate', 'tarefa', 'plugin', 'rag')
 
 if (-not $Banco) { $Banco = if ($env:WALLE_HOOK_TEST_DATABASE) { $env:WALLE_HOOK_TEST_DATABASE } else { 'walle_testes' } }
 if ($Banco -cnotmatch '^walle_testes(_t[0-9]+)?\z') {
@@ -46,6 +46,7 @@ $comandos = [ordered]@{
     pest      = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", 'walle-app', './vendor/bin/pest', '--compact')
     politicas = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/agent-policy.Tests.ps1'))
     gate      = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/gate.Tests.ps1'))
+    tarefa    = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/tarefa.Tests.ps1'))
     plugin    = @('docker', 'run', '--rm', '-v', "${raizDocker}:/app", '-w', '/app', 'node:24-alpine', 'node', '--test', '.opencode/plugin/agent-hooks.test.mjs')
     # Fontes atuais do RAG sobre as dependencias da imagem walle-rag:local (a imagem fica igual; dependencia nova pede rebuild)
     rag       = @('docker', 'run', '--rm', '-v', "${raizDocker}/.claude/scripts:/src:ro", 'walle-rag:local', 'sh', '-c', 'mkdir /tmp/rag && cp -r /src/. /tmp/rag/ && ln -s /app/node_modules /tmp/rag/node_modules && cd /tmp/rag && node --test tests/rag.test.ts')

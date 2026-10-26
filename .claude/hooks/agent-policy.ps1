@@ -98,8 +98,20 @@ try {
     $chave = ($Agent + '_' + [string]$entrada.session_id + '_' + [string]$entrada.agent_id) -replace '[^A-Za-z0-9_-]', '_'
     $marcador = Join-Path ([IO.Path]::GetTempPath()) "walle-hooks/$chave.editou"
 
+    # Evento de outro agent: quando o orquestrador e a sessao principal (--agent), os hooks dele tambem veem as
+    # ferramentas dos subagents. A politica de cada subagent ja vale pelos hooks dele e pelo hook global.
+    $outroAgent = [string]$entrada.agent_type
+    if ($outroAgent -and $outroAgent -cne $Agent) { exit 0 }
+
     if ($Event -eq 'PreToolUse') {
-        if ($politica.tipo -in @('leitura', 'orquestrador') -and ($edicao -or $shell)) { Bloquear 'Este agent apenas le e analisa ou delega; nao pode editar arquivos nem executar comandos.' }
+        # Leitura: nunca terminal; edicao so nos arquivos da politica (o arquiteto grava apenas o parecer da revisao).
+        if ($politica.tipo -eq 'leitura' -and ($shell -or ($edicao -and -not $politica.arquivos))) { Bloquear 'Este agent apenas le e analisa; nao pode editar arquivos nem executar comandos.' }
+        # Orquestrador: delega o trabalho; no terminal, so o ledger e o Git das tarefas (tarefa.ps1, acoes fixas).
+        if ($politica.tipo -eq 'orquestrador' -and $shell) {
+            $tarefa = '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/tarefa\.ps1 -Acao '
+            if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|retomar|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
+            Bloquear 'O orquestrador so roda .claude/hooks/tarefa.ps1 com uma acao e o id da tarefa; o resto e delegado aos especialistas.'
+        }
         if ($politica.tipo -eq 'operacao' -and $edicao) { Bloquear 'O walle-migracao nao edita arquivos; so roda os comandos fixos de migracao do Docker.' }
         if ($politica.tipo -eq 'verificacao' -and $edicao) { Bloquear 'O verificador le e executa validadores; nao edita arquivos.' }
         if ($ferramenta -match '(?i)database|query|schema' -and $politica.tipo -in @('verificacao', 'orquestrador', 'harness', 'operacao')) { Bloquear 'Este agent nao acessa bancos por ferramentas; use os testes isolados.' }

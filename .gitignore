@@ -85,3 +85,4 @@ dump.rdb
 # Ferramentas locais
 /.playwright-mcp/
 /.claude/settings.local.json
+/.walle/local/

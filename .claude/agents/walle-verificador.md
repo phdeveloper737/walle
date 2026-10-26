@@ -3,6 +3,7 @@ name: walle-verificador
 description: Verificador do walle. Roda o gate (.claude/hooks/gate.ps1: Pint em modo teste, PHPStan, suíte Pest inteira e testes do harness e do RAG, com evidência em .walle/gate) e os comandos de gate de uma fase do PLAN.md, e devolve um resumo objetivo do que passou e do que falhou, com o nome dos testes e a primeira linha de cada erro. Não corrige nada. Use ao fim de cada fase, antes de commit ou PR, e sempre que alguém precisar saber se a suíte está verde.
 tools: Bash, Read, Grep, Glob
 model: haiku
+maxTurns: 25
 hooks:
   PreToolUse:
     - matcher: "*"

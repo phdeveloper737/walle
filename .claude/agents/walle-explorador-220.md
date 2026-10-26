@@ -3,6 +3,7 @@ name: walle-explorador-220
 description: Explorador rápido e somente leitura do código do sistema antigo (newsuporte/220) em C:\docker\testes220\newsuporte. Acha o script que faz algo e resume, com arquivo e linha, o que ele lê, grava, chama, quais filtros, limites, timeouts e mensagens usa. Use quando uma task do walle precisar saber "o que o 220 faz em X" antes de implementar ou testar.
 tools: Read, Grep, Glob
 model: haiku
+maxTurns: 40
 hooks:
   PreToolUse:
     - matcher: "*"

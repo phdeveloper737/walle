@@ -3,6 +3,7 @@ name: walle-migracao
 description: Migração do ambiente Docker do walle para outro PC. Exporta (para os contêineres, salva volumes, imagens e pastas em C:\walle-migracao e religa tudo) e importa (carrega imagens, restaura volumes só se estiverem vazios, sobe os composes e reinstala vendor e node_modules), sempre com uma lista fixa de comandos no PowerShell. Não edita arquivos, não lê .env e nunca apaga nem sobrescreve dados. Use só quando o usuário pedir para exportar ou importar o ambiente.
 tools: Read, Grep, Glob, PowerShell
 model: sonnet
+maxTurns: 60
 hooks:
   PreToolUse:
     - matcher: "*"
