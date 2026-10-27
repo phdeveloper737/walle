@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0027-informacoes-tecnicas-do-cliente",
     "pr":  41,
     "base":  "ee416b23707cbebb5fa7ad3993fd822fe350c301",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-27 10:35:46",
                         "tipo":  "pr",
                         "detalhe":  "PR #41 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 10:53:00",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0027: Informacoes Tecnicas do cliente e lista de decisoes pendentes"
                     }
                 ]
 }
