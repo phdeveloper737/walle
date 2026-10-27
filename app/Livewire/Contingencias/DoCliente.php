@@ -105,6 +105,15 @@ class DoCliente extends Component
 
         if ($resultado->ok) {
             $this->selecionadas = [];
+        } elseif ($resultado->enviados > 0) {
+            $this->selecionadas = array_values(array_filter(
+                $this->selecionadas,
+                function (string $id) use ($resultado): bool {
+                    $nome = 'Cupom '.str_replace('_', '/', $id).':';
+
+                    return array_any($resultado->falhas, fn (string $falha): bool => str_starts_with($falha, $nome) || str_starts_with($falha, 'Cupom '.str_replace('_', '/', $id).' '));
+                },
+            ));
         }
 
         $this->avisar($resultado);

@@ -388,6 +388,67 @@ test('a trava do reprocessar é do servidor remapeado', function () {
     $trava->release();
 });
 
+test('o script de gravação, executado num sh de verdade, devolve o rc pelo marcador da sessão SSH', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    criarContingenciaSactus(['cupom' => '500'], chave: chaveValida(1));
+    servidorDoClienteNoBancoDeTestes();
+    app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500]]);
+    $original = $ssh->comandosEm(...SSH_CONTEINER)[0];
+
+    $base = sys_get_temp_dir().'/walle_sh_'.bin2hex(random_bytes(6));
+    $pasta = "{$base}/0001/002";
+    $rodar = function (string $comando) use ($base): array {
+        $local = str_replace('/var/sactus/snd', $base, $comando);
+        // o mesmo acréscimo que SessaoPhpseclib::executar faz
+        $processo = proc_open(['/bin/sh', '-c', $local.'; echo "__RC__$?"'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $saida = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($processo);
+
+        return [preg_match('~__RC__(\d+)\s*$~', $saida, $m) === 1 ? (int) $m[1] : null, $saida];
+    };
+
+    try {
+        // pasta ausente
+        expect($rodar($original)[0])->toBe(3);
+
+        // sucesso: publica sem .tmp sobrando
+        mkdir($pasta, 0777, true);
+        expect($rodar($original)[0])->toBe(0);
+        $arquivos = array_map('basename', glob("{$pasta}/*"));
+        expect($arquivos)->toHaveCount(1)
+            ->and($arquivos[0])->toEndWith('_102.xml')->not->toContain('.tmp');
+        $xml = file_get_contents(glob("{$pasta}/*")[0]);
+        expect($xml)->toContain('funcid="858"', 'store="0001" pdv="002"');
+
+        // destino existente: dispara a nova tentativa e não sobrescreve
+        $antes = file_get_contents(glob("{$pasta}/*")[0]);
+        expect($rodar($original)[0])->toBe(4)
+            ->and(file_get_contents(glob("{$pasta}/*")[0]))->toBe($antes)
+            ->and(glob("{$pasta}/*"))->toHaveCount(1);
+
+        // sem permissão de escrita (root ignora o bit; nesse caso o teste não prova isso)
+        foreach (glob("{$pasta}/*") as $arquivo) {
+            unlink($arquivo);
+        }
+        chmod($pasta, 0555);
+
+        if (! is_writable($pasta)) {
+            expect($rodar($original)[0])->toBe(6);
+        }
+    } finally {
+        @chmod($pasta, 0777);
+        foreach (glob("{$pasta}/*") ?: [] as $arquivo) {
+            @unlink($arquivo);
+        }
+        @rmdir($pasta);
+        @rmdir("{$base}/0001");
+        @rmdir($base);
+    }
+});
+
 test('reprocessar para no primeiro erro de gravação', function () {
     adminDeContingencias();
     [$cliente, $ssh] = clienteComConteinerSsh();

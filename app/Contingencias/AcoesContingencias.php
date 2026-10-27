@@ -387,7 +387,8 @@ class AcoesContingencias
         $destino = escapeshellarg($arquivo);
         $temporario = escapeshellarg($arquivo.'.tmp_'.bin2hex(random_bytes(8)));
 
-        return implode('; ', [
+        // Subshell: os exit saem só dele; o shell da sessão ainda emite o marcador __RC__ com o código.
+        return '( '.implode('; ', [
             "[ -d {$dir} ] || exit ".self::RC_SEM_DIRETORIO,
             "[ -w {$dir} ] || exit ".self::RC_SEM_ESCRITA,
             "[ ! -e {$destino} ] || exit ".self::RC_DESTINO_EXISTE,
@@ -395,7 +396,7 @@ class AcoesContingencias
             'rc=$?',
             "rm -f {$temporario}",
             "[ \$rc -eq 0 ] || { [ -e {$destino} ] && exit ".self::RC_DESTINO_EXISTE.'; exit 1; }',
-        ]);
+        ]).' )';
     }
 
     private function parcial(int $enviados): string
