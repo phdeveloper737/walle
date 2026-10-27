@@ -1,0 +1,7 @@
+{
+    "titulo":  "Execucao manual de query nos clientes",
+    "origem":  "PLAN 8.3",
+    "tipo":  "plano",
+    "dono":  "walle-seguranca",
+    "resumo":  "Cria ExecucaoDeQuery e ResultadoQuery (SQL manual nos clientes, inclusive SELECT, so admin com confirmacao de senha valida antes de conectar, com Auditoria) e a aba executar em Livewire Ferramentas. As ferramentas de debug do 220 ficam fora."
+}

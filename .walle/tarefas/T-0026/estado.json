@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0026",
+    "titulo":  "Execucao manual de query nos clientes",
+    "origem":  "PLAN 8.3",
+    "tipo":  "plano",
+    "dono":  "walle-seguranca",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0026-execucao-manual-de-query-nos-clientes",
+    "pr":  0,
+    "base":  "e69497c806752e6024778a243edc078740028b88",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 09:50:03",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0026-execucao-manual-de-query-nos-clientes a partir de e69497c806752e6024778a243edc078740028b88"
+                    }
+                ]
+}
