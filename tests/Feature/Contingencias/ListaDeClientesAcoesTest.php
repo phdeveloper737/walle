@@ -1,5 +1,6 @@
 <?php
 
+use App\Contingencias\BuscaContingencias;
 use App\Contingencias\RemocaoDeCliente;
 use App\Livewire\Contingencias;
 use App\Models\Auditoria;
@@ -133,6 +134,61 @@ test('sem senha confirmada pede a senha e nada é apagado', function () {
 
     expect(DB::table('contingencias_versatus_venda')->count())->toBe(2)
         ->and(Auditoria::where('acao', 'contingencias.remover_cliente')->exists())->toBeFalse();
+});
+
+test('depois de remover, o cache do cliente é esquecido e o filho é recriado', function () {
+    adminDaLista();
+    vendasDoClienteComItens(10);
+
+    $busca = Mockery::mock(BuscaContingencias::class);
+    $busca->shouldReceive('esquecer')->once()->with(10);
+    app()->instance(BuscaContingencias::class, $busca);
+
+    Livewire::test(Contingencias::class)
+        ->assertSet('versaoDoCliente', 0)
+        ->call('removerCliente', 10)
+        ->assertSet('versaoDoCliente', 1);
+});
+
+test('trocar de cliente limpa o aviso', function () {
+    adminDaLista();
+    vendasDoClienteComItens(10);
+
+    Livewire::test(Contingencias::class)
+        ->call('removerCliente', 10)
+        ->assertSet('aviso', fn (?string $a): bool => $a !== null)
+        ->call('selecionar', 20)
+        ->assertSet('aviso', null)
+        ->assertSet('avisoErro', false);
+});
+
+test('com cliente selecionado, remover outro id é recusado', function () {
+    adminDaLista();
+    vendasDoClienteComItens(10);
+    vendasDoClienteComItens(20);
+
+    Livewire::test(Contingencias::class)
+        ->call('selecionar', 20)
+        ->call('removerCliente', 10)
+        ->assertSet('avisoErro', true);
+
+    expect(DB::table('contingencias_versatus_venda')->count())->toBe(4);
+});
+
+test('caminho completo: pede senha, confirma e remove', function () {
+    adminDaLista(senha: false);
+    vendasDoClienteComItens(10);
+
+    Livewire::test(Contingencias::class)
+        ->call('removerCliente', 10)
+        ->assertSet('pedindoSenha', true)
+        ->set('senhaConfirmacao', 'segredo')
+        ->call('confirmarSenha')
+        ->assertSet('pedindoSenha', false)
+        ->assertSet('versaoDoCliente', 1);
+
+    expect(DB::table('contingencias_versatus_venda')->count())->toBe(0)
+        ->and(Auditoria::where('acao', 'contingencias.remover_cliente')->count())->toBe(1);
 });
 
 test('admin vê o botão de remover da lista de contingências e quem não é admin não vê', function (bool $admin) {

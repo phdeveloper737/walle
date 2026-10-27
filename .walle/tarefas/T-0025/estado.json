@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-dados",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0025-remover-cliente-da-lista-de-contingencia",
     "pr":  39,
     "base":  "5b42afd72f49deb1b14ca9e74c857e4415e20ac0",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-27 09:16:40",
                         "tipo":  "pr",
                         "detalhe":  "PR #39 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 09:37:25",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0025: Remocao atualiza a lista do cliente"
                     }
                 ]
 }

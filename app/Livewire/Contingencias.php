@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Contingencias\BuscaContingencias;
 use App\Contingencias\ClienteDaLista;
 use App\Contingencias\ListaDeClientes;
 use App\Contingencias\RemocaoDeCliente;
@@ -49,6 +50,9 @@ class Contingencias extends Component
 
     public bool $avisoErro = false;
 
+    /** Muda a key do filho `do-cliente` para ele reconsultar depois de uma remoção. */
+    public int $versaoDoCliente = 0;
+
     public function mount(): void
     {
         $this->updatedAba();
@@ -71,6 +75,8 @@ class Contingencias extends Component
     public function selecionar(int $id): void
     {
         $this->clienteId = $id;
+        $this->aviso = null;
+        $this->avisoErro = false;
     }
 
     /** Apaga as vendas do Versatus em contingência do cliente (delete.php do 220), só admin com a senha confirmada. */
@@ -82,7 +88,20 @@ class Contingencias extends Component
 
         abort_unless(Gate::allows('admin'), 403);
 
+        if ($this->clienteId !== null && $clienteId !== $this->clienteId) {
+            $this->avisoErro = true;
+            $this->aviso = 'O cliente escolhido mudou: nada foi removido. Tente de novo.';
+
+            return;
+        }
+
         $apagadas = app(RemocaoDeCliente::class)->remover($clienteId);
+
+        if ($clienteId > 0) {
+            app(BuscaContingencias::class)->esquecer($clienteId);
+        }
+
+        $this->versaoDoCliente++;
 
         Auditoria::registrar('contingencias.remover_cliente', $clienteId > 0 ? $clienteId : null, ['apagadas' => $apagadas]);
 

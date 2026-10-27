@@ -103,7 +103,7 @@
                 </div>
             @endcan
 
-            <livewire:contingencias.do-cliente :cliente-id="$cliente->id" :key="'do-cliente-'.$cliente->id" />
+            <livewire:contingencias.do-cliente :cliente-id="$cliente->id" :key="'do-cliente-'.$cliente->id.'-'.$versaoDoCliente" />
         @else
             <x-ui.vazio icone="storefront" titulo="Escolha um cliente">
                 Selecione um cliente na lista para ver as contingências dele.
