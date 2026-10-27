@@ -1,0 +1,7 @@
+{
+    "titulo":  "Atualizar tarefas com versoes antigas do ledger",
+    "origem":  "Decisoes-pendentes A2 A5 e retomada T-0027",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Permitir que a acao atualizar, invocada a partir do main limpo, selecione uma tarefa antiga e incorpore origin/main no mesmo processo, preservando controles, ciclos e rollback, sem comandos Git fora do ledger."
+}
