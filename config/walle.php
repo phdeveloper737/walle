@@ -103,4 +103,25 @@ return [
         'obsoleto_minutos' => 60,
     ],
 
+    // Robô das contingências: coleta o estado de contingência de NFC-e nos servidores dos clientes (ciclo a cada 10 s)
+    'contingencias' => [
+        'ativo' => (bool) env('WALLE_CONTINGENCIAS_ATIVO', false),
+    ],
+
+    // Robô do Sentinela: coleta a saúde dos servidores dos clientes (ciclo a cada 10 minutos)
+    'sentinela' => [
+        'ativo' => (bool) env('WALLE_SENTINELA_ATIVO', false),
+    ],
+
+    // Robô do CleanTax (ciclo a cada 30 s). O token vem só do .env; sem ele o robô não consulta a API.
+    'cleantax' => [
+        'ativo' => (bool) env('WALLE_CLEANTAX_ATIVO', false),
+        'token' => env('CLEANTAX_TOKEN'),
+    ],
+
+    // Robô das tarefas agendadas (task_scheduler_querys): confere todo minuto o que está na hora de rodar
+    'tarefas' => [
+        'ativo' => (bool) env('WALLE_TAREFAS_ATIVO', false),
+    ],
+
 ];

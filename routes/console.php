@@ -1,9 +1,17 @@
 <?php
 
 use App\Autorizadas\RoboAutorizadas;
+use App\CleanTax\RoboCleanTax;
+use App\Contingencias\RoboContingencias;
+use App\Ferramentas\RoboTarefas;
 use App\Jobs\RodarCicloAutorizadas;
+use App\Jobs\RodarCicloCleanTax;
+use App\Jobs\RodarCicloContingencias;
 use App\Jobs\RodarCicloSactus;
+use App\Jobs\RodarCicloSentinela;
+use App\Jobs\RodarTarefasAgendadas;
 use App\Sactus\RoboSactus;
+use App\Sentinela\RoboSentinela;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -30,3 +38,27 @@ Schedule::job(new RodarCicloSactus)
     ->hourly()
     ->name('walle:robo-sactus')
     ->when(fn (RoboSactus $robo): bool => $robo->ligado() && $robo->pausa() === null);
+
+// Robô das Contingências: a cada 10 s (como o daemon do 220), só com WALLE_CONTINGENCIAS_ATIVO=true (o job é único)
+Schedule::job(new RodarCicloContingencias)
+    ->everyTenSeconds()
+    ->name('walle:robo-contingencias')
+    ->when(fn (RoboContingencias $robo): bool => $robo->ligado());
+
+// Robô do Sentinela: a cada 10 minutos (600 s no 220), só com WALLE_SENTINELA_ATIVO=true (o job é único)
+Schedule::job(new RodarCicloSentinela)
+    ->everyTenMinutes()
+    ->name('walle:robo-sentinela')
+    ->when(fn (RoboSentinela $robo): bool => $robo->ligado());
+
+// Robô do CleanTax: a cada 30 s, só com WALLE_CLEANTAX_ATIVO=true (o job é único)
+Schedule::job(new RodarCicloCleanTax)
+    ->everyThirtySeconds()
+    ->name('walle:robo-cleantax')
+    ->when(fn (RoboCleanTax $robo): bool => $robo->ligado());
+
+// Robô das tarefas agendadas: todo minuto, só com WALLE_TAREFAS_ATIVO=true (o job é único)
+Schedule::job(new RodarTarefasAgendadas)
+    ->everyMinute()
+    ->name('walle:robo-tarefas')
+    ->when(fn (RoboTarefas $robo): bool => $robo->ligado());

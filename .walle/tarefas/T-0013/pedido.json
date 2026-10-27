@@ -1,0 +1,7 @@
+{
+    "titulo":  "Agenda, configuracao e filas dos robos novos",
+    "origem":  "PLAN 5.1",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "Agendar no routes/console.php os robos de contingencias, sentinela, cleantax e tarefas, com chaves WALLE_*_ATIVO=false em config/walle.php, supervisores na conexao robos no Horizon e variaveis no .env.example."
+}

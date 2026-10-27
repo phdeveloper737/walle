@@ -1,0 +1,40 @@
+{
+    "tarefa":  "T-0013",
+    "titulo":  "Agenda, configuracao e filas dos robos novos",
+    "origem":  "PLAN 5.1",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0013-agenda-configuracao-e-filas-dos-robos-no",
+    "pr":  28,
+    "base":  "31391e6601fb53d208b12cb211e8ee591125b99f",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 03:35:19",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0013-agenda-configuracao-e-filas-dos-robos-no a partir de 31391e6601fb53d208b12cb211e8ee591125b99f"
+                    },
+                    {
+                        "quando":  "2026-10-27 03:35:31",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada por decisao do usuario pendente (task 5.1): o 220 nao versiona a frequencia dos robos (crontab so existe em runtime); nao ha limite de falhas nem quarentena nos quatro robos; faltam o token do cleantax (walle.cleantax.token) e o timeout do health do sentinela. Opcoes e recomendacao enviadas no chat."
+                    },
+                    {
+                        "quando":  "2026-10-27 03:58:52",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario em 27/10/2026 (seguir a recomendacao): frequencias iguais ao intervalo entre ciclos dos daemons do 220 (contingencias 10 s, sentinela 600 s, cleantax 30 s, tarefas a cada minuto); sem quarentena nem limite de falhas, porque o 220 nao tem; token do cleantax so do .env (walle.cleantax.token); timeout do health do sentinela 60 s. Aviso: o agendador do Laravel tem resolucao minima de 1 minuto para cron, mas aceita everySeconds via schedule:work; usar everyTenSeconds, everyThirtySeconds e everyTenMinutes."
+                    },
+                    {
+                        "quando":  "2026-10-27 04:02:20",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0013: Agenda, configuracao e filas dos robos novos"
+                    },
+                    {
+                        "quando":  "2026-10-27 04:02:31",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #28 aberto"
+                    }
+                ],
+    "notas_bloqueio":  "e6597d334ef26b32f602de85afd85d39668dd13eaa7cfd2d80db68de1f34b698"
+}
