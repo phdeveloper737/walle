@@ -4,10 +4,10 @@
     "origem":  "PLAN 3.4",
     "tipo":  "plano",
     "dono":  "walle-robos",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0007-cleantax-bot-robo-que-chama-o-cleantaxbo",
-    "pr":  0,
+    "pr":  22,
     "base":  "b87cd509347d4d3eeac40fd177f531a573a61f1d",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 00:33:24",
                         "tipo":  "commit",
                         "detalhe":  "CleanTax BOT: robô que chama o cleantaxbot.php dos clientes (task 3.4)"
+                    },
+                    {
+                        "quando":  "2026-10-27 00:33:34",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #22 aberto"
                     }
                 ]
 }
