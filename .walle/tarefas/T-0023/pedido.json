@@ -1,0 +1,7 @@
+{
+    "titulo":  "Registrar as telas novas: rotas, menu e Saude",
+    "origem":  "PLAN 7.1",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "Registrar as rotas relatorios, sentinela, clean-tax, ferramentas e crontab em routes/web.php (grupo auth), itens de menu em layouts/app.blade.php (Programacao so para admin) e um item por robo novo em App Livewire Saude."
+}
