@@ -259,8 +259,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: `contingencias_versatus_venda` (walle) e tela `Contingencias`
 - Output: `app/Contingencias/RemocaoDeCliente.php` (`remover(int $clienteId): int` — linhas apagadas de `contingencias_versatus_venda` e itens, numa transação) e o botão na lista de `app/Livewire/Contingencias.php` (admin + `ConfirmaSenha`)
 - Testes críticos:
-  - [ ] `tests/Feature/Contingencias/ListaDeClientesAcoesTest.php`: remover um cliente apaga só as vendas e itens dele e registra `Auditoria`
-  - [ ] id inválido (zero, negativo ou inexistente) não apaga nada e avisa
+  - [x] `tests/Feature/Contingencias/ListaDeClientesAcoesTest.php`: remover um cliente apaga só as vendas e itens dele e registra `Auditoria`
+  - [x] id inválido (zero, negativo ou inexistente) não apaga nada e avisa
+- Na 8.2, o 220 (`delete.php`) apagava só as vendas, com `foreign_key_checks=0`, e deixava os itens órfãos; o walle apaga vendas e itens numa transação. Id inválido devolve 0 e a tela mostra o aviso de erro (sem exceção). Não há models dessas tabelas: a remoção usa `DB::table`.
 
 #### Task 8.3 — Execução de query e ferramentas de debug (substitui `execute.query.php`, `execute.query.available.php` e `debugs.tools.php`)
 - Agent: Backend Laravel — segurança
