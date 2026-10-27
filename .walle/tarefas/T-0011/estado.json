@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 02:24:33",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0011-harness-revisao-do-codex-obrigatoria-par a partir de 2d7d13accb5dd563192616bead82f51a2e289f6f"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:39:49",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0011: revisao do Codex obrigatoria para o merge"
                     }
                 ]
 }

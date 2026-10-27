@@ -345,6 +345,21 @@ switch ($Acao) {
         $vereditos = @([regex]::Matches($revisao, '(?im)^\s*Veredito:\s*(.+?)\s*$') | ForEach-Object { $_.Groups[1].Value })
         if ($vereditos.Count -ne 1 -or $vereditos[0] -notmatch '^(?i)APROVADO\b') { Recusar "a revisao precisa de exatamente uma linha 'Veredito: APROVADO' (achadas: $($vereditos -join ' / '))." }
 
+        # Revisao obrigatoria do Codex (decisao do usuario de 27/10/2026): parecer do mesmo HEAD, gravado pelo
+        # revisao-codex.ps1; cada achado P0/P1 so passa com uma linha 'Codex descartado:' do arquiteto no revisao.md.
+        $codex = TextoLocal 'revisao-codex.md'
+        if (-not $codex) { Recusar "sem o parecer do Codex em .walle/local/$Tarefa/revisao-codex.md: rode .claude/hooks/revisao-codex.ps1 -Tarefa $Tarefa." }
+        if ($codex -notmatch '(?im)^\s*Commit revisado:\s*([0-9a-f]{40})\s*$' -or $Matches[1] -cne $head) { Recusar "o parecer do Codex nao e do HEAD ${head}: rode a revisao do Codex de novo." }
+        if ($codex -notmatch '(?im)^\s*Bloqueantes do Codex:\s*([0-9]+)\s*$') { Recusar "o parecer do Codex nao tem a linha 'Bloqueantes do Codex: N'." }
+        $bloqueantesCodex = [int]$Matches[1]
+        $comentadoCodex = Join-Path $pastaLocal "comentado-codex-$head-$((Hash $codex).Substring(0, 12))"
+        if (-not (Test-Path -LiteralPath $comentadoCodex)) {
+            Rodar 'gh' @('pr', 'comment', [string]$estado.pr, '--body-file', (Join-Path $pastaLocal 'revisao-codex.md')) | Out-Null
+            [IO.File]::WriteAllText($comentadoCodex, (Agora), $utf8)
+        }
+        $descartados = @([regex]::Matches($revisao, '(?im)^\s*Codex descartado:\s*\S')).Count
+        if ($descartados -lt $bloqueantesCodex) { Recusar "o Codex apontou $bloqueantesCodex achado(s) P0/P1 e o arquiteto descartou ${descartados}: corrija ou registre 'Codex descartado: <achado> - <motivo>' no revisao.md." }
+
         # CI: verde segue; vermelho recusa; pendente espera ate $esperaCi segundos e devolve 4 (tente de novo).
         $relogio = [Diagnostics.Stopwatch]::StartNew()
         while ($true) {

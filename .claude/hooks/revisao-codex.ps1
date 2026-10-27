@@ -1,7 +1,8 @@
-# Revisao consultiva do Codex sobre o diff do branch da tarefa: roda o Codex CLI em sandbox somente leitura e grava
-# o parecer em .walle/local/T-NNNN/revisao-codex.md (ignorado pelo git). O orquestrador entrega esse parecer ao
-# walle-arquiteto, que confirma ou descarta cada achado no revisao.md; o integrar continua exigindo so o arquiteto.
-# Saida: 0 = ok; 2 = recusado (pre-condicao); 1 = erro (Codex falhou, estourou o tempo ou nao respondeu).
+# Revisao obrigatoria do Codex sobre o diff do branch da tarefa (decisao do usuario de 27/10/2026): roda o Codex CLI
+# em sandbox somente leitura, com resposta em JSON por esquema, e grava .walle/local/T-NNNN/revisao-codex.md (ignorado
+# pelo git) com o commit revisado e a contagem de achados P0/P1. O integrar exige esse parecer do HEAD e so aceita
+# P0/P1 que o walle-arquiteto descartou no revisao.md ("Codex descartado: <achado> - <motivo>").
+# Saida: 0 = ok; 2 = recusado (pre-condicao); 1 = erro (Codex falhou, estourou o tempo ou respondeu fora do esquema).
 # Sem acentos: o PowerShell 5.1 le este arquivo como ANSI.
 param(
     [string]$Tarefa,
@@ -59,11 +60,22 @@ $shaHead = (Repo @('rev-parse', 'HEAD')).texto
 
 $pastaLocal = Join-Path $Raiz ".walle/local/$Tarefa"
 [IO.Directory]::CreateDirectory($pastaLocal) | Out-Null
+$destino = Join-Path $pastaLocal 'revisao-codex.md'
 $temporario = Join-Path $pastaLocal 'revisao-codex.tmp'
-Remove-Item -LiteralPath $temporario -ErrorAction SilentlyContinue
+$esquema = Join-Path $pastaLocal 'esquema-codex.json'
+# Um parecer antigo nunca sobra de uma revisao que falhou.
+foreach ($arquivo in @($destino, $temporario, $esquema)) { Remove-Item -LiteralPath $arquivo -ErrorAction SilentlyContinue }
+function Limpar { foreach ($arquivo in @($temporario, $esquema)) { Remove-Item -LiteralPath $arquivo -ErrorAction SilentlyContinue } }
 
-# .cmd/.ps1 do npm passam pelo cmd; o .exe vai direto. Nunca sandbox de escrita nem --dangerously-*.
-$argumentos = "exec review --base $base -c sandbox_mode=read-only --ephemeral -o `"$temporario`""
+[IO.File]::WriteAllText($esquema, '{"type":"object","additionalProperties":false,"required":["achados"],"properties":{"achados":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["prioridade","arquivo","linha","titulo","detalhe"],"properties":{"prioridade":{"type":"string","enum":["P0","P1","P2","P3"]},"arquivo":{"type":"string"},"linha":{"type":"integer"},"titulo":{"type":"string"},"detalhe":{"type":"string"}}}}}}', $utf8)
+$pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de git diff $shaBase...$shaHead (rode esse comando; nao altere arquivos) contra as regras do AGENTS.md. " +
+    'Aponte apenas defeitos acionaveis introduzidos por esse diff: P0 = quebra grave (seguranca, perda de dados, regra obrigatoria violada); ' +
+    'P1 = deve ser corrigido antes do merge; P2 e P3 = melhorias opcionais. Use o caminho relativo do arquivo e a linha no codigo novo. ' +
+    'Sem achados, devolva a lista vazia. Escreva titulo e detalhe em portugues do Brasil.'
+
+# O pedido vai pelo stdin (-): sem aspas na linha de comando. .cmd do npm passa pelo cmd; o .exe vai direto.
+# Nunca sandbox de escrita nem --dangerously-*.
+$argumentos = "exec -s read-only --ephemeral --output-schema `"$esquema`" -o `"$temporario`" -"
 $inicio = New-Object Diagnostics.ProcessStartInfo
 if ($codex -match '\.(cmd|bat)$') {
     $inicio.FileName = $env:ComSpec
@@ -79,30 +91,44 @@ $inicio.RedirectStandardInput = $true
 $inicio.RedirectStandardOutput = $true
 $inicio.RedirectStandardError = $true
 $processo = [Diagnostics.Process]::Start($inicio)
+$processo.StandardInput.Write($pedido)
 $processo.StandardInput.Close()
 # Leitura assincrona: o Codex escreve bastante e um buffer cheio travaria o processo.
 $tarefaSaida = $processo.StandardOutput.ReadToEndAsync()
 $tarefaErro = $processo.StandardError.ReadToEndAsync()
 if (-not $processo.WaitForExit($limiteSegundos * 1000)) {
     & taskkill /PID $processo.Id /T /F 2>&1 | Out-Null
-    Remove-Item -LiteralPath $temporario -ErrorAction SilentlyContinue
+    Limpar
     Falhar "o Codex passou de $limiteSegundos s."
 }
 $processo.WaitForExit()
 $erro = $tarefaErro.Result
 $null = $tarefaSaida.Result
 if ($processo.ExitCode -ne 0) {
-    Remove-Item -LiteralPath $temporario -ErrorAction SilentlyContinue
-    $primeira = @($erro -split "`n" | Where-Object { $_.Trim() }) | Select-Object -Last 1
-    Falhar "o Codex saiu com $($processo.ExitCode): $primeira"
+    Limpar
+    $ultima = @($erro -split "`n" | Where-Object { $_.Trim() }) | Select-Object -Last 1
+    Falhar "o Codex saiu com $($processo.ExitCode): $ultima"
 }
-if (-not (Test-Path -LiteralPath $temporario)) { Falhar 'o Codex nao gravou o parecer.' }
-$parecer = [IO.File]::ReadAllText($temporario, $utf8).Trim()
-Remove-Item -LiteralPath $temporario
-if (-not $parecer) { Falhar 'o parecer do Codex veio vazio.' }
+if (-not (Test-Path -LiteralPath $temporario)) { Limpar; Falhar 'o Codex nao gravou o parecer.' }
+$resposta = [IO.File]::ReadAllText($temporario, $utf8).Trim()
+Limpar
 
-$destino = Join-Path $pastaLocal 'revisao-codex.md'
-$conteudo = "Commit revisado: $shaHead`nBase: $base @ $shaBase`n`n$parecer`n"
-[IO.File]::WriteAllText($destino, $conteudo, $utf8)
-Write-Output "[revisao-codex] Parecer de $Tarefa gravado em .walle/local/$Tarefa/revisao-codex.md (commit $shaHead)."
+# Fora do esquema e erro, nunca aprovacao: sem lista de achados valida, nao ha parecer.
+try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
+if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }
+$achados = @($json.achados | Where-Object { $null -ne $_ })
+foreach ($achado in $achados) {
+    if ([string]$achado.prioridade -cnotmatch '^P[0-3]\z' -or -not [string]$achado.arquivo -or -not [string]$achado.titulo) { Falhar 'o Codex respondeu fora do esquema (achado incompleto).' }
+}
+$bloqueantes = @($achados | Where-Object { [string]$_.prioridade -cmatch '^P[01]\z' }).Count
+$veredito = if ($bloqueantes -eq 0) { 'APROVADO' } else { 'MUDANCAS NECESSARIAS' }
+
+$linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
+if ($achados.Count -eq 0) { $linhas += 'Sem achados.' }
+foreach ($achado in ($achados | Sort-Object { [string]$_.prioridade })) {
+    $linhas += "- **$($achado.prioridade)** ``$($achado.arquivo):$($achado.linha)`` - $($achado.titulo)"
+    if ([string]$achado.detalhe) { $linhas += "  $($achado.detalhe)" }
+}
+[IO.File]::WriteAllText($destino, (($linhas -join "`n") + "`n"), $utf8)
+Write-Output "[revisao-codex] Parecer de $Tarefa gravado em .walle/local/$Tarefa/revisao-codex.md (commit $shaHead, P0/P1: $bloqueantes)."
 exit 0
