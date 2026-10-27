@@ -1,0 +1,7 @@
+{
+    "titulo":  "Bot Sentinela: robo que coleta o sentinela.php dos clientes",
+    "origem":  "PLAN 3.2",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "resumo":  "Porta sentinela.php do 220 para RoboSentinela, ColetaSentinela e Job RodarCicloSentinela, gravando em painel_sentinela, desligado por padrao."
+}
