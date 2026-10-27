@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Ferramentas\ExecucaoDeQuery;
 use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\TaskSchedulerQuery;
@@ -35,9 +36,10 @@ class Ferramentas extends Component
     public const ABAS = [
         'querys' => ['rotulo' => 'Queries', 'icone' => 'terminal'],
         'relatorio' => ['rotulo' => 'Relatório', 'icone' => 'summarize'],
+        'executar' => ['rotulo' => 'Executar SQL', 'icone' => 'play_circle'],
     ];
 
-    public const ACOES_COM_SENHA = ['editar', 'salvar', 'alternarAtivo'];
+    public const ACOES_COM_SENHA = ['editar', 'salvar', 'alternarAtivo', 'executarQuery'];
 
     /** Tamanho da coluna query_execute (base64). */
     public const LIMITE_CODIFICADO = 3737;
@@ -58,6 +60,19 @@ class Ferramentas extends Component
     public ?int $editandoId = null;
 
     public ?string $aviso = null;
+
+    /** Aba Executar SQL: fica só no componente, nunca na URL nem em log. */
+    public ?int $clienteExecucao = null;
+
+    public string $sqlExecucao = '';
+
+    /**
+     * Último resultado da execução manual, como array para o Livewire guardar.
+     *
+     * @var array{ok: bool, mensagem: string, colunas: list<string>, linhas: list<array<string, string|null>>, afetadas: ?int, tipo: string, truncado: bool}|null
+     */
+    #[Locked]
+    public ?array $resultadoExecucao = null;
 
     public function mount(): void
     {
@@ -162,6 +177,35 @@ class Ferramentas extends Component
 
         Auditoria::registrar('ferramentas.alternar_query', null, ['id' => $query->id, 'ativo' => $query->ativo === 'S']);
         $this->aviso = $query->ativo === 'S' ? 'Query ativada.' : 'Query desativada.';
+    }
+
+    public function executarQuery(): void
+    {
+        if (! $this->adminConfirmado('executarQuery')) {
+            return;
+        }
+
+        if ($this->clienteExecucao === null || $this->clienteExecucao < 1 || trim($this->sqlExecucao) === '') {
+            $this->resultadoExecucao = [
+                'ok' => false, 'mensagem' => 'Informe o código do cliente e a instrução SQL para executar.',
+                'colunas' => [], 'linhas' => [], 'afetadas' => null, 'tipo' => '', 'truncado' => false,
+            ];
+
+            return;
+        }
+
+        $resultado = app(ExecucaoDeQuery::class)->executar($this->clienteExecucao, $this->sqlExecucao);
+
+        if ($resultado->pedeSenha) {
+            // A confirmação venceu entre a conferência do trait e o serviço: pede de novo e mantém o SQL digitado
+            [$this->acaoPendente, $this->argumentosPendentes, $this->pedindoSenha] = ['executarQuery', [], true];
+        }
+
+        $this->resultadoExecucao = [
+            'ok' => $resultado->ok, 'mensagem' => $resultado->mensagem, 'colunas' => $resultado->colunas,
+            'linhas' => $resultado->linhas, 'afetadas' => $resultado->afetadas, 'tipo' => $resultado->tipo,
+            'truncado' => $resultado->truncado,
+        ];
     }
 
     public function cancelarEdicao(): void
