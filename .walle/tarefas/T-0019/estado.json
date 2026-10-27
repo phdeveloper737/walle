@@ -4,8 +4,8 @@
     "origem":  "PLAN 6.6",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "bloqueada",
-    "ciclos":  1,
+    "estado":  "em_revisao",
+    "ciclos":  0,
     "branch":  "tarefa/T-0019-ferramentas-task-scheduler-e-relatorio",
     "pr":  33,
     "base":  "0f202cc6d063211a985eb4e38b39290187ba17ab",
@@ -34,6 +34,11 @@
                         "quando":  "2026-10-27 06:20:47",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueada aguardando a tarefa do componente x-ui.area-texto (campo de varias linhas): o x-ui.campo gera input type=text e apaga quebras de linha da query, o que altera o SQL salvo (achado do Codex P1 confirmado pelo arquiteto). Pela regra do projeto, componente ausente vira tarefa propria antes da tela que depende dele. Depois: retomar, usar o componente em querys.blade.php e acrescentar teste que salve e edite SELECT 1 com quebra de linha sem perder a quebra."
+                    },
+                    {
+                        "quando":  "2026-10-27 06:40:26",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario em 27/10/2026 (seguir a recomendacao): o componente x-ui.area-texto virou tarefa propria e foi integrado na T-0020 (PR #34). Agora corrigir a T-0019: usar x-ui.area-texto no campo da query em querys.blade.php, preservar as quebras de linha ao salvar e editar, e acrescentar o teste que salva e edita SELECT 1 com quebra de linha sem perder a quebra."
                     }
                 ],
     "notas_bloqueio":  "88b4407cc25f0aec35816e9c1c86a25f8d868d28e7adaf0e668fa131c8d8d163"
