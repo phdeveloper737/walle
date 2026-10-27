@@ -4,10 +4,10 @@
     "origem":  "PLAN 6.7",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0022-crontab-cron-control-center",
-    "pr":  0,
+    "pr":  36,
     "base":  "16a81056753f6c1bc6d9516e832a1e0a8d52f522",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 07:06:46",
                         "tipo":  "commit",
                         "detalhe":  "T-0022: Crontab: Cron Control Center"
+                    },
+                    {
+                        "quando":  "2026-10-27 07:06:55",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #36 aberto"
                     }
                 ]
 }
