@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 11:54:27",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0028-corrigir-isolamento-e-evidencias-do-harn a partir de ee416b23707cbebb5fa7ad3993fd822fe350c301"
+                    },
+                    {
+                        "quando":  "2026-10-27 12:09:30",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0028: Isolar validacoes e atualizar tarefas pelo ledger"
                     }
                 ]
 }

@@ -144,10 +144,10 @@ try {
 }
 
 # walle-hooks: hooks, scripts do RAG e settings; nunca as politicas, as barreiras do merge nem a propria definicao.
-foreach ($arquivo in @('.claude/hooks/agent-policy.ps1','.claude/hooks/politica-global.ps1','.claude/hooks/rag.ps1','.claude/hooks/walle-dados/PreToolUse.ps1','.claude/hooks/tests/agent-policy.Tests.ps1','.claude/scripts/search.ts','.claude/scripts/rag.config.json','.claude/settings.json')) {
+foreach ($arquivo in @('.claude/hooks/tarefa.ps1','.claude/hooks/gate.ps1','.claude/hooks/agent-policy.ps1','.claude/hooks/politica-global.ps1','.claude/hooks/rag.ps1','.claude/hooks/walle-dados/PreToolUse.ps1','.claude/hooks/tests/agent-policy.Tests.ps1','.claude/scripts/search.ts','.claude/scripts/rag.config.json','.claude/settings.json')) {
     Conferir 'walle-hooks' 'Write' @{file_path=$arquivo} 0
 }
-foreach ($arquivo in @('.claude/hooks/agent-policies.json','.claude/hooks/proteger-comandos.ps1','.claude/hooks/tarefa.ps1','.claude/hooks/gate.ps1','.claude/agents/walle-hooks.md','.opencode/agents/walle-hooks.md','.claude/settings.local.json','.opencode/plugin/agent-hooks.ts','app/Models/Usuario.php')) {
+foreach ($arquivo in @('.claude/hooks/agent-policies.json','.claude/hooks/proteger-comandos.ps1','.claude/hooks/revisao-codex.ps1','.claude/agents/walle-hooks.md','.opencode/agents/walle-hooks.md','.claude/settings.local.json','.opencode/plugin/agent-hooks.ts','app/Models/Usuario.php')) {
     Conferir 'walle-hooks' 'Edit' @{file_path=$arquivo} 2
 }
 
@@ -228,6 +228,19 @@ try {
     Conferir 'walle-robos' 'Bash' @{command='docker exec walle-app php artisan make:class Sefaz/Exemplo'} 0 'PostToolUse'
     Conferir 'walle-robos' '' @{} 2 'Stop'
     Conferir 'walle-robos' '' @{} 0 'Stop' @{stop_hook_active=$true}
+    # Stop e gate usam a mesma trava por banco: ocupado nao executa Docker e mantem a validacao pendente.
+    . "$raiz/.claude/hooks/trava-testes.ps1"
+    $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t98765'
+    $travaBanco = AbrirTravaWalle 'docker:walle-app:banco:walle_testes_t98765'
+    try {
+        Conferir 'walle-robos' 'Write' @{file_path=$permitidos['walle-robos']} 0 'PostToolUse'
+        $r = Rodar 'walle-robos/Stop.ps1' '' '{}'
+        if ($r.codigo -ne 2 -or $r.saida -notmatch 'Banco de testes ocupado' -or $r.saida -match 'exec -e DB_DATABASE') { throw 'Stop deveria recusar banco ocupado sem chamar Docker.' }
+        $script:casos++
+    } finally { FecharTravaWalle $travaBanco }
+    $env:WALLE_TEST_DOCKER_EXIT = '0'
+    Conferir 'walle-robos' '' @{} 0 'Stop'
+    Remove-Item Env:WALLE_HOOK_TEST_DATABASE
     # walle-migracao: restauracao so em volume vazio (o Docker falso sempre devolve conteudo).
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     Conferir 'walle-migracao' 'PowerShell' @{command='docker run --rm -v walle_mysql:/destino -v C:/walle-migracao:/backup:ro ubuntu tar --numeric-owner -xzpf /backup/volume-walle_mysql.tar.gz -C /destino'} 2
@@ -240,10 +253,10 @@ try {
 }
 # Orquestrador: no terminal so o tarefa.ps1 (acao e id fixos); grava so o ledger local, PLAN, SPEC e docs.
 $baseTarefa = 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1 -Acao '
-foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($baseTarefa + 'abrir -Tarefa T-0001'), ($baseTarefa + 'commitar -Tarefa T-0012'), ($baseTarefa + 'integrar -Tarefa T-0001'), ($baseTarefa + 'retomar -Tarefa T-0003'))) {
+foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($baseTarefa + 'abrir -Tarefa T-0001'), ($baseTarefa + 'commitar -Tarefa T-0012'), ($baseTarefa + 'integrar -Tarefa T-0001'), ($baseTarefa + 'retomar -Tarefa T-0003'), ($baseTarefa + 'atualizar -Tarefa T-0003'))) {
     Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 0
 }
-foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'ciclo -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
+foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'ciclo -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), ($baseTarefa + 'atualizar'), ($baseTarefa + 'atualizar -Tarefa T-0003 -Raiz C:/outro'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
     Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 2
 }
 # Orquestrador: alem do tarefa.ps1, so o revisao-codex.ps1 com o id da tarefa.
