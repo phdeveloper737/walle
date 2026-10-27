@@ -4,10 +4,10 @@
     "origem":  "PLAN 6.3",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0017-painel-do-sentinela",
-    "pr":  0,
+    "pr":  31,
     "base":  "a90313c34baad0b8b17ba1d95771beb79dfe6684",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 05:02:58",
                         "tipo":  "commit",
                         "detalhe":  "T-0017: Painel do Sentinela"
+                    },
+                    {
+                        "quando":  "2026-10-27 05:03:06",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #31 aberto"
                     }
                 ]
 }
