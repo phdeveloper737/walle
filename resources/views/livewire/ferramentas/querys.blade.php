@@ -9,7 +9,7 @@
         <x-ui.card :titulo="$editandoId ? 'Editar query nº '.$editandoId : 'Nova query agendada'" icone="edit_note">
             <form wire:submit="salvar" class="flex flex-col gap-3">
                 <x-ui.campo label="Descrição" icone="description" wire:model="descricao" maxlength="373" />
-                <x-ui.campo label="Query a executar" icone="code" wire:model="queryExecute" maxlength="3737"
+                <x-ui.campo label="Query a executar" icone="code" wire:model="queryExecute" :maxlength="\App\Livewire\Ferramentas::LIMITE_SQL"
                     ajuda="Roda no banco de cada cliente. O robô tira ponto e vírgula, crase e aspas duplas antes de executar." />
                 <div class="flex flex-wrap gap-2">
                     <x-ui.botao type="submit" icone="save">{{ $editandoId ? 'Salvar alterações' : 'Salvar query' }}</x-ui.botao>

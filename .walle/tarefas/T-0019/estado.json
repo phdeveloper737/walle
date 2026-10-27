@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0019-ferramentas-task-scheduler-e-relatorio",
     "pr":  33,
     "base":  "0f202cc6d063211a985eb4e38b39290187ba17ab",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-27 05:42:30",
                         "tipo":  "pr",
                         "detalhe":  "PR #33 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 06:03:43",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0019: Ferramentas grava a query em base64 como o 220"
                     }
                 ]
 }

@@ -22,7 +22,7 @@
                     <x-ui.tabela.celula>
                         {{ $this->nomes[$log->fk_c_cliente] ?? 'Cliente #'.$log->fk_c_cliente }}
                     </x-ui.tabela.celula>
-                    <x-ui.tabela.celula>{{ $log->log_query }}</x-ui.tabela.celula>
+                    <x-ui.tabela.celula>{{ \App\Livewire\Ferramentas::decodificarLog($log->log_query) }}</x-ui.tabela.celula>
                 </x-ui.tabela.linha>
             @endforeach
         </x-ui.tabela>

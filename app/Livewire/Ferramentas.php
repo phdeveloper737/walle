@@ -6,6 +6,7 @@ use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\TaskSchedulerQuery;
 use App\Models\TaskSchedulerQueryLog;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -38,6 +39,37 @@ class Ferramentas extends Component
     public const ACOES_COM_SENHA = ['editar', 'salvar', 'alternarAtivo'];
 
     public const LIMITE_LOGS = 200;
+
+    /** A coluna query_execute tem 3737 caracteres, contados no texto já em base64. */
+    public const LIMITE_CODIFICADO = 3737;
+
+    /** Maior SQL em texto puro que cabe na coluna depois do base64 (4 caracteres a cada 3 bytes). */
+    public const LIMITE_SQL = 2802;
+
+    /** Formato do 220 (tools.js:1371): a query fica em base64 e o robô decodifica antes de executar. */
+    public static function codificarSql(string $sql): string
+    {
+        return base64_encode(trim($sql));
+    }
+
+    public static function decodificarSql(?string $codificado): string
+    {
+        return (string) base64_decode(trim((string) $codificado));
+    }
+
+    /** Resultado do log: base64, exceto a falha de conexão, que o robô grava em texto (report.js:216). */
+    public static function decodificarLog(?string $log): string
+    {
+        $log = trim((string) $log);
+
+        if ($log === '' || str_starts_with($log, 'FALHA')) {
+            return $log;
+        }
+
+        $texto = base64_decode($log, true);
+
+        return $texto === false || ! mb_check_encoding($texto, 'UTF-8') ? $log : $texto;
+    }
 
     #[Url(except: 'querys')]
     public string $aba = 'querys';
@@ -80,7 +112,7 @@ class Ferramentas extends Component
 
         $this->editandoId = $query->id;
         $this->descricao = $query->descricao;
-        $this->queryExecute = (string) $query->query_execute;
+        $this->queryExecute = self::decodificarSql($query->query_execute);
         $this->aviso = null;
         $this->resetErrorBag();
     }
@@ -99,12 +131,15 @@ class Ferramentas extends Component
 
         $dados = $this->validate([
             'descricao' => ['required', 'string', 'max:373'],
-            'queryExecute' => ['required', 'string', 'max:3737'],
+            'queryExecute' => ['required', 'string', function (string $atributo, mixed $valor, Closure $falhar): void {
+                if (strlen(self::codificarSql((string) $valor)) > self::LIMITE_CODIFICADO) {
+                    $falhar('A query pode ter até '.self::LIMITE_SQL.' caracteres.');
+                }
+            }],
         ], [
             'descricao.required' => 'Informe a descrição da query.',
             'descricao.max' => 'A descrição pode ter até 373 caracteres.',
             'queryExecute.required' => 'Informe a query a executar.',
-            'queryExecute.max' => 'A query pode ter até 3737 caracteres.',
         ]);
 
         if ($this->editandoId !== null) {
@@ -116,7 +151,7 @@ class Ferramentas extends Component
                 return;
             }
 
-            $query->update(['descricao' => $dados['descricao'], 'query_execute' => $dados['queryExecute']]);
+            $query->update(['descricao' => $dados['descricao'], 'query_execute' => self::codificarSql($dados['queryExecute'])]);
             $acao = 'ferramentas.editar_query';
             $this->aviso = 'Query atualizada.';
         } else {
@@ -124,7 +159,7 @@ class Ferramentas extends Component
             $query = TaskSchedulerQuery::create([
                 'fk_a_user' => auth()->id(),
                 'descricao' => $dados['descricao'],
-                'query_execute' => $dados['queryExecute'],
+                'query_execute' => self::codificarSql($dados['queryExecute']),
                 'data_registro' => now(),
                 'finalizado' => 'N',
                 'ativo' => 'N',
@@ -180,9 +215,15 @@ class Ferramentas extends Component
     #[Computed]
     public function nomes(): ?array
     {
+        $ids = $this->logs->pluck('fk_c_cliente')->filter()->unique()->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
         try {
             return DB::connection('help')->table('c_cliente')
-                ->whereIn('id', $this->logs->pluck('fk_c_cliente')->filter()->unique()->all())
+                ->whereIn('id', $ids)
                 ->pluck('razao_social', 'id')->map(fn ($nome): string => trim((string) $nome))->all();
         } catch (QueryException $e) {
             report($e);
