@@ -8,6 +8,7 @@ use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Sactus\Ssh\ResultadoComando;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -27,7 +28,7 @@ function clienteComConteinerSsh(array $cliente = [], array $servidor = []): arra
 
     $ssh = sshFalso()
         ->servidor(SSH_CONTEINER[0], SSH_CONTEINER[1], 'senha-do-conteiner')
-        ->regra(SSH_CONTEINER[0], SSH_CONTEINER[1], fn (string $comando) => str_contains($comando, 'mkdir -p') ? new ResultadoComando(0) : null);
+        ->regra(SSH_CONTEINER[0], SSH_CONTEINER[1], fn (string $comando) => str_contains($comando, ' && ln ') ? new ResultadoComando(0) : null);
 
     return [$id, $ssh];
 }
@@ -264,6 +265,127 @@ test('reprocessar de cliente remapeado usa o cliente do 220 (1484 vira 1485)', f
         ->and($resultado->enviados)->toBe(1)
         ->and($ssh->comandosEm(...SSH_CONTEINER))->toHaveCount(1)
         ->and(Auditoria::where('acao', 'contingencias.reprocessar')->sole()->fk_c_cliente)->toBe(1484);
+});
+
+test('destino já existente não é sobrescrito: grava no segundo seguinte', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    criarContingenciaSactus(['cupom' => '500'], chave: chaveValida(1));
+    servidorDoClienteNoBancoDeTestes();
+    $ts = now()->getTimestamp();
+    $ssh->regra(SSH_CONTEINER[0], SSH_CONTEINER[1], fn (string $comando) => str_contains($comando, "_{$ts}_102.xml") ? new ResultadoComando(4) : new ResultadoComando(0));
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500]]);
+    $comandos = $ssh->comandosEm(...SSH_CONTEINER);
+
+    expect($resultado->ok)->toBeTrue()
+        ->and($comandos)->toHaveCount(2)
+        ->and($comandos[1])->toContain('_'.($ts + 1).'_102.xml', 'reqtime="'.($ts + 1).'"')
+        ->and($comandos[1])->toContain(' && ln ')->not->toContain('mkdir');
+});
+
+test('todos os nomes ocupados falham com mensagem própria depois de 5 tentativas', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    criarContingenciaSactus(['cupom' => '500'], chave: chaveValida(1));
+    servidorDoClienteNoBancoDeTestes();
+    $ssh->regra(SSH_CONTEINER[0], SSH_CONTEINER[1], fn () => new ResultadoComando(4));
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500]]);
+
+    expect($resultado->enviados)->toBe(0)
+        ->and($resultado->falhas[0])->toContain('mesmo nome')
+        ->and($ssh->comandosEm(...SSH_CONTEINER))->toHaveCount(AcoesContingencias::TENTATIVAS_DE_NOME);
+});
+
+test('pasta de envio ausente falha com a mensagem e não é criada', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    criarContingenciaSactus(['cupom' => '500'], chave: chaveValida(1));
+    criarContingenciaSactus(['cupom' => '501', 'pdv' => '3'], chave: chaveValida(2));
+    servidorDoClienteNoBancoDeTestes();
+    $ssh->regra(SSH_CONTEINER[0], SSH_CONTEINER[1], fn (string $comando) => str_contains($comando, '/002/') ? new ResultadoComando(3) : new ResultadoComando(0));
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [
+        ['loja' => 1, 'pdv' => 2, 'cupom' => 500],
+        ['loja' => 1, 'pdv' => 3, 'cupom' => 501],
+    ]);
+
+    expect($resultado->enviados)->toBe(1)
+        ->and($resultado->falhas)->toBe(['Cupom 1/2/500: Diretório de envio não existe.']);
+
+    foreach ($ssh->comandosEm(...SSH_CONTEINER) as $comando) {
+        expect($comando)->not->toContain('mkdir');
+    }
+
+    pdvsNoServidorDoCliente([[1, 2], [1, 3]]);
+    $reprocessar = app(AcoesContingencias::class)->reprocessar($cliente);
+
+    expect($reprocessar->ok)->toBeFalse()
+        ->and($reprocessar->mensagem)->toContain('Diretório de envio não existe')
+        ->and($reprocessar->mensagem)->not->toContain(SSH_CONTEINER[0])
+        ->and($reprocessar->enviados)->toBe(0);
+});
+
+test('cupom repetido em datas diferentes pega a chave da data certa', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    $antiga = criarContingenciaSactus(['cupom' => '500', 'fiscal_date' => '2026-10-10 09:00:00'], chave: chaveValida(1));
+    $nova = criarContingenciaSactus(['cupom' => '500', 'fiscal_date' => '2026-10-19 09:00:00'], chave: chaveValida(2));
+    servidorDoClienteNoBancoDeTestes();
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500, 'data' => '2026-10-19 09:00:00']]);
+    $comandos = $ssh->comandosEm(...SSH_CONTEINER);
+
+    expect($resultado->ok)->toBeTrue()
+        ->and($comandos[0])->toContain('argum="'.$nova.'"')->not->toContain($antiga);
+});
+
+test('a tela leva a data do pendente e conta só os cupons que serão enviados', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    criarContingenciaSactus(['cupom' => '500', 'fiscal_date' => '2026-10-10 09:00:00'], chave: chaveValida(1));
+    criarContingenciaSactus(['cupom' => '500', 'fiscal_date' => '2026-10-19 09:00:00'], chave: chaveValida(2));
+    servidorDoClienteNoBancoDeTestes();
+
+    $tela = Livewire::withoutLazyLoading()->test(DoCliente::class, ['clienteId' => $cliente])
+        ->set('selecionadas', ['1_2_500', '1_2_inventado'])
+        ->assertSee('Reenviar ao PDV (1)')
+        ->assertDontSee('Reenviar ao PDV (2)');
+
+    $tela->call('reenviarAoPdv');
+
+    expect($ssh->comandosEm(...SSH_CONTEINER))->toHaveCount(1);
+});
+
+test('ação em andamento é auditada', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    conectorDoClienteNaoChamado();
+    $trava = Cache::lock('contingencias:acao:'.$cliente, 120);
+    $trava->get();
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500]]);
+
+    expect($resultado->mensagem)->toContain('Já existe uma ação em andamento')
+        ->and($ssh->comandos)->toBe([])
+        ->and(Auditoria::where('acao', 'contingencias.reenviar_pdv')->sole()->detalhes['resultado'])->toBe('ocupado');
+
+    $trava->release();
+});
+
+test('a trava do reprocessar é do servidor remapeado', function () {
+    adminDeContingencias();
+    [$cliente, $ssh] = clienteComConteinerSsh(['id' => 1637]);
+    conectorDoClienteNaoChamado();
+    $trava = Cache::lock('contingencias:acao:1637', 120);
+    $trava->get();
+
+    $resultado = app(AcoesContingencias::class)->reprocessar(1656);
+
+    expect($resultado->mensagem)->toContain('Já existe uma ação em andamento');
+
+    $trava->release();
 });
 
 test('reprocessar para no primeiro erro de gravação', function () {

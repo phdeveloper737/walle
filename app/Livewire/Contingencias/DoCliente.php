@@ -93,14 +93,7 @@ class DoCliente extends Component
 
         abort_unless(Gate::allows('admin'), 403);
 
-        // Nunca confia no que o navegador mandou: só pendentes do Sactus que a tela mostra
-        $cupons = [];
-
-        foreach ($this->pendentes as $contingencia) {
-            if ($contingencia->software === Contingencia::SACTUS && in_array($contingencia->identificador(), $this->selecionadas, true)) {
-                $cupons[] = ['loja' => (int) $contingencia->loja, 'pdv' => (int) $contingencia->pdv, 'cupom' => (int) $contingencia->cupom];
-            }
-        }
+        $cupons = $this->cuponsParaEnviar();
 
         if ($cupons === []) {
             $this->avisar(new ResultadoAcao(false, 'Selecione ao menos um cupom pendente do Sactus para reenviar ao PDV.'));
@@ -115,6 +108,24 @@ class DoCliente extends Component
         }
 
         $this->avisar($resultado);
+    }
+
+    /**
+     * Nunca confia no que o navegador mandou: só pendentes do Sactus que a tela mostra, com a data da venda.
+     *
+     * @return list<array{loja: int, pdv: int, cupom: int, data: string}>
+     */
+    private function cuponsParaEnviar(): array
+    {
+        $cupons = [];
+
+        foreach ($this->pendentes as $contingencia) {
+            if ($contingencia->software === Contingencia::SACTUS && in_array($contingencia->identificador(), $this->selecionadas, true)) {
+                $cupons[] = ['loja' => (int) $contingencia->loja, 'pdv' => (int) $contingencia->pdv, 'cupom' => (int) $contingencia->cupom, 'data' => $contingencia->emitidaEm];
+            }
+        }
+
+        return $cupons;
     }
 
     /** Manda cada PDV do cliente ajustar as contingências (funcid 556). */
@@ -194,6 +205,7 @@ class DoCliente extends Component
         return view('livewire.contingencias.do-cliente', [
             'itensDaPagina' => array_slice($lista, ($this->pagina - 1) * self::POR_PAGINA, self::POR_PAGINA),
             'totalNaLista' => count($lista),
+            'totalParaEnviar' => count($this->cuponsParaEnviar()),
             'totalPaginas' => $totalPaginas,
         ]);
     }

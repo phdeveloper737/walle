@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-robos",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0024-acoes-de-contingencia-do-cliente-reenvia",
     "pr":  38,
     "base":  "0671fcfe2f34b8364d527826685ad5dd68ac3840",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-27 08:08:44",
                         "tipo":  "pr",
                         "detalhe":  "PR #38 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:33:10",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0024: Acoes de contingencia gravam o comando com seguranca"
                     }
                 ]
 }

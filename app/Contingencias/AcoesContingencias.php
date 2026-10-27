@@ -28,8 +28,10 @@ use Throwable;
  *
  * Diferenças: SSH com a credencial DOCKER do cadastro (sem host, senha ou sshpass fixos, sem docker exec como root
  * no host); sem a marcação reprocessar=S do Versatus (a tabela não existe no walle) e sem escrita no Help Desk;
- * o carimbo de hora sobe 1 s por arquivo para um não sobrescrever o outro; comando com printf + test -s
- * (confere a gravação) no lugar de echo.
+ * o carimbo de hora sobe 1 s por arquivo e, se o nome já existir, tenta o segundo seguinte (até 5 vezes); a chave do
+ * cupom também é buscada pela data fiscal (o mesmo cupom pode existir em dias diferentes); a gravação segue o
+ * docker.php:155-204 (temporário sem .xml, confere que não está vazio e publica com ln, sem sobrescrever), e não
+ * cria a pasta de envio (docker.php:174-175).
  */
 class AcoesContingencias
 {
@@ -37,6 +39,15 @@ class AcoesContingencias
     public const REMAPEAMENTO = [1484 => 1485, 1657 => 1637, 1656 => 1637, 1649 => 1637, 1807 => 1804, 1814 => 1804];
 
     public const TIMEOUT_SSH_SEGUNDOS = 15;
+
+    /** Tentativas de nome (segundo, segundo+1...) quando o arquivo de comando já existe. */
+    public const TENTATIVAS_DE_NOME = 5;
+
+    private const RC_SEM_DIRETORIO = 3;
+
+    private const RC_DESTINO_EXISTE = 4;
+
+    private const RC_SEM_ESCRITA = 6;
 
     public const DESLIGADO = 'O robô das contingências está desligado; a ação não foi enviada.';
 
@@ -51,7 +62,7 @@ class AcoesContingencias
     }
 
     /**
-     * @param  list<array{loja: int, pdv: int, cupom: int}>  $cupons
+     * @param  list<array{loja: int, pdv: int, cupom: int, data?: string}>  $cupons
      */
     public function reenviarAoPdv(int $clienteId, array $cupons): ResultadoAcao
     {
@@ -97,12 +108,12 @@ class AcoesContingencias
                     $inicio = now()->getTimestamp();
 
                     foreach ($chaves as $i => $c) {
-                        $xml = $this->xml($c['loja'], $c['pdv'], 858, $c['chave'], $inicio + $i, preenchido: true);
+                        $erro = $this->gravar($sessao, $c['loja'], $c['pdv'], $inicio + $i, 858, $c['chave'], preenchido: true);
 
-                        if ($this->gravar($sessao, $c['loja'], $c['pdv'], $inicio + $i, $xml)) {
+                        if ($erro === null) {
                             $enviados++;
                         } else {
-                            $falhas[] = "Cupom {$c['nome']}: não foi possível gravar o XML no servidor do cliente.";
+                            $falhas[] = "Cupom {$c['nome']}: {$erro}";
                         }
                     }
                 }
@@ -163,10 +174,10 @@ class AcoesContingencias
                         throw self::falhaDeAcao('Foi encontrado um cadastro de PDV com loja ou número inválido.'.$this->parcial($enviados));
                     }
 
-                    $xml = $this->xml($loja, $pdv, 556, 'ajustar_contingencias', $inicio + $i, preenchido: false);
+                    $erro = $this->gravar($sessao, $loja, $pdv, $inicio + $i, 556, 'ajustar_contingencias', preenchido: false);
 
-                    if (! $this->gravar($sessao, $loja, $pdv, $inicio + $i, $xml)) {
-                        throw self::falhaDeAcao("Falha ao gravar o XML da loja {$loja}, PDV {$pdv}.".$this->parcial($enviados));
+                    if ($erro !== null) {
+                        throw self::falhaDeAcao("Loja {$loja}, PDV {$pdv}: {$erro}".$this->parcial($enviados));
                     }
 
                     $enviados++;
@@ -182,7 +193,7 @@ class AcoesContingencias
             } finally {
                 $sessao?->fechar();
             }
-        });
+        }, $clienteId);
     }
 
     /**
@@ -190,8 +201,9 @@ class AcoesContingencias
      *
      * @param  list<string>  $cupons
      * @param  callable(): ResultadoAcao  $acao
+     * @param  int|null  $servidorId  cliente cujo servidor atende (a trava é por servidor, não pelo id pedido)
      */
-    private function executar(string $nome, int $clienteId, array $cupons, callable $acao): ResultadoAcao
+    private function executar(string $nome, int $clienteId, array $cupons, callable $acao, ?int $servidorId = null): ResultadoAcao
     {
         if (! $this->ligado()) {
             $resultado = ResultadoAcao::falha(self::DESLIGADO);
@@ -200,10 +212,13 @@ class AcoesContingencias
             return $resultado;
         }
 
-        $trava = Cache::lock('contingencias:acao:'.$clienteId, 120);
+        $trava = Cache::lock('contingencias:acao:'.($servidorId ?? $clienteId), 120);
 
         if (! $trava->get()) {
-            return ResultadoAcao::falha('Já existe uma ação em andamento neste cliente. Tente de novo em instantes.');
+            $resultado = ResultadoAcao::falha('Já existe uma ação em andamento neste cliente. Tente de novo em instantes.');
+            $this->auditar($nome, $clienteId, $cupons, $resultado, 'ocupado');
+
+            return $resultado;
         }
 
         try {
@@ -284,12 +299,13 @@ class AcoesContingencias
         return new FalhaConexaoCliente('ERRO_ACAO', $mensagem);
     }
 
-    /** @param array{loja: int, pdv: int, cupom: int} $cupom */
+    /** @param array{loja: int, pdv: int, cupom: int, data?: string} $cupom */
     private function chaveDoCupom(ConexaoComCliente $conexao, array $cupom): string
     {
+        $data = trim($cupom['data'] ?? '');
         $linha = $conexao->conexao->selectOne(
-            "SELECT CAST(chave_acesso_nfce AS CHAR(255)) AS chave_acesso_nfce FROM {$conexao->tabela('sale')} WHERE store = ? AND pdv = ? AND cupom = ? LIMIT 1",
-            [$cupom['loja'], $cupom['pdv'], $cupom['cupom']],
+            "SELECT CAST(chave_acesso_nfce AS CHAR(255)) AS chave_acesso_nfce FROM {$conexao->tabela('sale')} WHERE store = ? AND pdv = ? AND cupom = ?".($data === '' ? '' : ' AND fiscal_date = ?').' LIMIT 1',
+            $data === '' ? [$cupom['loja'], $cupom['pdv'], $cupom['cupom']] : [$cupom['loja'], $cupom['pdv'], $cupom['cupom'], $data],
         );
 
         return trim((string) ($linha->chave_acesso_nfce ?? ''));
@@ -320,26 +336,66 @@ class AcoesContingencias
         return str_pad((string) $pdv, 3, '0', STR_PAD_LEFT);
     }
 
-    private function gravar(SessaoSsh $sessao, int $loja, int $pdv, int $momento, string $xml): bool
+    /**
+     * Grava o XML sem sobrescrever (docker.php:155-204): temporário sem .xml, confere que não está vazio e publica
+     * com ln, que falha se o destino existir; nesse caso tenta o segundo seguinte. Não cria a pasta de envio.
+     *
+     * @return string|null null quando gravou; senão o texto do erro, seguro para a tela
+     */
+    private function gravar(SessaoSsh $sessao, int $loja, int $pdv, int $momento, int $funcao, string $argumento, bool $preenchido): ?string
     {
         $lojaPasta = $this->lojaComZeros($loja);
         $pdvPasta = $this->pdvComZeros($pdv);
         $diretorio = "/var/sactus/snd/{$lojaPasta}/{$pdvPasta}";
-        $arquivo = "{$diretorio}/comando_{$lojaPasta}_{$pdvPasta}_{$momento}_102.xml";
-        $destino = escapeshellarg($arquivo);
 
-        try {
-            $resultado = $sessao->executar(
-                'mkdir -p '.escapeshellarg($diretorio).' && printf '.escapeshellarg('%s').' '.escapeshellarg($xml)." > {$destino} && test -s {$destino}",
-                self::TIMEOUT_SSH_SEGUNDOS,
-            );
-        } catch (Throwable $erro) {
-            report($erro);
+        for ($tentativa = 0; $tentativa < self::TENTATIVAS_DE_NOME; $tentativa++) {
+            $segundo = $momento + $tentativa;
+            $arquivo = "{$diretorio}/comando_{$lojaPasta}_{$pdvPasta}_{$segundo}_102.xml";
+            $xml = $this->xml($loja, $pdv, $funcao, $argumento, $segundo, $preenchido);
 
-            return false;
+            try {
+                $resultado = $sessao->executar($this->scriptDeGravacao($diretorio, $arquivo, $xml), self::TIMEOUT_SSH_SEGUNDOS);
+            } catch (Throwable $erro) {
+                report($erro);
+
+                return 'não foi possível gravar o XML no servidor do cliente.';
+            }
+
+            if ($resultado->ok()) {
+                return null;
+            }
+
+            if ($resultado->rc === self::RC_SEM_DIRETORIO) {
+                return 'Diretório de envio não existe.';
+            }
+
+            if ($resultado->rc === self::RC_SEM_ESCRITA) {
+                return 'Diretório de envio sem permissão de escrita.';
+            }
+
+            if ($resultado->rc !== self::RC_DESTINO_EXISTE) {
+                return 'não foi possível gravar o XML no servidor do cliente.';
+            }
         }
 
-        return $resultado->ok();
+        return 'já existem arquivos de comando com o mesmo nome; tente de novo em instantes.';
+    }
+
+    private function scriptDeGravacao(string $diretorio, string $arquivo, string $xml): string
+    {
+        $dir = escapeshellarg($diretorio);
+        $destino = escapeshellarg($arquivo);
+        $temporario = escapeshellarg($arquivo.'.tmp_'.bin2hex(random_bytes(8)));
+
+        return implode('; ', [
+            "[ -d {$dir} ] || exit ".self::RC_SEM_DIRETORIO,
+            "[ -w {$dir} ] || exit ".self::RC_SEM_ESCRITA,
+            "[ ! -e {$destino} ] || exit ".self::RC_DESTINO_EXISTE,
+            'printf '.escapeshellarg('%s').' '.escapeshellarg($xml)." > {$temporario} && [ -s {$temporario} ] && ln {$temporario} {$destino}",
+            'rc=$?',
+            "rm -f {$temporario}",
+            "[ \$rc -eq 0 ] || { [ -e {$destino} ] && exit ".self::RC_DESTINO_EXISTE.'; exit 1; }',
+        ]);
     }
 
     private function parcial(int $enviados): string

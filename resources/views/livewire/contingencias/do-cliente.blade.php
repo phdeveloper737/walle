@@ -41,8 +41,8 @@
 
         @can('admin')
             <div class="flex flex-wrap items-center gap-2">
-                <x-ui.botao variante="tonal" icone="send" wire:click="reenviarAoPdv" wire:loading.attr="disabled" wire:target="reenviarAoPdv, confirmarSenha" :disabled="! $selecionadas">
-                    Reenviar ao PDV{{ $selecionadas ? ' ('.count($selecionadas).')' : '' }}
+                <x-ui.botao variante="tonal" icone="send" wire:click="reenviarAoPdv" wire:loading.attr="disabled" wire:target="reenviarAoPdv, confirmarSenha" :disabled="$totalParaEnviar === 0">
+                    Reenviar ao PDV{{ $totalParaEnviar > 0 ? ' ('.$totalParaEnviar.')' : '' }}
                 </x-ui.botao>
                 <x-ui.botao variante="contorno" icone="sync" wire:click="reprocessar" wire:loading.attr="disabled" wire:target="reprocessar, confirmarSenha">Reprocessar contingências</x-ui.botao>
                 <span class="text-xs text-on-surface-variant">Marque os cupons pendentes do Sactus em “Selecionar”.</span>
