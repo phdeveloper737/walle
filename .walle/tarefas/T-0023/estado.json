@@ -4,10 +4,10 @@
     "origem":  "PLAN 7.1",
     "tipo":  "plano",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0023-registrar-as-telas-novas-rotas-menu-e-sa",
-    "pr":  0,
+    "pr":  37,
     "base":  "0cd5ac6a3271f87abc96b10b227bdf605904868c",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 07:46:53",
                         "tipo":  "commit",
                         "detalhe":  "T-0023: Registrar as telas novas: rotas, menu e Saude"
+                    },
+                    {
+                        "quando":  "2026-10-27 07:47:03",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #37 aberto"
                     }
                 ]
 }
