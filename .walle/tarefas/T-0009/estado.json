@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0009",
+    "titulo":  "Task Scheduler: robo que executa as queries agendadas nos clientes",
+    "origem":  "PLAN 3.5",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0009-task-scheduler-robo-que-executa-as-queri",
+    "pr":  0,
+    "base":  "644acf04071ec2425d0e33abf83a772aa85655e7",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 00:42:42",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0009-task-scheduler-robo-que-executa-as-queri a partir de 644acf04071ec2425d0e33abf83a772aa85655e7"
+                    }
+                ]
+}
