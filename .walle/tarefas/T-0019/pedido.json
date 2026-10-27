@@ -1,0 +1,7 @@
+{
+    "titulo":  "Ferramentas: Task Scheduler e relatorio",
+    "origem":  "PLAN 6.6",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/Ferramentas.php com abas querys e relatorio e as views em resources/views/livewire/ferramentas/. Criar, editar e ativar ou desativar queries so para admin com ConfirmaSenha e Auditoria. Rota e menu ficam para a Fase 7."
+}
