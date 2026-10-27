@@ -4,17 +4,22 @@
     "origem":  "PLAN 5.1",
     "tipo":  "plano",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0013-agenda-configuracao-e-filas-dos-robos-no",
     "pr":  0,
     "base":  "31391e6601fb53d208b12cb211e8ee591125b99f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-10-27 03:35:19",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0013-agenda-configuracao-e-filas-dos-robos-no a partir de 31391e6601fb53d208b12cb211e8ee591125b99f"
+                    },
+                    {
+                        "quando":  "2026-10-27 03:35:31",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada por decisao do usuario pendente (task 5.1): o 220 nao versiona a frequencia dos robos (crontab so existe em runtime); nao ha limite de falhas nem quarentena nos quatro robos; faltam o token do cleantax (walle.cleantax.token) e o timeout do health do sentinela. Opcoes e recomendacao enviadas no chat."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "e6597d334ef26b32f602de85afd85d39668dd13eaa7cfd2d80db68de1f34b698"
 }
