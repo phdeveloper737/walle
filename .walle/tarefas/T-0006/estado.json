@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 00:10:42",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0006-bot-sentinela-robo-que-coleta-o-sentinel a partir de df8e4d7b29d994edc8d7cf744d142b0cab898b2d"
+                    },
+                    {
+                        "quando":  "2026-10-27 00:17:15",
+                        "tipo":  "commit",
+                        "detalhe":  "Bot Sentinela: robô que coleta o sentinela.php dos clientes (task 3.2)"
                     }
                 ]
 }

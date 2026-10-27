@@ -113,8 +113,8 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 - Input: model da task 1.1
 - Output: `app/Sentinela/RoboSentinela.php` (`ligado(): bool`, `rodarCiclo(): void`) que faz `GET http://<host>/sentinela.php?json=S` em cada cliente (timeout com valor e unidade documentados a partir do script do 220) e grava em `painel_sentinela`; `app/Sentinela/ColetaSentinela.php` (valor lido de um cliente); `app/Jobs/RodarCicloSentinela.php`
 - Testes críticos:
-  - [ ] `tests/Feature/Sentinela/RoboSentinelaTest.php`: com `Http::fake` devolvendo o JSON do sentinela, o painel do cliente fica igual ao que o 220 gravaria para o mesmo JSON
-  - [ ] timeout ou JSON inválido grava o cliente como "sem resposta" com a mensagem, sem derrubar o ciclo
+  - [x] `tests/Feature/Sentinela/RoboSentinelaTest.php`: com `Http::fake` devolvendo o JSON do sentinela, o painel do cliente fica igual ao que o 220 gravaria para o mesmo JSON
+  - [x] timeout ou JSON inválido grava o cliente como "sem resposta" com a mensagem, sem derrubar o ciclo
 
 #### Task 3.4 — CleanTax BOT (substitui `cleantax.php`)
 - Agent: Backend Laravel — robôs
