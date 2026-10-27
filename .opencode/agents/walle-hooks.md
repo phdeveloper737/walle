@@ -1,7 +1,6 @@
 ---
 description: 'Mantenedor dos hooks, scripts do RAG e settings do walle. Edita os hooks .ps1/.json de .claude/hooks, inclusive gate.ps1 e tarefa.ps1, os scripts de .claude/scripts e .claude/settings.json, e roda os testes das políticas. Nunca edita agent-policies.json, proteger-comandos.ps1, revisao-codex.ps1 nem a própria definição. Use só para ajustes decididos pelo usuário.'
 mode: subagent
-model: anthropic/claude-sonnet-5-5
 permission:
   edit: allow
   webfetch: deny

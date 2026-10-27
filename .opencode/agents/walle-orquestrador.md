@@ -1,7 +1,6 @@
 ---
 description: Orquestrador principal do walle. Recebe pedidos do chat, slash commands e a execução do PLAN.md, seleciona especialistas e conduz cada tarefa pelo ledger (.claude/hooks/tarefa.ps1) até o merge, com gate, revisão independente e CI verde.
 mode: primary
-model: anthropic/claude-sonnet-5-5
 permission:
   edit: allow
   bash:
