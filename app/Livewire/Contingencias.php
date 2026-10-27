@@ -20,6 +20,14 @@ class Contingencias extends Component
 {
     public const FILTROS = ['todos', 'consultorias', 'outros'];
 
+    public const ABAS = [
+        'clientes' => ['rotulo' => 'Clientes', 'icone' => 'groups'],
+        'robo' => ['rotulo' => 'Robô', 'icone' => 'smart_toy'],
+    ];
+
+    #[Url(except: 'clientes')]
+    public string $aba = 'clientes';
+
     #[Url(except: '')]
     public string $busca = '';
 
@@ -28,6 +36,18 @@ class Contingencias extends Component
 
     #[Url(as: 'cliente')]
     public ?int $clienteId = null;
+
+    public function mount(): void
+    {
+        $this->updatedAba();
+    }
+
+    public function updatedAba(): void
+    {
+        if (! array_key_exists($this->aba, self::ABAS)) {
+            $this->aba = 'clientes';
+        }
+    }
 
     public function updatedFiltro(): void
     {

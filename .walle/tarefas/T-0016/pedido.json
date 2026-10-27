@@ -1,0 +1,7 @@
+{
+    "titulo":  "Painel do Contingencia BOT: aba robo",
+    "origem":  "PLAN 6.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/Contingencias/Robo.php e a view resources/views/livewire/contingencias/robo.blade.php (KPIs, clientes com ultima coleta e erro) e acrescentar a aba robo em App Livewire Contingencias ABAS."
+}

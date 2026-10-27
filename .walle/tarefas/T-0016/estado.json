@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0016",
+    "titulo":  "Painel do Contingencia BOT: aba robo",
+    "origem":  "PLAN 6.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0016-painel-do-contingencia-bot-aba-robo",
+    "pr":  30,
+    "base":  "165a59bb22fb5fa7ecbc80e32ba9247f54cf2bde",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 04:36:13",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0016-painel-do-contingencia-bot-aba-robo a partir de 165a59bb22fb5fa7ecbc80e32ba9247f54cf2bde"
+                    },
+                    {
+                        "quando":  "2026-10-27 04:40:00",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0016: Painel do Contingencia BOT: aba robo"
+                    },
+                    {
+                        "quando":  "2026-10-27 04:40:11",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #30 aberto"
+                    }
+                ]
+}
