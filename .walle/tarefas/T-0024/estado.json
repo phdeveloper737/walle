@@ -4,10 +4,10 @@
     "origem":  "PLAN 8.1",
     "tipo":  "plano",
     "dono":  "walle-robos",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0024-acoes-de-contingencia-do-cliente-reenvia",
-    "pr":  0,
+    "pr":  38,
     "base":  "0671fcfe2f34b8364d527826685ad5dd68ac3840",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 08:08:33",
                         "tipo":  "commit",
                         "detalhe":  "T-0024: Acoes de contingencia do cliente: reenviar ao PDV e reprocessar"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:08:44",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #38 aberto"
                     }
                 ]
 }
