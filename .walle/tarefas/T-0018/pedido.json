@@ -1,0 +1,7 @@
+{
+    "titulo":  "Painel do CleanTax",
+    "origem":  "PLAN 6.5",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/CleanTax.php e resources/views/livewire/clean-tax.blade.php listando as execucoes da iteracao com inicio, fim e resultado. Rota e menu ficam para a Fase 7."
+}
