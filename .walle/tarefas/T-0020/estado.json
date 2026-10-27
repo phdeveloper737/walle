@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0020",
+    "titulo":  "Componente de area de texto do walle-ui",
+    "origem":  "pedido do usuario",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0020-componente-de-area-de-texto-do-walle-ui",
+    "pr":  0,
+    "base":  "0f202cc6d063211a985eb4e38b39290187ba17ab",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 06:21:03",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0020-componente-de-area-de-texto-do-walle-ui a partir de 0f202cc6d063211a985eb4e38b39290187ba17ab"
+                    }
+                ]
+}

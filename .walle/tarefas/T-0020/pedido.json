@@ -1,0 +1,7 @@
+{
+    "titulo":  "Componente de area de texto do walle-ui",
+    "origem":  "pedido do usuario",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "resumo":  "Criar o componente x-ui.area-texto (textarea de varias linhas) em resources/views/components/ui/, pre-requisito da tela Ferramentas (T-0019), que precisa preservar quebras de linha do SQL das queries agendadas."
+}
