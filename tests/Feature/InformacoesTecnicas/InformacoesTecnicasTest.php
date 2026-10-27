@@ -5,7 +5,9 @@ use App\Livewire\InformacoesTecnicas;
 use App\Models\Auditoria;
 use App\Models\InformacaoTecnicaPainelContingencias;
 use App\Models\Usuario;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
@@ -151,7 +153,8 @@ test('campo obrigatório vazio ou porta fora do intervalo mostra o erro e não g
     expect(InformacaoTecnicaPainelContingencias::find($id)->ip_externo_servidor)->toBe('200.1.2.3');
 })->with([
     'servidor sem IP' => [['ip_externo_servidor' => ''], 'ip_externo_servidor'],
-    'IP inválido' => [['ip_externo_servidor' => 'abc'], 'ip_externo_servidor'],
+    'IP inválido' => [['ip_externo_servidor' => 'ab c;rm -rf'], 'ip_externo_servidor'],
+    'host com espaço' => [['ip_externo_servidor' => 'jm consultorias.com.br'], 'ip_externo_servidor'],
     'porta zero' => [['porta_http' => '0'], 'porta_http'],
     'porta acima do limite' => [['porta_mysql' => '70000'], 'porta_mysql'],
     'porta com letra' => [['porta_ssh' => '22a'], 'porta_ssh'],
@@ -329,4 +332,104 @@ test('a auditoria registra os nomes dos campos e nunca o valor das senhas', func
     $tudo = json_encode(Auditoria::all()->pluck('detalhes'));
     expect($tudo)->not->toContain('nova-senha-ABC')
         ->and($tudo)->not->toContain('mysql-antiga-XYZ');
+});
+
+test('o IP externo aceita nome de host, como jmconsultorias.com.br', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos(['ip_externo_servidor' => 'jmconsultorias.com.br']))
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->ip_externo_servidor)->toBe('jmconsultorias.com.br');
+});
+
+test('cliente LL com valor legado do Docker salva e o valor legado fica como está', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id, ['tips_server' => 'LL', 'porta_ssh_container_docker' => 'root', 'porta_http_docker' => '000']);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->assertSet('form.porta_ssh_container_docker', 'root')
+        ->set('form', array_merge(dadosTecnicosValidos(['tips_server' => 'LL']), ['porta_ssh_container_docker' => 'root', 'porta_http_docker' => '000']))
+        ->call('salvar')
+        ->assertHasNoErrors()
+        ->assertSee('Configuração salva.');
+
+    $linha = InformacaoTecnicaPainelContingencias::find($id);
+    expect($linha->porta_ssh_container_docker)->toBe('root')
+        ->and($linha->porta_http_docker)->toBe('000')
+        ->and($linha->ip_externo_servidor)->toBe('201.10.20.30');
+});
+
+test('servidor Docker exige os campos do Docker', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos(['tips_server' => 'DO', 'ip_docker_principal' => '192.168.10.244', 'ip_container_docker' => '10.0.0.2', 'porta_http_docker' => '80', 'porta_mysql_docker' => '3306', 'porta_ssh_docker' => '22', 'porta_ssh_container_docker' => '']))
+        ->call('salvar')
+        ->assertHasErrors(['form.porta_ssh_container_docker']);
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->tips_server)->toBe('LO');
+});
+
+test('falha na gravação local não manda senha para o log nem para a tela', function (string $acao) {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk([], ['senha_mysql' => 'senha-do-help-SECRETA']);
+    configuracaoTecnicaDoCliente($id);
+    Exceptions::fake();
+
+    InformacaoTecnicaPainelContingencias::saving(function () {
+        throw new QueryException('mysql', 'update `informacao_tecnica_painel_contingencias` set `senha_mysql` = ?', ['nova-senha-SECRETA'], new Exception('Data too long'));
+    });
+
+    try {
+        Livewire::test(InformacoesTecnicas::class)
+            ->call('selecionar', $id)
+            ->set('form', dadosTecnicosValidos(['senha_mysql' => 'nova-senha-SECRETA']))
+            ->call($acao)
+            ->assertSee('Não foi possível gravar no banco do walle')
+            ->assertDontSee('Help Desk (192.168.10.254) não respondeu')
+            ->assertDontSee('SECRETA');
+    } finally {
+        InformacaoTecnicaPainelContingencias::flushEventListeners();
+    }
+
+    Exceptions::assertNothingReported();
+    expect(Auditoria::where('acao', 'like', 'informacoes_tecnicas.%')->count())->toBe(0)
+        ->and(InformacaoTecnicaPainelContingencias::find($id)->senha_mysql)->toBe('mysql-antiga-XYZ');
+})->with(['salvar', 'importar']);
+
+test('a importação não reativa o cliente desativado e usa o padrão em linha nova', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id, ['ativo_painel_contingencias' => 'N']);
+    $novo = criarClienteHelpDesk();
+
+    Livewire::test(InformacoesTecnicas::class)->call('selecionar', $id)->call('importar')->assertSee('Configuração importada');
+    app(ConfiguracaoTecnica::class)->importarDoHelpDesk($novo);
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->ativo_painel_contingencias)->toBe('N')
+        ->and(InformacaoTecnicaPainelContingencias::find($novo)->ativo_painel_contingencias)->toBe('S');
+});
+
+test('senha vazia no Help Desk mantém a senha local na importação', function () {
+    $id = criarClienteHelpDesk([], ['senha_mysql' => '', 'senha_ssh' => '', 'senha_ssh_docker' => '', 'senha_mysql_docker' => '']);
+    configuracaoTecnicaDoCliente($id, ['senha_mysql_docker' => 'mysql-docker-antiga']);
+
+    app(ConfiguracaoTecnica::class)->importarDoHelpDesk($id);
+
+    $linha = InformacaoTecnicaPainelContingencias::find($id);
+    expect($linha->senha_mysql)->toBe('mysql-antiga-XYZ')
+        ->and($linha->senha_ssh)->toBe('ssh-antiga-XYZ')
+        ->and($linha->senha_ssh_docker)->toBe('docker-antiga-XYZ')
+        ->and($linha->senha_mysql_docker)->toBe('mysql-docker-antiga');
 });

@@ -3,6 +3,8 @@
 namespace App\InformacoesTecnicas;
 
 use App\Models\InformacaoTecnicaPainelContingencias;
+use Closure;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -51,6 +53,12 @@ class ConfiguracaoTecnica
 
     public const TIPOS_PDV = ['L' => 'Linux', 'V' => 'Versatus', 'A' => 'Ambos'];
 
+    /** Campos que só valem (e só são gravados) quando o servidor é Docker; nos outros tipos o valor atual fica como está. */
+    public const CAMPOS_DOCKER = [
+        'ip_docker_principal', 'ip_container_docker', 'porta_http_docker', 'porta_mysql_docker',
+        'porta_ssh_docker', 'porta_ssh_container_docker',
+    ];
+
     public const SERVIDORES_DOCKER = ['192.168.10.244', '192.168.10.106'];
 
     /**
@@ -60,21 +68,25 @@ class ConfiguracaoTecnica
      */
     public function regras(string $prefixo = ''): array
     {
-        $docker = "required_if:{$prefixo}tips_server,DO";
+        $docker = ["exclude_unless:{$prefixo}tips_server,DO", "required_if:{$prefixo}tips_server,DO"];
         $porta = ['integer', 'between:1,65535'];
 
         $regras = [
             'ativo_painel_contingencias' => ['required', 'in:S,N'],
             'tips_server' => ['required', 'in:'.implode(',', array_keys(self::TIPOS_SERVIDOR))],
             'tips_pdv' => ['required', 'in:'.implode(',', array_keys(self::TIPOS_PDV))],
-            'ip_docker_principal' => [$docker, 'nullable', 'in:'.implode(',', self::SERVIDORES_DOCKER)],
+            'ip_docker_principal' => [...$docker, 'nullable', 'in:'.implode(',', self::SERVIDORES_DOCKER)],
             'banco_separado_docker' => ['required', 'in:S,N'],
-            'ip_container_docker' => [$docker, 'nullable', 'ip', 'max:50'],
-            'porta_http_docker' => [$docker, 'nullable', ...$porta],
-            'porta_mysql_docker' => [$docker, 'nullable', ...$porta],
-            'porta_ssh_docker' => [$docker, 'nullable', ...$porta],
-            'porta_ssh_container_docker' => [$docker, 'nullable', ...$porta],
-            'ip_externo_servidor' => ['required', 'ip', 'max:50'],
+            'ip_container_docker' => [...$docker, 'nullable', 'ip', 'max:50'],
+            'porta_http_docker' => [...$docker, 'nullable', ...$porta],
+            'porta_mysql_docker' => [...$docker, 'nullable', ...$porta],
+            'porta_ssh_docker' => [...$docker, 'nullable', ...$porta],
+            'porta_ssh_container_docker' => [...$docker, 'nullable', ...$porta],
+            'ip_externo_servidor' => ['required', 'string', 'max:50', function (string $atributo, mixed $valor, Closure $falha): void {
+                if (! $this->ipOuHost((string) $valor)) {
+                    $falha('Informe um IP ou nome de host válido no IP externo do servidor, como 192.168.10.5 ou servidor.exemplo.com.br.');
+                }
+            }],
             'servidor_mysql' => ['required', 'string', 'max:50'],
             'porta_http' => ['required', ...$porta],
             'porta_mysql' => ['required', ...$porta],
@@ -138,7 +150,7 @@ class ConfiguracaoTecnica
         $linha = $this->linhaDoCliente($clienteId);
         $linha->fill($this->paraGravar($dados));
         $linha->ultima_atualizacao = now();
-        $linha->save();
+        $this->gravar($linha);
     }
 
     /**
@@ -217,12 +229,30 @@ class ConfiguracaoTecnica
             'banco_mysql' => $campo('banco_mysql'),
             'senha_mysql' => $campo('senha_mysql'),
             'senha_ssh' => $campo('senha_ssh'),
-            'ativo_painel_contingencias' => 'S',
+            'ativo_painel_contingencias' => $this->preenchido($linha->ativo_painel_contingencias) ?? 'S',
             'deletado' => 'N',
             'ip_publico' => $campo('ip_publico'),
         ]);
+
+        foreach (['senha_ssh_docker', 'senha_mysql_docker', 'senha_mysql', 'senha_ssh'] as $senha) {
+            if ($campo($senha) === '' && $linha->exists) {
+                $linha->setAttribute($senha, $linha->getOriginal($senha));
+            }
+        }
+
         $linha->ultima_atualizacao = now();
-        $linha->save();
+        $this->gravar($linha);
+    }
+
+    /** @throws FalhaGravacaoLocal */
+    private function gravar(InformacaoTecnicaPainelContingencias $linha): void
+    {
+        try {
+            $linha->save();
+        } catch (QueryException) {
+            // Sem a exceção original: ela carrega o SQL com as senhas.
+            throw new FalhaGravacaoLocal;
+        }
     }
 
     private function linhaDoCliente(int $clienteId): InformacaoTecnicaPainelContingencias
@@ -255,6 +285,10 @@ class ConfiguracaoTecnica
     {
         $gravar = [];
 
+        if (($dados['tips_server'] ?? null) !== 'DO') {
+            $dados = array_diff_key($dados, array_flip(self::CAMPOS_DOCKER));
+        }
+
         foreach ($dados as $campo => $valor) {
             $texto = trim((string) $valor);
 
@@ -270,6 +304,12 @@ class ConfiguracaoTecnica
         }
 
         return $gravar;
+    }
+
+    private function ipOuHost(string $valor): bool
+    {
+        return filter_var($valor, FILTER_VALIDATE_IP) !== false
+            || filter_var($valor, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false;
     }
 
     private function preenchido(?string $valor): ?string

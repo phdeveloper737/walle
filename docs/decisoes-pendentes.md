@@ -49,6 +49,11 @@
 - O 220 deixa editar o SQL de uma query agendada que já rodou, e o `RoboTarefas` pula os clientes que já têm OK. Opções: (1) manter como no 220; (2) avisar na tela antes de salvar; (3) bloquear e exigir query nova. **Recomendação:** 2.
 - A codificação base64 está duplicada entre `Ferramentas` e `RoboTarefas`. Recomendação: mover para o model `TaskSchedulerQuery`.
 
+### B4b. Informações Técnicas: importar do Help Desk (task 8.4), desvios do 220
+- O `atualizar.php` do 220 reativava o cliente (`ativo_painel_contingencias='S'`, `deletado='N'`) a cada importação e gravava `porta_http='80'` e `porta_ssh='22'` fixos. Seguindo a recomendação do arquiteto, o walle **preserva o `ativo_painel_contingencias` atual** (linha nova usa `S`) e **senha vazia no Help Desk mantém a senha guardada**. A tela só abre clientes com `deletado='N'`.
+- **Opções:** (1) como está, preservando o ativo (recomendada); (2) reativar como o 220 e avisar no texto da confirmação; (3) reativar sem aviso. Confirmar se algum fluxo da operação depende da reativação automática.
+- Validação nova: obrigatórios, portas 1 a 65535, `ip_externo_servidor` aceita IP ou nome de host (até 50 caracteres) e os campos Docker só valem com `tips_server` = DO (53 dos 90 clientes LL ativos têm valores legados nesses campos).
+
 ### B5. Painel da Contingência BOT só lista clientes com painel
 - Cliente cuja primeira coleta falhou não aparece na aba Robô (igual ao 220). O arquiteto sugeriu incluir clientes que só têm coleta com falha e contá-los no KPI de falhas. **Recomendação:** tarefa pequena depois da virada.
 

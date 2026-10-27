@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\InformacoesTecnicas\ConfiguracaoTecnica;
+use App\InformacoesTecnicas\FalhaGravacaoLocal;
 use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\InformacaoTecnicaPainelContingencias;
@@ -91,7 +92,14 @@ class InformacoesTecnicas extends Component
         }
 
         $alterados = $servico->camposAlterados($this->clienteId, $this->form);
-        $servico->salvar($this->clienteId, $this->form);
+
+        try {
+            $servico->salvar($this->clienteId, $this->form);
+        } catch (FalhaGravacaoLocal) {
+            $this->avisarFalhaDeGravacao();
+
+            return;
+        }
 
         Auditoria::registrar('informacoes_tecnicas.salvar', $this->clienteId, ['campos' => $alterados]);
 
@@ -116,7 +124,12 @@ class InformacoesTecnicas extends Component
             $this->aviso = $e->validator->errors()->first();
 
             return;
+        } catch (FalhaGravacaoLocal) {
+            $this->avisarFalhaDeGravacao();
+
+            return;
         } catch (QueryException $e) {
+            // Só a leitura do Help Desk chega aqui (a gravação local vira FalhaGravacaoLocal) e a consulta leva só o id.
             report($e);
             $this->avisoErro = true;
             $this->aviso = 'O Help Desk (192.168.10.254) não respondeu. Nada foi importado; tente de novo em instantes.';
@@ -200,6 +213,13 @@ class InformacoesTecnicas extends Component
         }
 
         return $cadastradas;
+    }
+
+    /** Sem report(): a exceção original leva o SQL com as senhas, então nada dela vai para o log. */
+    private function avisarFalhaDeGravacao(): void
+    {
+        $this->avisoErro = true;
+        $this->aviso = 'Não foi possível gravar no banco do walle. Nada foi alterado; confira o tamanho dos valores e tente de novo.';
     }
 
     private function carregarFormulario(): void
