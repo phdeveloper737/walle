@@ -121,8 +121,8 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 - Input: model da task 1.4
 - Output: `app/CleanTax/RoboCleanTax.php` que busca os clientes na API `https://jmsistemas.net/cleantax`, chama o `cleantaxbot.php` de cada cliente com no máximo uma requisição por host ao mesmo tempo (`Cache::lock` por host, sem retry após timeout) e grava em `painel_cleantax_worker`; `app/Jobs/RodarCicloCleanTax.php`
 - Testes críticos:
-  - [ ] `tests/Feature/CleanTax/RoboCleanTaxTest.php`: com `Http::fake`, dois clientes no mesmo host nunca são chamados ao mesmo tempo e o painel registra início e fim de cada requisição
-  - [ ] API do CleanTax fora do ar encerra o ciclo com erro registrado e sem gravar painel pela metade
+  - [x] `tests/Feature/CleanTax/RoboCleanTaxTest.php`: com `Http::fake`, dois clientes no mesmo host nunca são chamados ao mesmo tempo e o painel registra início e fim de cada requisição
+  - [x] API do CleanTax fora do ar encerra o ciclo com erro registrado e sem gravar painel pela metade
 
 #### Task 3.5 — Task Scheduler (substitui `task.scheduler.bot.php`)
 - Agent: Backend Laravel — robôs
