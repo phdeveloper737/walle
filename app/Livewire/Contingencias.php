@@ -4,8 +4,12 @@ namespace App\Livewire;
 
 use App\Contingencias\ClienteDaLista;
 use App\Contingencias\ListaDeClientes;
+use App\Contingencias\RemocaoDeCliente;
+use App\Livewire\Concerns\ConfirmaSenha;
+use App\Models\Auditoria;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -18,6 +22,10 @@ use Livewire\Component;
 #[Title('Contingências')]
 class Contingencias extends Component
 {
+    use ConfirmaSenha;
+
+    public const ACOES_COM_SENHA = ['removerCliente'];
+
     public const FILTROS = ['todos', 'consultorias', 'outros'];
 
     public const ABAS = [
@@ -36,6 +44,10 @@ class Contingencias extends Component
 
     #[Url(as: 'cliente')]
     public ?int $clienteId = null;
+
+    public ?string $aviso = null;
+
+    public bool $avisoErro = false;
 
     public function mount(): void
     {
@@ -59,6 +71,27 @@ class Contingencias extends Component
     public function selecionar(int $id): void
     {
         $this->clienteId = $id;
+    }
+
+    /** Apaga as vendas do Versatus em contingência do cliente (delete.php do 220), só admin com a senha confirmada. */
+    public function removerCliente(int $clienteId): void
+    {
+        if (! $this->adminConfirmado('removerCliente', [$clienteId])) {
+            return;
+        }
+
+        abort_unless(Gate::allows('admin'), 403);
+
+        $apagadas = app(RemocaoDeCliente::class)->remover($clienteId);
+
+        Auditoria::registrar('contingencias.remover_cliente', $clienteId > 0 ? $clienteId : null, ['apagadas' => $apagadas]);
+
+        $this->avisoErro = $apagadas === 0;
+        $this->aviso = match (true) {
+            $clienteId <= 0 => 'Cliente inválido: nada foi removido.',
+            $apagadas === 0 => "Não há contingências gravadas do cliente #{$clienteId}: nada foi removido.",
+            default => "{$apagadas} ".($apagadas === 1 ? 'registro' : 'registros')." de contingência do cliente #{$clienteId} ".($apagadas === 1 ? 'foi removido' : 'foram removidos').'.',
+        };
     }
 
     public function recarregar(ListaDeClientes $lista): void

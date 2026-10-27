@@ -91,6 +91,18 @@
                 Help Desk: {{ $cliente->totalContingencias }} pendentes informadas pelo PDV Linux + Versatus.
             </p>
 
+            @if ($aviso)
+                <x-ui.aviso :tipo="$avisoErro ? 'erro' : 'sucesso'" class="mb-3">{{ $aviso }}</x-ui.aviso>
+            @endif
+
+            @can('admin')
+                <div class="mb-3">
+                    <x-ui.botao variante="contorno" icone="delete" wire:click="removerCliente({{ $cliente->id }})"
+                        wire:loading.attr="disabled" wire:target="removerCliente, confirmarSenha"
+                        wire:confirm="Remover da lista de contingências as vendas e os itens do cliente #{{ $cliente->id }} gravados no walle? Não dá para desfazer.">Remover da lista de contingências</x-ui.botao>
+                </div>
+            @endcan
+
             <livewire:contingencias.do-cliente :cliente-id="$cliente->id" :key="'do-cliente-'.$cliente->id" />
         @else
             <x-ui.vazio icone="storefront" titulo="Escolha um cliente">
@@ -101,4 +113,6 @@
     </section>
 </div>
 @endif
+
+<x-ui.confirmar-senha :aberta="$pedindoSenha" />
 </div>

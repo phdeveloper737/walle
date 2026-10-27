@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 09:11:51",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0025-remover-cliente-da-lista-de-contingencia a partir de 5b42afd72f49deb1b14ca9e74c857e4415e20ac0"
+                    },
+                    {
+                        "quando":  "2026-10-27 09:16:32",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0025: Remover cliente da lista de contingencias"
                     }
                 ]
 }
