@@ -15,6 +15,9 @@
         @case('relatorio')
             @include('livewire.ferramentas.relatorio')
             @break
+        @case('executar')
+            @include('livewire.ferramentas.executar')
+            @break
         @default
             @include('livewire.ferramentas.querys')
     @endswitch

@@ -268,8 +268,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: `ConectorDeCliente` e tela `Ferramentas` (task 6.6)
 - Output: `app/Ferramentas/ExecucaoDeQuery.php` (`executar(int $clienteId, string $sql): ResultadoQuery`, qualquer SQL manual, inclusive `SELECT`, somente admin com confirmação válida na sessão) e a aba `executar` em `App\Livewire\Ferramentas`
 - Testes críticos:
-  - [ ] `tests/Feature/Ferramentas/ExecucaoDeQueryTest.php`: admin com confirmação válida executa `SELECT` no cliente falso e recebe as linhas e registra `Auditoria` com o SQL (sem valores sensíveis)
-  - [ ] `SELECT`/`UPDATE`/`DELETE` sem ser admin ou sem confirmação válida é recusado antes de conectar no cliente; confirmação expirada pede senha novamente
+  - [x] `tests/Feature/Ferramentas/ExecucaoDeQueryTest.php`: admin com confirmação válida executa `SELECT` no cliente falso e recebe as linhas e registra `Auditoria` com o SQL (sem valores sensíveis)
+  - [x] `SELECT`/`UPDATE`/`DELETE` sem ser admin ou sem confirmação válida é recusado antes de conectar no cliente; confirmação expirada pede senha novamente
+- Recorte da 8.3 (decisões do usuário de 27/10/2026): portada só a execução manual de query (`execute.query.php`), com a regra do projeto. Ficam fora, por pedido explícito futuro: `execute.query.available.php` (senha por padrão fixo, IP fixo e credenciais vazadas no erro) e as ferramentas de debug de `debugs.tools.php` (o tipo 3 escreve em `venda_sum_produto` no banco do cliente). A auditoria guarda o SQL com literais trocados por `?` (máximo de 500 caracteres) e as recusas sem SQL. Limites: uma instrução por chamada, 1000 linhas e 30 s. Riscos conhecidos: a regra de validade da senha está duplicada no serviço (extrair em tarefa futura); `WITH`, `TABLE` e `SELECT ... FOR UPDATE` são tratados como escrita e não devolvem linhas; o resultado fica inteiro no buffer do PDO antes do corte; a instrução roda no banco do Sactus resolvido pelo `ConectorDeCliente`.
 
 #### Task 8.4 — Informações Técnicas do cliente (substitui `consultorias/config`: Configurações do Servidor e de PDV, `config/api/import.php`, `sets.php`, `gets.php`)
 - Agent: Frontend Livewire (walle-ui)
