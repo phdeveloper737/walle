@@ -2,6 +2,9 @@
 
 use App\Livewire\Crontab;
 use App\Models\Usuario;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Schedule as ScheduleFacade;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -30,6 +33,21 @@ test('robô desligado aparece como desligado e ligado como ligado', function () 
     config(['walle.autorizadas.ativo' => true]);
     $ligada = Livewire::test(Crontab::class)->viewData('rotinas');
     expect(collect($ligada)->firstWhere('nome', 'walle:robo-autorizadas')['ligada'])->toBeTrue();
+});
+
+test('em requisição web, sem o console inicializado, as rotinas aparecem uma vez cada', function () {
+    app()->forgetInstance(Schedule::class);
+    app()->forgetInstance(ConsoleKernel::class);
+    ScheduleFacade::clearResolvedInstance('Illuminate\Console\Scheduling\Schedule');
+    expect(app(Schedule::class)->events())->toBeEmpty();
+
+    $componente = Livewire::test(Crontab::class);
+    $primeira = collect($componente->viewData('rotinas'))->pluck('nome');
+    $segunda = collect($componente->call('$refresh')->viewData('rotinas'))->pluck('nome');
+
+    expect($primeira)->toContain('walle:robo-autorizadas')
+        ->and($primeira->duplicates())->toBeEmpty()
+        ->and($segunda->all())->toBe($primeira->all());
 });
 
 test('rotina sem condição aparece como ligada', function () {

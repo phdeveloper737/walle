@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -12,8 +13,12 @@ use Livewire\Component;
 #[Title('Crontab')]
 class Crontab extends Component
 {
-    public function render(Schedule $agenda): View
+    public function render(Schedule $agenda, ConsoleKernel $console): View
     {
+        // routes/console.php só carrega no bootstrap do Kernel de console; em requisição web
+        // a agenda estaria vazia. O bootstrap é idempotente (commandsLoaded) e não executa eventos.
+        $console->bootstrap();
+
         $rotinas = collect($agenda->events())
             ->map(fn (Event $evento): array => [
                 'nome' => $evento->description ?: $evento->getSummaryForDisplay(),
