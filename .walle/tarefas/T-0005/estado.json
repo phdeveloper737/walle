@@ -4,10 +4,10 @@
     "origem":  "PLAN 13.10",
     "tipo":  "plano",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0005-saude-mostra-as-permissoes-do-usuario-do",
-    "pr":  0,
+    "pr":  20,
     "base":  "5510a6a25647e4aa62eb4b7590990d60570829b6",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-26 22:19:25",
                         "tipo":  "commit",
                         "detalhe":  "Saúde mostra as permissões do usuário do Help Desk"
+                    },
+                    {
+                        "quando":  "2026-10-26 22:19:34",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #20 aberto"
                     }
                 ]
 }
