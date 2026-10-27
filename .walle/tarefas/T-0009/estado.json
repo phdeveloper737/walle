@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 00:42:42",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0009-task-scheduler-robo-que-executa-as-queri a partir de 644acf04071ec2425d0e33abf83a772aa85655e7"
+                    },
+                    {
+                        "quando":  "2026-10-27 01:17:13",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0009: Task Scheduler e painel do cérebro do RAG (T-0008)"
                     }
                 ]
 }

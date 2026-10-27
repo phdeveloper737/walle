@@ -195,6 +195,19 @@ Se o serviço ou modelo estiver indisponível, o hook não bloqueia o trabalho n
 A leitura de transcripts é limitada ao projeto e conserva até 120 mil caracteres de mensagens
 textuais dos assistentes; não é um arquivo integral da conversa nem um mecanismo de backup.
 
+#### Visualização do conhecimento (pedido de 27/10/2026)
+
+A página interna /conhecimento apresenta o cérebro do RAG para administradores: contagens,
+última indexação, agentes, categorias, memórias filtráveis e paginadas e grafo com seleção de conteúdo.
+As conexões representam similaridade cosseno dos vetores já indexados; não são relações factuais
+nem comprovam a correção das memórias. O grafo deve explicar seus limites e oferecer os mesmos
+relacionamentos em formato acessível. O conteúdo é exibido como texto escapado.
+
+O painel lê somente o SQLite existente, sem criar ou alterar o índice, sem publicar portas do
+contêiner RAG e sem depender de uma nova biblioteca gráfica. A leitura considera o WAL; banco
+ausente ou indisponível produz aviso na tela. A autorização de admin vale também nas interações
+Livewire. Esta visualização não modifica a captura nem a recuperação dos hooks.
+
 ## 6. Segurança e controle de acesso
 
 - Help Desk somente leitura em duas camadas: no banco, o usuário `walle` só tem `SELECT`; na aplicação,
