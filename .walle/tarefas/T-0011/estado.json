@@ -1,0 +1,40 @@
+{
+    "tarefa":  "T-0011",
+    "titulo":  "Harness: revisao do Codex obrigatoria para o merge",
+    "origem":  "pedido do usuario em 27/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "estado":  "em_revisao",
+    "ciclos":  2,
+    "branch":  "tarefa/T-0011-harness-revisao-do-codex-obrigatoria-par",
+    "pr":  25,
+    "base":  "2d7d13accb5dd563192616bead82f51a2e289f6f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 02:24:33",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0011-harness-revisao-do-codex-obrigatoria-par a partir de 2d7d13accb5dd563192616bead82f51a2e289f6f"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:39:49",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0011: revisao do Codex obrigatoria para o merge"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:39:54",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #25 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:46:19",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0011: integrar confere o descarte de cada achado do Codex"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:55:23",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0011: campos do Codex e descartes valem so na propria linha"
+                    }
+                ]
+}

@@ -1,0 +1,7 @@
+{
+    "titulo":  "Harness: revisao do Codex obrigatoria para o merge",
+    "origem":  "pedido do usuario em 27/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "resumo":  "O integrar passa a exigir .walle/local/T-NNNN/revisao-codex.md do HEAD; achados P0/P1 do Codex so passam se o walle-arquiteto registrar \u0027Codex descartado: \u003cachado\u003e - \u003cmotivo\u003e\u0027 no revisao.md; Codex indisponivel bloqueia o merge. O revisao-codex.ps1 passa a usar codex exec com resposta JSON por esquema e grava \u0027Bloqueantes do Codex: N\u0027. Corrige a permissao nativa do OpenCode para o orquestrador rodar o script."
+}

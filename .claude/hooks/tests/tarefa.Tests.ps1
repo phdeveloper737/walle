@@ -143,12 +143,40 @@ try {
     Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: MUDANCAS NECESSARIAS`nVeredito: APROVADO"
     Espera (Tarefa 'integrar' 'T-0001') 2 'dois vereditos'
     Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO"
+    # Revisao obrigatoria do Codex: do mesmo HEAD (sha inteiro) e com P0/P1 descartados pelo arquiteto.
+    Espera (Tarefa 'integrar' 'T-0001') 2 'sem parecer do Codex'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $('0' * 40)`nBloqueantes do Codex: 0"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'parecer do Codex de outro commit'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $curto`nBloqueantes do Codex: 0"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'parecer do Codex com sha curto'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nVeredito do Codex: APROVADO"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'parecer do Codex sem a contagem de bloqueantes'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 2`n- **P1** ``a.php:3`` - x"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'contagem de bloqueantes diferente da lista do Codex'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 2`n- **P1** ``a.php:3`` - x`n- **P0** ``b.php:1`` - y`n- **P2** ``c.php:5`` - z"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'achados P0/P1 do Codex sem descarte'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'so um dos dois achados P0/P1 descartado'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P1 a.php:3 - de novo"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'descarte repetido do mesmo achado nao cobre o outro'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P0 b.php:1 -"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'descarte sem motivo nao conta'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P0 b.php:1 -`n## Gate"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'motivo do descarte na linha seguinte nao conta'
+    $parecerCodex = Join-Path $repo '.walle/local/T-0001/revisao-codex.md'
+    $codexValido = [IO.File]::ReadAllText($parecerCodex, $utf8)
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado:`n$head`nBloqueantes do Codex: 0"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'commit do Codex na linha seguinte nao conta'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex:`n0"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'contagem do Codex na linha seguinte nao conta'
+    Local 'T-0001' 'revisao-codex.md' $codexValido
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P0 ``b.php:1`` - fora do diff"
     $env:WALLE_TEST_GH_CHECKS = '8'
     Espera (Tarefa 'integrar' 'T-0001') 4 'CI pendente devolve 4 (tente de novo)'
     $env:WALLE_TEST_GH_CHECKS = '1'
     Espera (Tarefa 'integrar' 'T-0001') 2 'CI vermelho recusa'
     Garantir ((ChamadasGh '^pr merge') -eq 0) 'nenhum merge sem CI verde'
-    Garantir ((ChamadasGh '^pr comment') -eq 3) 'cada parecer do HEAD publicado uma vez so, inclusive os que reprovam'
+    Garantir ((ChamadasGh '^pr comment') -eq 10) 'cada parecer do HEAD (8 do arquiteto e 2 do Codex) publicado uma vez so, inclusive os que reprovam'
     $env:WALLE_TEST_GH_CHECKS = '0'
     Espera (Tarefa 'integrar' 'T-0001') 0 'integrar com tudo verde'
     Garantir ((ChamadasGh "^pr merge 42 --squash --delete-branch --match-head-commit $head") -eq 1) 'merge amarrado ao HEAD conferido'
@@ -275,6 +303,7 @@ try {
     $head = G @('rev-parse', 'HEAD')
     Gate $head
     Local 'T-0003' 'revisao.md' "Commit revisado: $head`nVeredito: APROVADO"
+    Local 'T-0003' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 0"
     Espera (Tarefa 'integrar' 'T-0003') 2 'HEAD local sem push'
     Espera (Tarefa 'publicar' 'T-0003') 0 'publicar a correcao'
     $env:WALLE_TEST_GH_SEM_MERGE = '1'
