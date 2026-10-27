@@ -143,6 +143,14 @@ try {
     Remove-Item -LiteralPath $commandFalso -ErrorAction SilentlyContinue
 }
 
+# walle-hooks: hooks, scripts do RAG e settings; nunca as politicas, as barreiras do merge nem a propria definicao.
+foreach ($arquivo in @('.claude/hooks/agent-policy.ps1','.claude/hooks/politica-global.ps1','.claude/hooks/rag.ps1','.claude/hooks/walle-dados/PreToolUse.ps1','.claude/hooks/tests/agent-policy.Tests.ps1','.claude/scripts/search.ts','.claude/scripts/rag.config.json','.claude/settings.json')) {
+    Conferir 'walle-hooks' 'Write' @{file_path=$arquivo} 0
+}
+foreach ($arquivo in @('.claude/hooks/agent-policies.json','.claude/hooks/proteger-comandos.ps1','.claude/hooks/tarefa.ps1','.claude/hooks/gate.ps1','.claude/agents/walle-hooks.md','.opencode/agents/walle-hooks.md','.claude/settings.local.json','.opencode/plugin/agent-hooks.ts','app/Models/Usuario.php')) {
+    Conferir 'walle-hooks' 'Edit' @{file_path=$arquivo} 2
+}
+
 # walle-migracao: so a lista fixa de exportacao e importacao do Docker; nunca edita, apaga volume nem roda comando composto.
 foreach ($comando in @('docker volume ls','docker ps -a','docker compose stop','docker compose --profile dev stop','docker compose -f C:/docker/testes220/docker-compose.yml start','docker compose -f .claude/scripts/compose.yml up -d','docker run --rm -v walle_mysql:/origem:ro -v C:/walle-migracao:/backup ubuntu tar --numeric-owner -czpf /backup/volume-walle_mysql.tar.gz -C /origem .','docker save -o C:/walle-migracao/imagens.tar walle-php testes220 walle-rag:local mysql:9.7 valkey/valkey:9 nginx:stable-alpine node:24-alpine ubuntu','tar -a -c -f C:/walle-migracao/pastas.zip --exclude walle/vendor --exclude walle/node_modules -C C:/docker walle testes220','Get-FileHash -Algorithm SHA256 C:/walle-migracao/volume-walle_mysql.tar.gz','docker load -i C:/walle-migracao/imagens.tar','docker volume create --label com.docker.compose.project=walle --label com.docker.compose.volume=mysql walle_mysql','docker exec walle-app composer install --no-interaction')) {
     Conferir 'walle-migracao' 'PowerShell' @{command=$comando} 0
