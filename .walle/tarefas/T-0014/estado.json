@@ -4,10 +4,10 @@
     "origem":  "PLAN 6.0",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0014-componente-reutilizavel-de-tabela-do-wal",
-    "pr":  0,
+    "pr":  27,
     "base":  "31391e6601fb53d208b12cb211e8ee591125b99f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 03:38:46",
                         "tipo":  "commit",
                         "detalhe":  "T-0014: walle-ui: componente reutilizavel de tabela"
+                    },
+                    {
+                        "quando":  "2026-10-27 03:38:56",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #27 aberto"
                     }
                 ]
 }
