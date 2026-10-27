@@ -4,10 +4,10 @@
     "origem":  "PLAN 8.2",
     "tipo":  "plano",
     "dono":  "walle-dados",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0025-remover-cliente-da-lista-de-contingencia",
-    "pr":  0,
+    "pr":  39,
     "base":  "5b42afd72f49deb1b14ca9e74c857e4415e20ac0",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 09:16:32",
                         "tipo":  "commit",
                         "detalhe":  "T-0025: Remover cliente da lista de contingencias"
+                    },
+                    {
+                        "quando":  "2026-10-27 09:16:40",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #39 aberto"
                     }
                 ]
 }
