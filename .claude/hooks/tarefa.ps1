@@ -350,8 +350,9 @@ switch ($Acao) {
         # ('Codex descartado: <P0|P1> <arquivo:linha> - <motivo>'), um por achado.
         $codex = TextoLocal 'revisao-codex.md'
         if (-not $codex) { Recusar "sem o parecer do Codex em .walle/local/$Tarefa/revisao-codex.md: rode .claude/hooks/revisao-codex.ps1 -Tarefa $Tarefa." }
-        if ($codex -notmatch '(?im)^\s*Commit revisado:\s*([0-9a-f]{40})\s*$' -or $Matches[1] -cne $head) { Recusar "o parecer do Codex nao e do HEAD ${head}: rode a revisao do Codex de novo." }
-        if ($codex -notmatch '(?im)^\s*Bloqueantes do Codex:\s*([0-9]+)\s*$') { Recusar "o parecer do Codex nao tem a linha 'Bloqueantes do Codex: N'." }
+        # [ \t] e nao \s: cada campo vale so na propria linha (\s casaria a quebra de linha).
+        if ($codex -notmatch '(?im)^[ \t]*Commit revisado:[ \t]*([0-9a-f]{40})[ \t]*\r?$' -or $Matches[1] -cne $head) { Recusar "o parecer do Codex nao e do HEAD ${head}: rode a revisao do Codex de novo." }
+        if ($codex -notmatch '(?im)^[ \t]*Bloqueantes do Codex:[ \t]*([0-9]+)[ \t]*\r?$') { Recusar "o parecer do Codex nao tem a linha 'Bloqueantes do Codex: N'." }
         $bloqueantesCodex = [int]$Matches[1]
         $comentadoCodex = Join-Path $pastaLocal "comentado-codex-$head-$((Hash $codex).Substring(0, 12))"
         if (-not (Test-Path -LiteralPath $comentadoCodex)) {
@@ -365,7 +366,7 @@ switch ($Acao) {
         foreach ($quantidade in $exigidos.Values) { $listados += $quantidade }
         if ($listados -ne $bloqueantesCodex) { Recusar "o parecer do Codex diz $bloqueantesCodex achado(s) P0/P1 mas lista ${listados}: rode a revisao do Codex de novo." }
         $feitos = @{}
-        foreach ($descarte in [regex]::Matches($revisao, '(?im)^\s*Codex descartado:\s*(P[01])\s+(\S+)\s+-\s+\S')) { $chave = "$($descarte.Groups[1].Value.ToUpperInvariant()) $($descarte.Groups[2].Value)"; $feitos[$chave] = 1 + [int]$feitos[$chave] }
+        foreach ($descarte in [regex]::Matches($revisao, '(?im)^[ \t]*Codex descartado:[ \t]*(P[01])[ \t]+`?([^`\s]+)`?[ \t]+-[ \t]+\S')) { $chave = "$($descarte.Groups[1].Value.ToUpperInvariant()) $($descarte.Groups[2].Value)"; $feitos[$chave] = 1 + [int]$feitos[$chave] }
         $pendentes = @($exigidos.Keys | Where-Object { [int]$feitos[$_] -lt $exigidos[$_] } | Sort-Object)
         if ($pendentes.Count -gt 0) { Recusar "achado(s) P0/P1 do Codex sem descarte do arquiteto: $($pendentes -join '; '). Corrija ou registre 'Codex descartado: <P0|P1> <arquivo:linha> - <motivo>' no revisao.md." }
 

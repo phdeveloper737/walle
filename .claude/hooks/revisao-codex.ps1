@@ -125,9 +125,14 @@ $veredito = if ($bloqueantes -eq 0) { 'APROVADO' } else { 'MUDANCAS NECESSARIAS'
 
 $linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
 if ($achados.Count -eq 0) { $linhas += 'Sem achados.' }
+# Um achado por linha: quebras do texto do Codex viram espaco, para nenhum texto forjar outra linha de achado,
+# e o arquivo perde crases e espacos, porque o integrar le prioridade e arquivo:linha dessa linha.
 foreach ($achado in ($achados | Sort-Object { [string]$_.prioridade })) {
-    $linhas += "- **$($achado.prioridade)** ``$($achado.arquivo):$($achado.linha)`` - $($achado.titulo)"
-    if ([string]$achado.detalhe) { $linhas += "  $($achado.detalhe)" }
+    $arquivo = ([string]$achado.arquivo) -replace '[`\s]', ''
+    $titulo = (([string]$achado.titulo) -replace '\s+', ' ').Trim()
+    $detalhe = (([string]$achado.detalhe) -replace '\s+', ' ').Trim()
+    $linhas += "- **$($achado.prioridade)** ``${arquivo}:$([int]$achado.linha)`` - $titulo"
+    if ($detalhe) { $linhas += "  $detalhe" }
 }
 [IO.File]::WriteAllText($destino, (($linhas -join "`n") + "`n"), $utf8)
 Write-Output "[revisao-codex] Parecer de $Tarefa gravado em .walle/local/$Tarefa/revisao-codex.md (commit $shaHead, P0/P1: $bloqueantes)."
