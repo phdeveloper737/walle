@@ -1,0 +1,7 @@
+{
+    "titulo":  "Tela de Relatorios: Clientes, Contingencia NFC-e e Motivos",
+    "origem":  "PLAN 6.1",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/Relatorios.php com abas clientes, contingencia e motivos e as views em resources/views/livewire/relatorios/, usando x-ui.tabela e x-grafico.barras com tabela. Rotas e menu ficam para a Fase 7."
+}

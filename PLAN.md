@@ -178,8 +178,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: `history_contingencia` (walle) e `c_cliente` (conexão `help`)
 - Output: `app/Livewire/Relatorios.php` com `ABAS` `clientes`, `contingencia`, `motivos` e `resources/views/livewire/relatorios/{clientes,contingencia,motivos}.blade.php`; Motivos agrupa por semana (segunda a domingo, como `get.motivos.contingencias.php`) com `<x-grafico.barras>` e a tabela dos mesmos números
 - Testes críticos:
-  - [ ] `tests/Feature/Relatorios/RelatoriosTest.php`: com contingências semeadas, a aba Motivos mostra a mesma contagem por motivo que o 220 mostra para a mesma semana
-  - [ ] período sem dados mostra `<x-ui.vazio>` e aba inválida na URL volta para `clientes`
+  - [x] `tests/Feature/Relatorios/RelatoriosTest.php`: com contingências semeadas, a aba Motivos mostra a mesma contagem por motivo que o 220 mostra para a mesma semana
+  - [x] período sem dados mostra `<x-ui.vazio>` e aba inválida na URL volta para `clientes`
+- Desvios conhecidos da 6.1: o 220 calcula o período mas não o aplica no SQL dos motivos (o walle aplica em `data_clique`); a aba Clientes não mostra cidade/UF (sem `c_cidade`/`c_estado` nas imitações do Help Desk); ficaram fora o modal por motivo, a exportação Excel/PDF, "Reprocessar todos" e a busca livre. Rota e menu na task 7.1.
 
 #### Task 6.2 — Painel do Contingência BOT (substitui `contingency.dash.php`)
 - Agent: Frontend Livewire (walle-ui)
