@@ -1,0 +1,7 @@
+{
+    "titulo":  "Saude mostra as permissoes do usuario do Help Desk",
+    "origem":  "PLAN 13.10",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "Item Help Desk da tela Saude passa a mostrar o resultado de PermissoesHelpDesk::verificar() (somente leitura ou com privilegio de escrita ou nao foi possivel conferir), com teste em tests/Feature/SaudeTest.php."
+}
