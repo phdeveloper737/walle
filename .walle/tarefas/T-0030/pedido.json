@@ -1,0 +1,7 @@
+{
+    "titulo":  "Agentes do OpenCode neutros em relacao ao provedor",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "resumo":  "Remover a linha model: do frontmatter dos 12 agentes em .opencode/agents para o modelo vir da configuracao do usuario."
+}

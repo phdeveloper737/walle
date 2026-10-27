@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0030",
+    "titulo":  "Agentes do OpenCode neutros em relacao ao provedor",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0030-agentes-do-opencode-neutros-em-relacao-a",
+    "pr":  0,
+    "base":  "5bc0cf88694ea953012defab5b791f8d7b959ada",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 19:06:03",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0030-agentes-do-opencode-neutros-em-relacao-a a partir de 5bc0cf88694ea953012defab5b791f8d7b959ada"
+                    }
+                ]
+}
