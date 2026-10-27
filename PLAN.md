@@ -187,8 +187,8 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: models da task 1.2
 - Output: `app/Livewire/Contingencias/Robo.php` e `resources/views/livewire/contingencias/robo.blade.php` (KPIs, clientes com última coleta e erro), com a aba `robo` acrescentada em `App\Livewire\Contingencias::ABAS`
 - Testes críticos:
-  - [ ] `tests/Feature/Contingencias/PainelRoboContingenciasTest.php`: a aba lista os clientes de `painel_contingency_crawler` com a última coleta
-  - [ ] cliente com erro aparece com `<x-ui.etiqueta cor="erro">` e o robô desligado mostra o aviso de desligado
+  - [x] `tests/Feature/Contingencias/PainelRoboContingenciasTest.php`: a aba lista os clientes de `painel_contingency_crawler` com a última coleta
+  - [x] cliente com erro aparece com `<x-ui.etiqueta cor="erro">` e o robô desligado mostra o aviso de desligado
 
 #### Task 6.3 — Painel do Sentinela (substitui `sentinela.dash.php`)
 - Agent: Frontend Livewire (walle-ui)

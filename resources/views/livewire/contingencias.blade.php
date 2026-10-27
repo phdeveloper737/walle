@@ -1,3 +1,9 @@
+<div class="flex flex-col gap-3">
+<x-ui.abas :abas="\App\Livewire\Contingencias::ABAS" :atual="$aba" />
+
+@if ($aba === 'robo')
+    <livewire:contingencias.robo key="aba-robo" />
+@else
 <div class="flex flex-col gap-3 lg:flex-row lg:items-start">
     {{-- Lista de clientes (Help Desk) --}}
     <section class="flex w-full flex-col gap-2 lg:sticky lg:top-17 lg:w-[340px] lg:shrink-0 2xl:w-[380px]" aria-label="Clientes">
@@ -93,4 +99,6 @@
         @endif
         </div>
     </section>
+</div>
+@endif
 </div>
