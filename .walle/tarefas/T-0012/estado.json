@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 03:08:07",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0012-harness-revisao-do-codex-mais-rigida a partir de fad31db4823f2c05481d966788cf393af17b383b"
+                    },
+                    {
+                        "quando":  "2026-10-27 03:12:49",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0012: revisao do Codex mais rigida"
                     }
                 ]
 }

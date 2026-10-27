@@ -271,6 +271,7 @@ try {
         'if "%WALLE_TEST_CODEX_MODO%"=="falha" exit /b 1',
         'if "%WALLE_TEST_CODEX_MODO%"=="p1" goto p1',
         'if "%WALLE_TEST_CODEX_MODO%"=="invalido" goto invalido',
+        'if "%WALLE_TEST_CODEX_MODO%"=="nulo" goto nulo',
         ('echo {"achados":[]}> ' + $saidaFalso),
         'exit /b 0',
         ':p1',
@@ -278,6 +279,9 @@ try {
         'exit /b 0',
         ':invalido',
         ('echo nao e json> ' + $saidaFalso),
+        'exit /b 0',
+        ':nulo',
+        ('echo {"achados":null}> ' + $saidaFalso),
         'exit /b 0'
     ) -join "`r`n") + "`r`n")
     $argumentos = " -Raiz `"$repoCodex`""
@@ -311,6 +315,10 @@ try {
     RevisaoCodex 1 'resposta fora do esquema' | Out-Null
     if (Test-Path $parecer) { throw 'revisao-codex manteve o parecer antigo depois de uma resposta invalida.' }
 
+    $env:WALLE_TEST_CODEX_MODO = 'nulo'
+    RevisaoCodex 1 'achados nulo' | Out-Null
+    if (Test-Path $parecer) { throw 'revisao-codex gravou parecer com achados nulo.' }
+
     $env:WALLE_TEST_CODEX_MODO = 'falha'
     RevisaoCodex 1 'Codex falhando' | Out-Null
     if (Test-Path $parecer) { throw 'revisao-codex gravou parecer com o Codex falhando.' }
@@ -326,12 +334,12 @@ try {
 foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/notas.md', 'PLAN.md', 'docs/features/x/relatorio.md')) {
     Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 0
 }
-foreach ($arquivo in @('.walle/tarefas/T-0001/estado.json', '.walle/local/T-0001/revisao.md', '.claude/hooks/tarefa.ps1', 'app/Models/Cliente.php', '.walle/gate/ultimo.json', '.walle/local/T-0001/script.ps1')) {
+foreach ($arquivo in @('.walle/tarefas/T-0001/estado.json', '.walle/local/T-0001/revisao.md', '.walle/local/T-0001/revisao-codex.md', '.claude/hooks/tarefa.ps1', 'app/Models/Cliente.php', '.walle/gate/ultimo.json', '.walle/local/T-0001/script.ps1')) {
     Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 2
 }
 # Arquiteto: grava so o parecer da revisao (revisao.md da tarefa); nada mais, nem terminal.
 Conferir 'walle-arquiteto' 'Write' @{file_path='.walle/local/T-0001/revisao.md'} 0
-foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/revisao.md.ps1', 'PLAN.md', 'app/Models/Cliente.php')) { Conferir 'walle-arquiteto' 'Write' @{file_path=$arquivo} 2 }
+foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/revisao-codex.md', '.walle/local/T-0001/revisao.md.ps1', 'PLAN.md', 'app/Models/Cliente.php')) { Conferir 'walle-arquiteto' 'Write' @{file_path=$arquivo} 2 }
 Conferir 'walle-explorador-220' 'Write' @{file_path='.walle/local/T-0001/revisao.md'} 2
 # Evento de outro agent visto pelos hooks do orquestrador (sessao principal com --agent): a politica e a do outro.
 Conferir 'walle-orquestrador' 'Bash' @{command='docker exec walle-app ./vendor/bin/pest'} 0 'PreToolUse' @{agent_type='walle-robos'}

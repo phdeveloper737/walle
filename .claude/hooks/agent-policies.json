@@ -35,7 +35,7 @@
     },
     "walle-hooks": {
         "tipo": "harness",
-        "arquivos": "^(\\.claude/hooks/(?!(?:agent-policies\\.json|proteger-comandos\\.ps1|tarefa\\.ps1|gate\\.ps1)$).+\\.(ps1|json)|\\.claude/scripts/.+|\\.claude/settings\\.json)$"
+        "arquivos": "^(\\.claude/hooks/(?!(?:agent-policies\\.json|proteger-comandos\\.ps1|tarefa\\.ps1|gate\\.ps1|revisao-codex\\.ps1)$).+\\.(ps1|json)|\\.claude/scripts/.+|\\.claude/settings\\.json)$"
     },
     "walle-verificador": { "tipo": "verificacao" },
     "walle-orquestrador": { "tipo": "orquestrador", "arquivos": "^(\\.walle/local/T-[0-9]{4}/(pedido\\.json|commit\\.txt|pr\\.md|notas\\.md)|PLAN\\.md|SPEC\\.md|docs/.+\\.md)$" },
