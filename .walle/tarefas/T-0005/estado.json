@@ -15,6 +15,11 @@
                         "quando":  "2026-10-26 22:14:55",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0005-saude-mostra-as-permissoes-do-usuario-do a partir de 5510a6a25647e4aa62eb4b7590990d60570829b6"
+                    },
+                    {
+                        "quando":  "2026-10-26 22:19:25",
+                        "tipo":  "commit",
+                        "detalhe":  "Saúde mostra as permissões do usuário do Help Desk"
                     }
                 ]
 }

@@ -372,7 +372,7 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 - Testes críticos:
   - [x] conferência real no .254 em 25/10/2026, só com leitura: a conexão chega como `walle@192.168.99.237` e `PermissoesHelpDesk::verificar()` dá somente leitura, sem privilégio de escrita
   - [x] `tests/Feature/HelpDesk/ConexaoHelpSomenteLeituraTest.php`: nada em `app/` nem em `config/` pede a senha à API do Help
-  - [ ] a Saúde mostra o resultado de `PermissoesHelpDesk` (somente leitura ou não)
+  - [x] `tests/Feature/SaudeTest.php`: a Saúde mostra o resultado de `PermissoesHelpDesk` (somente leitura, privilégios de escrita ou erro ao conferir)
 
 #### Pendências fora do walle
 - [ ] Restringir o `root@%` do 192.168.10.254 e trocar a senha dele (a API do Help ainda a entrega).

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Autorizadas\RoboAutorizadas;
 use App\Models\CicloAutorizadas;
+use App\Support\HelpDesk\PermissoesHelpDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +19,7 @@ use Throwable;
 #[Title('Saúde do sistema')]
 class Saude extends Component
 {
-    public function render(MasterSupervisorRepository $supervisores, RoboAutorizadas $robo): View
+    public function render(MasterSupervisorRepository $supervisores, RoboAutorizadas $robo, PermissoesHelpDesk $permissoes): View
     {
         return view('livewire.saude', [
             'itens' => [
@@ -33,10 +34,16 @@ class Saude extends Component
 
                     return 'Valkey '.($info['valkey_version'] ?? $info['redis_version'] ?? '?');
                 }),
-                $this->conferir('Help Desk (192.168.10.254)', 'support_agent', function () {
+                $this->conferir('Help Desk (192.168.10.254)', 'support_agent', function () use ($permissoes) {
                     $versao = DB::connection('help')->selectOne('select version() as versao')->versao;
+                    $base = 'MySQL '.$versao.' · usuário '.config('database.connections.help.username');
+                    $resultado = $permissoes->verificar();
 
-                    return 'MySQL '.$versao.' · usuário '.config('database.connections.help.username');
+                    return match (true) {
+                        $resultado->erro !== null => ['ok' => false, 'detalhe' => $base.' · Não foi possível conferir as permissões: '.$resultado->erro],
+                        $resultado->somenteLeitura => ['ok' => true, 'detalhe' => $base.' · somente leitura'],
+                        default => ['ok' => false, 'detalhe' => $base.' · pode gravar, privilégios de escrita: '.implode(', ', $resultado->privilegiosDeEscrita)],
+                    };
                 }),
                 $this->horizon($supervisores),
                 $this->agendador(),
@@ -60,7 +67,7 @@ class Saude extends Component
     /**
      * Roda a conferência medindo o tempo; qualquer erro vira "fora do ar" com a mensagem.
      *
-     * @param  callable(): string  $conferencia
+     * @param  callable(): (string|array{ok: bool, detalhe: string})  $conferencia  texto = ok; array = veredito próprio
      * @return array{nome: string, icone: string, ok: bool, detalhe: string}
      */
     private function conferir(string $nome, string $icone, callable $conferencia): array
@@ -68,10 +75,11 @@ class Saude extends Component
         $inicio = hrtime(true);
 
         try {
-            $detalhe = $conferencia();
+            $resultado = $conferencia();
             $ms = (int) round((hrtime(true) - $inicio) / 1e6);
+            $veredito = is_array($resultado) ? $resultado : ['ok' => true, 'detalhe' => $resultado];
 
-            return ['nome' => $nome, 'icone' => $icone, 'ok' => true, 'detalhe' => "{$detalhe} · {$ms} ms"];
+            return ['nome' => $nome, 'icone' => $icone, 'ok' => $veredito['ok'], 'detalhe' => "{$veredito['detalhe']} · {$ms} ms"];
         } catch (Throwable $e) {
             return ['nome' => $nome, 'icone' => $icone, 'ok' => false, 'detalhe' => $e->getMessage()];
         }
