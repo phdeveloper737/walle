@@ -232,38 +232,57 @@ switch ($Acao) {
         # atualizar um branch cujo tarefa.ps1 ainda nao conhece a acao atualizar.
         $locais = @((Repo @('branch', '--list', "tarefa/$Tarefa-*", '--format=%(refname:short)')).texto -split "`n" | Where-Object { $_ })
         $remotos = @(BranchesRemotos $Tarefa)
-        if ($locais.Count -gt 1 -or ($locais.Count -eq 0 -and $remotos.Count -gt 1)) { Recusar 'mais de um branch para a tarefa; nenhuma troca foi feita.' }
+        if ($locais.Count -gt 1 -or $remotos.Count -gt 1) { Recusar 'mais de um branch para a tarefa; nenhuma troca foi feita.' }
         $ref = if ($locais.Count) { $locais[0] } elseif ($remotos.Count) { $remotos[0] } else { '' }
         if (-not $ref) { Recusar "nao achei o branch da tarefa $Tarefa (local nem no origin)." }
         $branchDestino = $ref -creplace '^origin/', ''
         if ($branchInicial -cne 'main' -and $branchInicial -cne $branchDestino) { Recusar 'o branch atual nao e o branch selecionado da tarefa.' }
-        $previa = Repo @('show', "${ref}:.walle/tarefas/$Tarefa/estado.json") -PodeFalhar
+        $headAntes = (Repo @('rev-parse', $ref)).texto
+        $headSelecionado = $headAntes
+        $avancoRemoto = $false
+        if ($locais.Count -and $remotos.Count) {
+            if ($remotos[0] -cne "origin/$branchDestino") { Recusar 'mais de um branch para a tarefa entre local e origin; nenhuma troca foi feita.' }
+            $headRemoto = (Repo @('rev-parse', $remotos[0])).texto
+            $localNoRemoto = Repo @('merge-base', '--is-ancestor', $headAntes, $headRemoto) -PodeFalhar
+            if ($localNoRemoto.codigo -eq 0) {
+                $headSelecionado = $headRemoto
+                $avancoRemoto = $headAntes -cne $headRemoto
+            } elseif ($localNoRemoto.codigo -eq 1) {
+                $remotoNoLocal = Repo @('merge-base', '--is-ancestor', $headRemoto, $headAntes) -PodeFalhar
+                if ($remotoNoLocal.codigo -eq 1) { Recusar 'os branches local e remoto divergiram; nenhum commit, branch ou arquivo foi alterado.' }
+                if ($remotoNoLocal.codigo -ne 0) { Recusar 'nao foi possivel conferir a ancestralidade do branch remoto.' }
+            } else { Recusar 'nao foi possivel conferir a ancestralidade do branch local.' }
+        }
+        # O SHA fixa o ledger conferido: um remoto a frente fornece o estado atual antes de qualquer FF.
+        $previa = Repo @('show', "${headSelecionado}:.walle/tarefas/$Tarefa/estado.json") -PodeFalhar
         if ($previa.codigo -ne 0) { Recusar 'branch sem ledger valido; nenhuma troca foi feita.' }
         try { $estado = $previa.texto | ConvertFrom-Json } catch { Recusar 'ledger invalido; nenhuma troca foi feita.' }
         if ($estado.tarefa -cne $Tarefa -or $estado.branch -cne $branchDestino) { Recusar 'ledger nao corresponde a tarefa e ao branch selecionados.' }
         if ($estado.estado -ceq 'bloqueada') { Recusar "a tarefa $Tarefa esta bloqueada; registre a decisao e use retomar." }
         if ($estado.estado -cnotin @('em_execucao', 'em_revisao')) { Recusar 'estado da tarefa nao permite atualizar.' }
-        $headSelecionado = (Repo @('rev-parse', $ref)).texto
         $concluida = $false
         try {
             if ($branchInicial -ceq 'main') {
                 if ($locais.Count) { Repo @('switch', '-q', $branchDestino) | Out-Null }
                 else { Repo @('switch', '-q', '-c', $branchDestino, '--track', $ref) | Out-Null }
             }
-            if ((Repo @('rev-parse', 'HEAD')).texto -cne $headSelecionado) { Recusar 'o branch mudou durante a selecao; nenhuma atualizacao foi aplicada.' }
+            if ((Repo @('rev-parse', 'HEAD')).texto -cne $headAntes) { Recusar 'o branch mudou durante a selecao; nenhuma atualizacao foi aplicada.' }
+            if ($avancoRemoto) { Repo @('merge', '-q', '--ff-only', $headSelecionado) | Out-Null }
+            if ((Repo @('rev-parse', 'HEAD')).texto -cne $headSelecionado) { Recusar 'o HEAD nao corresponde ao ledger conferido; atualizacao interrompida.' }
             $estado = Estado
             ExigirBranch $estado
             $ancestral = Repo @('merge-base', '--is-ancestor', 'origin/main', 'HEAD') -PodeFalhar
             if ($ancestral.codigo -eq 0) {
                 $concluida = $true
-                Write-Output "[tarefa] $Tarefa ja contem origin/main; branch selecionado sem alterar commits ou ciclos."
+                if ($avancoRemoto) { Write-Output "[tarefa] $Tarefa avancou para o remoto $headSelecionado sem alterar ciclos; rode gate e revisoes para este HEAD." }
+                else { Write-Output "[tarefa] $Tarefa ja contem origin/main; branch selecionado sem criar commits ou alterar ciclos." }
                 exit 0
             }
             if ($ancestral.codigo -ne 1) { Recusar 'nao foi possivel comparar o branch com origin/main.' }
             $baseNova = (Repo @('rev-parse', 'origin/main')).texto
             # Sem commit automatico: o merge e o evento entram juntos, sem contar um ciclo de correcao.
             $merge = Repo @('merge', '--no-commit', '--no-ff', 'origin/main') -PodeFalhar
-            if ($merge.codigo -ne 0) { Recusar 'origin/main tem conflitos com a tarefa; o merge sera cancelado e o trabalho original preservado.' }
+            if ($merge.codigo -ne 0) { Recusar 'origin/main tem conflitos com a tarefa; o merge sera cancelado, preservando eventuais avancos remotos ja publicados.' }
             Registrar $estado 'atualizada' "origin/main $baseNova incorporado; ciclos preservados em $($estado.ciclos)."
             Repo @('add', '-A') | Out-Null
             Repo @('commit', '-q', '-m', "Ledger: $Tarefa atualizada com main") | Out-Null
