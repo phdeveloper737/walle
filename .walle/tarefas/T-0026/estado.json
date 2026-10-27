@@ -4,10 +4,10 @@
     "origem":  "PLAN 8.3",
     "tipo":  "plano",
     "dono":  "walle-seguranca",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0026-execucao-manual-de-query-nos-clientes",
-    "pr":  0,
+    "pr":  40,
     "base":  "e69497c806752e6024778a243edc078740028b88",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 10:02:03",
                         "tipo":  "commit",
                         "detalhe":  "T-0026: Execucao manual de query nos clientes"
+                    },
+                    {
+                        "quando":  "2026-10-27 10:02:15",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #40 aberto"
                     }
                 ]
 }
