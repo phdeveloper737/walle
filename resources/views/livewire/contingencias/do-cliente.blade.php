@@ -30,6 +30,25 @@
             </p>
         @endif
 
+        @if ($aviso)
+            <x-ui.aviso :tipo="$avisoErro ? 'erro' : 'sucesso'">
+                {{ $aviso }}
+                @foreach ($avisoDetalhes as $detalhe)
+                    <span class="block text-xs">{{ $detalhe }}</span>
+                @endforeach
+            </x-ui.aviso>
+        @endif
+
+        @can('admin')
+            <div class="flex flex-wrap items-center gap-2">
+                <x-ui.botao variante="tonal" icone="send" wire:click="reenviarAoPdv" wire:loading.attr="disabled" wire:target="reenviarAoPdv, confirmarSenha" :disabled="$totalParaEnviar === 0">
+                    Reenviar ao PDV{{ $totalParaEnviar > 0 ? ' ('.$totalParaEnviar.')' : '' }}
+                </x-ui.botao>
+                <x-ui.botao variante="contorno" icone="sync" wire:click="reprocessar" wire:loading.attr="disabled" wire:target="reprocessar, confirmarSenha">Reprocessar contingências</x-ui.botao>
+                <span class="text-xs text-on-surface-variant">Marque os cupons pendentes do Sactus em “Selecionar”.</span>
+            </div>
+        @endcan
+
         @if ($resultado->avisoSactus)
             <x-ui.aviso>Sactus: {{ $resultado->avisoSactus }}</x-ui.aviso>
         @endif
@@ -53,6 +72,11 @@
                                 <x-ui.etiqueta cor="secundaria">Cupom {{ $contingencia->cupom }}</x-ui.etiqueta>
                                 <x-ui.etiqueta>{{ $contingencia->data() }} {{ $contingencia->hora() }}</x-ui.etiqueta>
                                 <x-ui.etiqueta>{{ $contingencia->software }}</x-ui.etiqueta>
+                                @if ($contingencia->software === \App\Contingencias\Contingencia::SACTUS)
+                                    @can('admin')
+                                        <x-ui.chip :ativo="in_array($contingencia->identificador(), $selecionadas, true)" wire:click="alternarSelecao('{{ $contingencia->identificador() }}')">Selecionar</x-ui.chip>
+                                    @endcan
+                                @endif
                                 @if ($comProblema = $contingencia->itensComInconsistencia())
                                     <x-ui.etiqueta cor="erro">{{ $comProblema }} {{ $comProblema === 1 ? 'item' : 'itens' }} com inconsistência</x-ui.etiqueta>
                                 @endif
@@ -156,4 +180,6 @@
 
         <x-ui.paginacao :pagina="$pagina" :total-paginas="$totalPaginas" :total="$totalNaLista" :por-pagina="\App\Livewire\Contingencias\DoCliente::POR_PAGINA" />
     @endif
+
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" />
 </div>

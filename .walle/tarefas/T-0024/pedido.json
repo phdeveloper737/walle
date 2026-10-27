@@ -1,0 +1,7 @@
+{
+    "titulo":  "Acoes de contingencia do cliente: reenviar ao PDV e reprocessar",
+    "origem":  "PLAN 8.1",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "resumo":  "Cria AcoesContingencias com reenviarAoPdv e reprocessar (XML de comando gravado no conteiner Sactus do cliente por SSH), ResultadoAcao e os botoes em DoCliente com admin, senha e Auditoria. removerDaListagem, atualizarAliquotas e crontabDoCliente ficam fora (inoperantes no 220)."
+}

@@ -250,8 +250,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: `ConectorDeCliente`, tela `Contingencias\DoCliente`
 - Output: `app/Contingencias/AcoesContingencias.php` com `reenviarAoPdv(int $clienteId, array $cupons): ResultadoAcao`, `removerDaListagem(int $clienteId, array $chaves): int`, `atualizarAliquotas(int $clienteId): ResultadoAcao`, `reprocessar(int $clienteId): ResultadoAcao` e `crontabDoCliente(int $clienteId): string`; botões em `app/Livewire/Contingencias/DoCliente.php` (métodos em `ACOES_COM_SENHA`)
 - Testes críticos:
-  - [ ] `tests/Feature/Contingencias/AcoesContingenciasTest.php`: admin com senha confirmada reenvia 2 cupons ao PDV (conector falso recebe o `UPDATE contingencias_versatus` do 220) e a ação fica em `Auditoria`
-  - [ ] sem senha confirmada ou sem ser admin nada é enviado; falha de conexão mostra o erro sem alterar a tela
+  - [x] `tests/Feature/Contingencias/AcoesContingenciasTest.php`: admin com senha confirmada reenvia 2 cupons ao PDV (o SSH falso recebe os 2 comandos `funcid="858"` do 220, em vez do `UPDATE contingencias_versatus`) e a ação fica em `Auditoria`
+  - [x] sem senha confirmada ou sem ser admin nada é enviado; falha de conexão mostra o erro sem alterar a tela
+- Recorte da 8.1 (contrato do `walle-arquiteto`, decisões do usuário de 27/10/2026): implementadas `reenviarAoPdv` e `reprocessar` (XML de comando gravado por SSH no contêiner Sactus do cliente, com a credencial DOCKER do cadastro lida ao vivo da conexão `help`; sem host nem senha fixos). `removerDaListagem`, `atualizarAliquotas` e `crontabDoCliente` ficaram fora: no 220 a remoção está comentada e só gravava no Help Desk, as alíquotas são uma função vazia e o crontab é manutenção do servidor 220, sem cliente. A flag `reprocessar` de `contingencias_versatus` não foi gravada (a tabela não existe no walle e nenhum código a lê). Lacuna de infra: `tests/Migrations` não tem a tabela `pdv` do Sactus (o teste cria uma temporária).
 
 #### Task 8.2 — Remover cliente da lista de contingências (substitui `delete.php`)
 - Agent: Backend Laravel — dados

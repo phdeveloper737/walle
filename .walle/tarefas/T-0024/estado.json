@@ -1,0 +1,40 @@
+{
+    "tarefa":  "T-0024",
+    "titulo":  "Acoes de contingencia do cliente: reenviar ao PDV e reprocessar",
+    "origem":  "PLAN 8.1",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "estado":  "em_revisao",
+    "ciclos":  2,
+    "branch":  "tarefa/T-0024-acoes-de-contingencia-do-cliente-reenvia",
+    "pr":  38,
+    "base":  "0671fcfe2f34b8364d527826685ad5dd68ac3840",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 08:00:36",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0024-acoes-de-contingencia-do-cliente-reenvia a partir de 0671fcfe2f34b8364d527826685ad5dd68ac3840"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:08:33",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0024: Acoes de contingencia do cliente: reenviar ao PDV e reprocessar"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:08:44",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #38 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:33:10",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0024: Acoes de contingencia gravam o comando com seguranca"
+                    },
+                    {
+                        "quando":  "2026-10-27 08:53:56",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0024: Script de gravacao roda em subshell para emitir o codigo de retorno"
+                    }
+                ]
+}
