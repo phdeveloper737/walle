@@ -1,0 +1,7 @@
+{
+    "titulo":  "CleanTax BOT: robo que chama o cleantaxbot.php dos clientes",
+    "origem":  "PLAN 3.4",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "resumo":  "Porta cleantax.php do 220 para RoboCleanTax e Job RodarCicloCleanTax, gravando em painel_cleantax_worker, com lock por host e desligado por padrao."
+}
