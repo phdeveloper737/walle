@@ -204,8 +204,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: model da task 1.4
 - Output: `app/Livewire/CleanTax.php` e `resources/views/livewire/clean-tax.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/CleanTax/PainelCleanTaxTest.php`: lista as execuções da iteração com início, fim e resultado
-  - [ ] sem nenhuma execução mostra o vazio
+  - [x] `tests/Feature/CleanTax/PainelCleanTaxTest.php`: lista as execuções da iteração com início, fim e resultado
+  - [x] sem nenhuma execução mostra o vazio
+- Fora da 6.5 (o 220 tinha e a task não pediu): KPIs por status, HTTP 200 e tempo médio, busca, filtros e modal de detalhes. A tabela guarda a última execução de cada cliente (sem histórico). Rota e menu na task 7.1.
 
 #### Task 6.6 — Ferramentas: Task Scheduler e relatório (substitui `programacao/tools` e `programacao/tools/reports`)
 - Agent: Frontend Livewire (walle-ui)
