@@ -1,0 +1,7 @@
+{
+    "titulo":  "Harness: revisao do Codex mais rigida",
+    "origem":  "sugestoes do walle-arquiteto no PR #25",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "revisao-codex.ps1 trata achados nulos como resposta fora do esquema e proibe no pedido a leitura de arquivos de ambiente e segredos; teste prova que orquestrador e arquiteto nao gravam revisao-codex.md; comentarios de agent-policy.ps1 e do script deixam de dizer consultiva."
+}

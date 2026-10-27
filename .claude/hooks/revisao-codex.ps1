@@ -1,7 +1,7 @@
 # Revisao obrigatoria do Codex sobre o diff do branch da tarefa (decisao do usuario de 27/10/2026): roda o Codex CLI
 # em sandbox somente leitura, com resposta em JSON por esquema, e grava .walle/local/T-NNNN/revisao-codex.md (ignorado
 # pelo git) com o commit revisado e a contagem de achados P0/P1. O integrar exige esse parecer do HEAD e so aceita
-# P0/P1 que o walle-arquiteto descartou no revisao.md ("Codex descartado: <achado> - <motivo>").
+# P0/P1 que o walle-arquiteto descartou no revisao.md ("Codex descartado: <P0|P1> <arquivo:linha> - <motivo>", um por achado).
 # Saida: 0 = ok; 2 = recusado (pre-condicao); 1 = erro (Codex falhou, estourou o tempo ou respondeu fora do esquema).
 # Sem acentos: o PowerShell 5.1 le este arquivo como ANSI.
 param(
@@ -71,6 +71,8 @@ function Limpar { foreach ($arquivo in @($temporario, $esquema)) { Remove-Item -
 $pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de git diff $shaBase...$shaHead (rode esse comando; nao altere arquivos) contra as regras do AGENTS.md. " +
     'Aponte apenas defeitos acionaveis introduzidos por esse diff: P0 = quebra grave (seguranca, perda de dados, regra obrigatoria violada); ' +
     'P1 = deve ser corrigido antes do merge; P2 e P3 = melhorias opcionais. Use o caminho relativo do arquivo e a linha no codigo novo. ' +
+    'Nao abra, nao leia nem cite arquivos de ambiente (o arquivo de variaveis da raiz do projeto e as variantes dele), chaves, certificados, credenciais nem segredos, ' +
+    'e nao copie valores sensiveis no parecer, porque o parecer vira comentario publico no PR. ' +
     'Sem achados, devolva a lista vazia. Escreva titulo e detalhe em portugues do Brasil.'
 
 # O pedido vai pelo stdin (-): sem aspas na linha de comando. .cmd do npm passa pelo cmd; o .exe vai direto.
@@ -116,6 +118,7 @@ Limpar
 # Fora do esquema e erro, nunca aprovacao: sem lista de achados valida, nao ha parecer.
 try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
 if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }
+if ($json.achados -isnot [array]) { Falhar 'o Codex respondeu fora do esquema (achados nao e uma lista).' }
 $achados = @($json.achados | Where-Object { $null -ne $_ })
 foreach ($achado in $achados) {
     if ([string]$achado.prioridade -cnotmatch '^P[0-3]\z' -or -not [string]$achado.arquivo -or -not [string]$achado.titulo) { Falhar 'o Codex respondeu fora do esquema (achado incompleto).' }
