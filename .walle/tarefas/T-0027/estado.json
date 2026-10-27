@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0027",
+    "titulo":  "Informacoes Tecnicas do cliente",
+    "origem":  "PLAN 8.4",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0027-informacoes-tecnicas-do-cliente",
+    "pr":  0,
+    "base":  "ee416b23707cbebb5fa7ad3993fd822fe350c301",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 10:28:05",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0027-informacoes-tecnicas-do-cliente a partir de ee416b23707cbebb5fa7ad3993fd822fe350c301"
+                    }
+                ]
+}
