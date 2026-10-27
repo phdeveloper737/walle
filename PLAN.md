@@ -222,8 +222,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: eventos do agendador (`Illuminate\Console\Scheduling\Schedule`)
 - Output: `app/Livewire/Crontab.php` e `resources/views/livewire/crontab.blade.php` com cada rotina do `routes/console.php` (nome, frequência, próxima execução, ligada/desligada)
 - Testes críticos:
-  - [ ] `tests/Feature/CrontabTest.php`: as rotinas `walle:robo-autorizadas` e `walle:robo-sactus` aparecem com a frequência certa
-  - [ ] robô desligado no `.env` aparece como "desligado"
+  - [x] `tests/Feature/CrontabTest.php`: as rotinas `walle:robo-autorizadas` e `walle:robo-sactus` aparecem com a frequência certa
+  - [x] robô desligado no `.env` aparece como "desligado"
+- Na 6.7, a "próxima execução" das rotinas de segundos (contingências e CleanTax) mostra o próximo minuto, não o próximo disparo de 10 s ou 30 s (o Laravel guarda a expressão `* * * * *` e o intervalo em `repeatSeconds`). Rota e menu na task 7.1.
 
 ### Fase 7 — Rotas, menu e saúde das telas novas · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php && docker exec walle-app php artisan route:list --except-vendor`
 > Dependências: Fase 5 e Fase 6
