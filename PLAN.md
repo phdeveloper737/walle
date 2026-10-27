@@ -235,8 +235,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: componentes das tasks 6.1 a 6.7 (sem a 6.4) e robôs da Fase 5
 - Output: rotas `relatorios`, `sentinela`, `clean-tax`, `ferramentas` e `crontab` em `routes/web.php` (grupo `auth`), itens com `<x-ui.menu-item>` em `resources/views/layouts/app.blade.php` (Programação só para admin) e um item por robô novo em `App\Livewire\Saude`
 - Testes críticos:
-  - [ ] `tests/Feature/TelasTest.php`: cada rota nova abre (`200`) para usuário logado e a Saúde mostra os robôs novos como "Desligado neste servidor"
-  - [ ] visitante é redirecionado para `entrar`; usuário que não é admin não vê o menu Programação
+  - [x] `tests/Feature/TelasTest.php`: cada rota nova abre (`200`) para usuário logado e a Saúde mostra os robôs novos como "Desligado neste servidor"
+  - [x] visitante é redirecionado para `entrar`; usuário que não é admin não vê o menu Programação
+- Na 7.1, as rotas `ferramentas` e `crontab` abrem para qualquer usuário logado (conforme o teste crítico); as ações sensíveis ficam protegidas dentro da tela (admin + senha) e só o menu Programação é restrito a admin. A Saúde mostra os robôs novos só como ligado/desligado, sem conferir o último ciclo.
 
 ## Sprint 4 — As ações do newsuporte mantidas no escopo existem no walle (excluídas escritas no Help Desk), só para admin, com senha confirmada (`ConfirmaSenha`) e registro em `Auditoria` (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Ferramentas tests/Feature/Sactus tests/Feature/Conversor tests/Feature/InformacoesTecnicas tests/Feature/Updates` passa)
 
