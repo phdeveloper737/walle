@@ -156,8 +156,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: Jobs das tasks 3.1, 3.2, 3.4 e 3.5 (a Mercadológica fica de fora); valores exatos de frequência, timeout, limite de falhas e duração da quarentena extraídos dos scripts do 220 e registrados no contrato de cada robô, com unidade e teste de fronteira. Se o legado não fornecer valor inequívoco, pedir decisão ao usuário antes de implementar o parâmetro.
 - Output: entradas em `routes/console.php` (`walle:robo-contingencias`, `walle:robo-sentinela`, `walle:robo-cleantax`, `walle:robo-tarefas`, cada uma com `->when(fn ($robo) => $robo->ligado())`), blocos em `config/walle.php` com `WALLE_CONTINGENCIAS_ATIVO`, `WALLE_SENTINELA_ATIVO`, `WALLE_CLEANTAX_ATIVO`, `WALLE_TAREFAS_ATIVO` (todos `false`), supervisores na conexão `robos` em `config/horizon.php` e as variáveis no `.env.example`
 - Testes críticos:
-  - [ ] `tests/Feature/AgendadorTest.php`: com cada `WALLE_*_ATIVO=true`, o evento do robô aparece como devido no agendador
-  - [ ] com o robô desligado (padrão), o evento não dispara o Job
+  - [x] `tests/Feature/AgendadorTest.php`: com cada `WALLE_*_ATIVO=true`, o evento do robô aparece como devido no agendador
+  - [x] com o robô desligado (padrão), o evento não dispara o Job
+- Decisões do usuário de 27/10/2026: frequências iguais ao intervalo entre ciclos dos daemons do 220 (contingências 10 s, Sentinela 10 min, CleanTax 30 s) e Task Scheduler a cada minuto (o crontab real do 220 não é versionado); sem quarentena nem limite de falhas, porque o 220 não os tem; token do CleanTax só do `.env`. O `schedule:work` precisa estar rodando para os intervalos de segundos.
 
 ## Sprint 3 — Todas as telas do newsuporte que faltam abrem no walle, no padrão walle-ui, com os dados do banco `walle` (`docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php tests/Feature/Relatorios` passa)
 

@@ -24,6 +24,11 @@
                         "quando":  "2026-10-27 03:58:52",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario em 27/10/2026 (seguir a recomendacao): frequencias iguais ao intervalo entre ciclos dos daemons do 220 (contingencias 10 s, sentinela 600 s, cleantax 30 s, tarefas a cada minuto); sem quarentena nem limite de falhas, porque o 220 nao tem; token do cleantax so do .env (walle.cleantax.token); timeout do health do sentinela 60 s. Aviso: o agendador do Laravel tem resolucao minima de 1 minuto para cron, mas aceita everySeconds via schedule:work; usar everyTenSeconds, everyThirtySeconds e everyTenMinutes."
+                    },
+                    {
+                        "quando":  "2026-10-27 04:02:20",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0013: Agenda, configuracao e filas dos robos novos"
                     }
                 ],
     "notas_bloqueio":  "e6597d334ef26b32f602de85afd85d39668dd13eaa7cfd2d80db68de1f34b698"
