@@ -4,7 +4,7 @@
     "origem":  "PLAN 6.6",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0019-ferramentas-task-scheduler-e-relatorio",
     "pr":  33,
@@ -39,7 +39,12 @@
                         "quando":  "2026-10-27 06:40:26",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario em 27/10/2026 (seguir a recomendacao): o componente x-ui.area-texto virou tarefa propria e foi integrado na T-0020 (PR #34). Agora corrigir a T-0019: usar x-ui.area-texto no campo da query em querys.blade.php, preservar as quebras de linha ao salvar e editar, e acrescentar o teste que salva e edita SELECT 1 com quebra de linha sem perder a quebra."
+                    },
+                    {
+                        "quando":  "2026-10-27 06:41:31",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Substituida pela T-0021: o branch da T-0019 ficou atras do main (falta o componente x-ui.area-texto da T-0020) e nao ha acao do tarefa.ps1 nem permissao de git dos agentes para atualiza-lo. O trabalho da 6.6 e refeito a partir do main na T-0021, com as correcoes da revisao (base64, limite, relatorio decodificado, area-texto, testes). Nao retomar esta tarefa."
                     }
                 ],
-    "notas_bloqueio":  "88b4407cc25f0aec35816e9c1c86a25f8d868d28e7adaf0e668fa131c8d8d163"
+    "notas_bloqueio":  "36527802661dc46ff429687c33550ecc247e3434c4d40710c33312d18743ce89"
 }
