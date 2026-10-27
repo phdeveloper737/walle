@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 04:11:55",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0015-tela-de-relatorios-clientes-contingencia a partir de f9430506c5775cd705877690285238713c2076c8"
+                    },
+                    {
+                        "quando":  "2026-10-27 04:16:17",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0015: Tela de Relatorios: Clientes, Contingencia NFC-e e Motivos"
                     }
                 ]
 }
