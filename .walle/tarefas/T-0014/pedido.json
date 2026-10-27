@@ -1,0 +1,7 @@
+{
+    "titulo":  "Componente reutilizavel de tabela do walle-ui",
+    "origem":  "PLAN 6.0",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar o componente x-ui.tabela e subcomponentes em resources/views/components/ui/, pre-requisito das novas telas com tabela. Tema claro e escuro, cabecalhos com scope, numeros alinhados, rolagem horizontal e compatibilidade com wire:key. Telas atuais nao migram."
+}

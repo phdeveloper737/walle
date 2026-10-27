@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0014",
+    "titulo":  "Componente reutilizavel de tabela do walle-ui",
+    "origem":  "PLAN 6.0",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0014-componente-reutilizavel-de-tabela-do-wal",
+    "pr":  0,
+    "base":  "31391e6601fb53d208b12cb211e8ee591125b99f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 03:36:08",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0014-componente-reutilizavel-de-tabela-do-wal a partir de 31391e6601fb53d208b12cb211e8ee591125b99f"
+                    }
+                ]
+}
