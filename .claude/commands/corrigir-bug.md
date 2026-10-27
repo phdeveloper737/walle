@@ -16,7 +16,7 @@ Se o argumento estiver vazio ou vago, pergunte pelo comportamento observado, com
 - **Git e estado:** branch, commit, PR e merge seguem o ciclo do `.claude/hooks/tarefa.ps1` descrito em `.claude/agents/walle-orquestrador.md`: `abrir` antes de qualquer escrita, `commitar`, `publicar`, gate, revisão e `integrar` no fim. Onde este texto diz que ninguém faz commit, push ou PR, ou que o responsável pela sessão providencia o branch, vale o ledger.
 - **Documentação:** o orquestrador grava `PLAN.md`, `SPEC.md` e os relatórios em `docs/` com o conteúdo que o dono entregou. Onde este texto diz que o usuário grava, leia que o orquestrador grava.
 - **Aprovação:** apresente o plano no chat e siga sem esperar resposta. Pare e pergunte só quando houver decisão do usuário em aberto (requisito ambíguo, valor de negócio que o 220 não define, conflito com uma regra); nesse caso, bloqueie a tarefa (`notas.md` e `-Acao bloquear`) com opções numeradas e recomendação.
-- **Revisão:** a revisão independente é do `walle-arquiteto` sobre o diff do PR, gravada em `.walle/local/T-NNNN/revisao.md` e publicada no PR pelo `integrar`. Não há revisão do Codex.
+- **Revisão:** a revisão independente é do `walle-arquiteto` sobre o diff do PR, gravada em `.walle/local/T-NNNN/revisao.md` e publicada no PR pelo `integrar`. Antes dele, o Codex revisa o diff em modo somente leitura e consultivo (`.claude/hooks/revisao-codex.ps1`); o arquiteto confirma ou descarta cada achado e só o parecer do arquiteto vale para o `integrar`.
 - **Conclusão:** só depois do `integrar` com saída 0 (gate válido, revisão aprovada do mesmo commit e CI verde).
 - **Classificação Mercadológica:** fora deste fluxo; só com pedido explícito do usuário.
 
@@ -49,7 +49,7 @@ Telas internas usam Livewire 4, `<x-ui.*>`, tokens do tema e gráficos `<x-grafi
 | Paridade | `walle-paridade`: cria testes e fixtures só em `tests/Feature/Paridade` e `tests/Fixtures/legado`; não corrige a aplicação. |
 | Code reviewer | `walle-arquiteto`, em uma chamada separada da investigação: só lê o diff e arquivos associados, aponta problemas e não corrige. |
 
-O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Não diga que o verificador executou ferramentas que outro agente rodou. O fluxo do projeto continua sendo Claude implementa, Codex revisa e usuário aprova; a leitura pelo arquiteto não substitui a revisão do Codex quando ela for exigida.
+O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Não diga que o verificador executou ferramentas que outro agente rodou. O Codex revisa antes, em modo somente leitura e consultivo; o arquiteto confirma ou descarta cada achado e só o parecer dele vale para o `integrar`.
 
 Se faltar permissão para um arquivo ou comando, informe o caminho e a capacidade faltante, sugira o responsável pela sessão para essa parte e pare a operação dependente. Não crie agentes, não troque de dono para burlar um hook e não amplie o escopo silenciosamente.
 
@@ -135,7 +135,7 @@ Classifique cada achado com `arquivo:linha`, evidência, efeito e recomendação
 - **IMPORTANTE:** risco relevante de regressão, comportamento não coberto ou inconsistência que compromete a entrega.
 - **SUGESTÃO:** melhoria opcional; só entra no relatório, sem ampliar o patch.
 
-BLOQUEANTE e IMPORTANTE voltam ao dono; depois da alteração, voltam ao revisor de execução e ao code reviewer. Respeite os dois ciclos por task. Não aprove o próprio patch por conta do orquestrador. O parecer final deve declarar se há achados pendentes e se o diff está aprovado; não substitua a revisão do Codex exigida pelo projeto por uma alegação de que ela ocorreu.
+BLOQUEANTE e IMPORTANTE voltam ao dono; depois da alteração, voltam ao revisor de execução e ao code reviewer. Respeite os dois ciclos por task. Não aprove o próprio patch por conta do orquestrador. O parecer final deve declarar se há achados pendentes e se o diff está aprovado; não alegue que a revisão do Codex (consultiva) ocorreu sem evidência dela (`revisao-codex.md`).
 
 ## 5. Relatórios
 

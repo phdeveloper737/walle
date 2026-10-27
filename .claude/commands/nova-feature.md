@@ -16,7 +16,7 @@ Se o argumento estiver vazio ou vago, pergunte qual necessidade será atendida, 
 - **Git e estado:** branch, commit, PR e merge seguem o ciclo do `.claude/hooks/tarefa.ps1` descrito em `.claude/agents/walle-orquestrador.md`: `abrir` antes de qualquer escrita, `commitar`, `publicar`, gate, revisão e `integrar` no fim. Onde este texto diz que ninguém faz commit, push ou PR, ou que o responsável pela sessão providencia o branch, vale o ledger.
 - **Documentação:** o orquestrador grava `PLAN.md`, `SPEC.md` e os relatórios em `docs/` com o conteúdo que o dono entregou. Onde este texto diz que o usuário grava, leia que o orquestrador grava.
 - **Aprovação:** apresente o plano no chat e siga sem esperar resposta. Pare e pergunte só quando houver decisão do usuário em aberto (requisito ambíguo, valor de negócio que o 220 não define, conflito com uma regra); nesse caso, bloqueie a tarefa (`notas.md` e `-Acao bloquear`) com opções numeradas e recomendação.
-- **Revisão:** a revisão independente é do `walle-arquiteto` sobre o diff do PR, gravada em `.walle/local/T-NNNN/revisao.md` e publicada no PR pelo `integrar`. Não há revisão do Codex.
+- **Revisão:** a revisão independente é do `walle-arquiteto` sobre o diff do PR, gravada em `.walle/local/T-NNNN/revisao.md` e publicada no PR pelo `integrar`. Antes dele, o Codex revisa o diff em modo somente leitura e consultivo (`.claude/hooks/revisao-codex.ps1`); o arquiteto confirma ou descarta cada achado e só o parecer do arquiteto vale para o `integrar`.
 - **Conclusão:** só depois do `integrar` com saída 0 (gate válido, revisão aprovada do mesmo commit e CI verde).
 - **Classificação Mercadológica:** fora deste fluxo; só com pedido explícito do usuário.
 
@@ -46,7 +46,7 @@ Se o argumento estiver vazio ou vago, pergunte qual necessidade será atendida, 
 | Paridade | `walle-paridade`: cria testes e fixtures só em `tests/Feature/Paridade` e `tests/Fixtures/legado`; não corrige a aplicação. |
 | Code review | `walle-arquiteto`, em chamada separada do levantamento: só lê o diff e consumidores necessários. |
 
-O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Identifique quem executou cada parte. A revisão do arquiteto não substitui a revisão do Codex exigida pelo fluxo Claude implementa, Codex revisa e usuário aprova.
+O implementador formata os próprios arquivos com Pint e roda PHPStan antes de entregar. O `walle-verificador` executa o gate (`.claude/hooks/gate.ps1`: Pint em modo teste, PHPStan, suíte inteira e testes do harness e do RAG, com evidência em `.walle/gate`) e consolida o veredito; `walle-arquiteto` audita o diff. Identifique quem executou cada parte. A revisão do Codex é consultiva: o arquiteto confirma ou descarta cada achado dela, e só o parecer do arquiteto vale para o `integrar`.
 
 Se faltar dono com permissão para um arquivo, teste ou comando, exponha a lacuna e sugira o responsável pela sessão para essa parte. Não crie agentes, amplie permissões ou troque de dono para contornar um hook. Marketing JM usa `frontend-design`, mas os agentes atuais não têm seus caminhos autorizados; não atribua esse trabalho a `walle-telas` por aproximação.
 
@@ -130,7 +130,7 @@ Envie a `walle-arquiteto`, em chamada independente do levantamento, apenas o dif
 
 Classifique os achados com `arquivo:linha`, evidência, efeito e recomendação: **BLOQUEANTE** para quebra funcional/contratual, perda de dados, segurança ou violação obrigatória; **IMPORTANTE** para risco relevante de regressão ou requisito/teste necessário ausente; **SUGESTÃO** para melhoria opcional, registrada somente no relatório.
 
-BLOQUEANTE e IMPORTANTE voltam ao dono, depois ao revisor de execução e ao code reviewer. Respeite os dois ciclos. O parecer final declara aprovação do diff e achados pendentes. Não aprove o próprio patch por conta do orquestrador nem alegue que a revisão do Codex exigida pelo projeto aconteceu sem evidência dela.
+BLOQUEANTE e IMPORTANTE voltam ao dono, depois ao revisor de execução e ao code reviewer. Respeite os dois ciclos. O parecer final declara aprovação do diff e achados pendentes. Não aprove o próprio patch por conta do orquestrador nem alegue que a revisão do Codex (consultiva) aconteceu sem evidência dela (`revisao-codex.md`).
 
 ## 5. Relatórios e documentação
 

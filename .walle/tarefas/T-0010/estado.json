@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 01:41:04",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0010-harness-codex-revisa-o-pr-em-modo-soment a partir de d725a09a67d379132d04868c6537615a4cd07bdd"
+                    },
+                    {
+                        "quando":  "2026-10-27 01:58:49",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0010: Codex revisa o PR em modo somente leitura"
                     }
                 ]
 }
