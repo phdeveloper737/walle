@@ -4,10 +4,10 @@
     "origem":  "Decisoes-pendentes A2 A5 e retomada T-0027",
     "tipo":  "harness",
     "dono":  "walle-hooks",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0029-atualizar-tarefas-com-versoes-antigas-do",
-    "pr":  0,
+    "pr":  43,
     "base":  "5a5532ab14ae643957580733b02618651e0b9c8c",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 12:34:53",
                         "tipo":  "commit",
                         "detalhe":  "T-0029: Atualizar branches antigos a partir do main"
+                    },
+                    {
+                        "quando":  "2026-10-27 12:35:11",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #43 aberto"
                     }
                 ]
 }
