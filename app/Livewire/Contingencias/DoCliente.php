@@ -2,13 +2,17 @@
 
 namespace App\Livewire\Contingencias;
 
+use App\Contingencias\AcoesContingencias;
 use App\Contingencias\Autorizada;
 use App\Contingencias\BuscaContingencias;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Contingencias\Contingencia;
+use App\Contingencias\ResultadoAcao;
 use App\Contingencias\ResultadoContingencias;
+use App\Livewire\Concerns\ConfirmaSenha;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
 use Livewire\Component;
@@ -24,6 +28,10 @@ use Livewire\Component;
 #[Lazy]
 class DoCliente extends Component
 {
+    use ConfirmaSenha;
+
+    public const ACOES_COM_SENHA = ['reenviarAoPdv', 'reprocessar'];
+
     public const POR_PAGINA = 20;
 
     public const ABAS = ['pendentes', 'autorizadas'];
@@ -35,6 +43,20 @@ class DoCliente extends Component
     public string $filtro = '';
 
     public int $pagina = 1;
+
+    /**
+     * Identificadores (loja_pdv_cupom) marcados para reenviar ao PDV; só valem os que estão nos pendentes.
+     *
+     * @var list<string>
+     */
+    public array $selecionadas = [];
+
+    public ?string $aviso = null;
+
+    public bool $avisoErro = false;
+
+    /** @var list<string> */
+    public array $avisoDetalhes = [];
 
     public function updatedAba(): void
     {
@@ -53,6 +75,65 @@ class DoCliente extends Component
     public function irParaPagina(int $pagina): void
     {
         $this->pagina = max(1, $pagina);
+    }
+
+    public function alternarSelecao(string $identificador): void
+    {
+        $this->selecionadas = in_array($identificador, $this->selecionadas, true)
+            ? array_values(array_diff($this->selecionadas, [$identificador]))
+            : [...$this->selecionadas, $identificador];
+    }
+
+    /** Pede ao Sactus do PDV para buscar de novo a NFC-e dos cupons marcados (funcid 858). */
+    public function reenviarAoPdv(): void
+    {
+        if (! $this->adminConfirmado('reenviarAoPdv')) {
+            return;
+        }
+
+        abort_unless(Gate::allows('admin'), 403);
+
+        // Nunca confia no que o navegador mandou: só pendentes do Sactus que a tela mostra
+        $cupons = [];
+
+        foreach ($this->pendentes as $contingencia) {
+            if ($contingencia->software === Contingencia::SACTUS && in_array($contingencia->identificador(), $this->selecionadas, true)) {
+                $cupons[] = ['loja' => (int) $contingencia->loja, 'pdv' => (int) $contingencia->pdv, 'cupom' => (int) $contingencia->cupom];
+            }
+        }
+
+        if ($cupons === []) {
+            $this->avisar(new ResultadoAcao(false, 'Selecione ao menos um cupom pendente do Sactus para reenviar ao PDV.'));
+
+            return;
+        }
+
+        $resultado = app(AcoesContingencias::class)->reenviarAoPdv($this->clienteId, $cupons);
+
+        if ($resultado->ok) {
+            $this->selecionadas = [];
+        }
+
+        $this->avisar($resultado);
+    }
+
+    /** Manda cada PDV do cliente ajustar as contingências (funcid 556). */
+    public function reprocessar(): void
+    {
+        if (! $this->adminConfirmado('reprocessar')) {
+            return;
+        }
+
+        abort_unless(Gate::allows('admin'), 403);
+
+        $this->avisar(app(AcoesContingencias::class)->reprocessar($this->clienteId));
+    }
+
+    private function avisar(ResultadoAcao $resultado): void
+    {
+        $this->aviso = $resultado->mensagem;
+        $this->avisoErro = ! $resultado->ok;
+        $this->avisoDetalhes = $resultado->falhas;
     }
 
     public function recarregar(BuscaContingencias $busca): void
