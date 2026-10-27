@@ -195,8 +195,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: model da task 1.1
 - Output: `app/Livewire/Sentinela.php` (filtro `#[Url] $cliente`, como o `?id=` do 220) e `resources/views/livewire/sentinela.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/Sentinela/PainelSentinelaTest.php`: a tela mostra cada cliente com o estado coletado e filtra pelo cliente da URL
-  - [ ] cliente inexistente na URL mostra o vazio, sem erro
+  - [x] `tests/Feature/Sentinela/PainelSentinelaTest.php`: a tela mostra cada cliente com o estado coletado e filtra pelo cliente da URL
+  - [x] cliente inexistente na URL mostra o vazio, sem erro
+- Fora da 6.3 (o 220 tinha e a task não pediu): busca, ordenação, CSV e modal de detalhes. Rota e menu na task 7.1.
 
 #### Task 6.5 — Painel do CleanTax (substitui `cleantax.dash.php`)
 - Agent: Frontend Livewire (walle-ui)

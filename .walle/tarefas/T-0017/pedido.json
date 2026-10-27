@@ -1,0 +1,7 @@
+{
+    "titulo":  "Painel do Sentinela",
+    "origem":  "PLAN 6.3",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/Sentinela.php com filtro Url cliente e a view resources/views/livewire/sentinela.blade.php, mostrando cada cliente com o estado coletado. Rota e menu ficam para a Fase 7."
+}

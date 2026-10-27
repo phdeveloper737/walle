@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0017",
+    "titulo":  "Painel do Sentinela",
+    "origem":  "PLAN 6.3",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0017-painel-do-sentinela",
+    "pr":  31,
+    "base":  "a90313c34baad0b8b17ba1d95771beb79dfe6684",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 04:59:58",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0017-painel-do-sentinela a partir de a90313c34baad0b8b17ba1d95771beb79dfe6684"
+                    },
+                    {
+                        "quando":  "2026-10-27 05:02:58",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0017: Painel do Sentinela"
+                    },
+                    {
+                        "quando":  "2026-10-27 05:03:06",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #31 aberto"
+                    }
+                ]
+}
