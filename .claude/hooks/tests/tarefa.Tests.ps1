@@ -331,6 +331,116 @@ try {
     Garantir ($noCommit.Count -gt 0 -and -not @($noCommit | Where-Object { $_ -notlike '.walle/tarefas/T-0003/*' }).Count) "commit do desbloqueio so com o ledger: $($noCommit -join ', ')"
     Garantir ((G @('diff', '--cached', '--name-only')) -eq 'preparado.txt' -and (G @('diff', '--name-only')) -match 'trabalho\.txt') 'stage e trabalho pendente preservados'
 
+    # Retomada entre sessoes: avancos e bloqueios publicados nao podem ser ignorados.
+    $repo = Join-Path $temporario 'sincronizacao'
+    $peer = Join-Path $temporario 'outra-sessao'
+    $mainSincronizacao = Join-Path $temporario 'main-sincronizacao'
+    & git -c core.autocrlf=false clone -q $origem $repo
+    G @('config', 'user.email', 'teste@walle') | Out-Null
+    G @('config', 'user.name', 'Teste') | Out-Null
+    G @('config', 'core.autocrlf', 'false') | Out-Null
+    [IO.File]::WriteAllText((Join-Path $repo 'sincronizacao.txt'), "base`n", $utf8)
+    G @('add', 'sincronizacao.txt') | Out-Null
+    G @('commit', '-q', '-m', 'base da sincronizacao') | Out-Null
+    G @('push', '-q', 'origin', 'main') | Out-Null
+    Local 'T-0041' 'pedido.json' '{"titulo": "Sincronizacao", "origem": "pedido", "tipo": "harness"}'
+    Espera (Tarefa 'abrir' 'T-0041') 0 'abrir tarefa entre sessoes'
+    $branchSync = G @('branch', '--show-current')
+    $headLocalSync = G @('rev-parse', 'HEAD')
+    & git -c core.autocrlf=false clone -q --branch $branchSync $origem $peer
+    & git -C $peer config user.email teste@walle
+    & git -C $peer config user.name Teste
+    & git -C $peer config core.autocrlf false
+    $estadoPeer = Join-Path $peer '.walle/tarefas/T-0041/estado.json'
+    $e = [IO.File]::ReadAllText($estadoPeer, $utf8) | ConvertFrom-Json
+    $e.estado = 'bloqueada'
+    $e.ciclos = 3
+    $e.eventos = @($e.eventos) + @(@{ quando = '2026-10-27 12:00:00'; tipo = 'bloqueada'; detalhe = 'Outra sessao bloqueou.' })
+    [IO.File]::WriteAllText($estadoPeer, ($e | ConvertTo-Json -Depth 6), $utf8)
+    & git -C $peer add .walle/tarefas/T-0041/estado.json
+    & git -C $peer commit -q -m bloqueio-publicado
+    & git -C $peer push -q origin $branchSync
+    $headBloqueado = "$(& git -C $peer rev-parse HEAD)".Trim()
+    $r = Tarefa 'atualizar' 'T-0041'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'bloqueada') 'remoto bloqueado deve recusar antes de selecionar estado local antigo'
+    Garantir ((G @('branch', '--show-current')) -eq $branchSync -and (G @('rev-parse', 'HEAD')) -eq $headLocalSync -and (Estado 'T-0041').ciclos -eq 0) 'bloqueio remoto nao altera branch ou ledger locais'
+    G @('switch', '-q', 'main') | Out-Null
+    $headMainSync = G @('rev-parse', 'HEAD')
+    Espera (Tarefa 'atualizar' 'T-0041') 2 'remoto bloqueado recusa desde main'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', $branchSync)) -eq $headLocalSync -and (G @('rev-parse', "origin/$branchSync")) -eq $headBloqueado) 'bloqueio remoto preserva os dois historicos'
+
+    $e.estado = 'em_revisao'
+    $e.ciclos = 4
+    $e.eventos = @($e.eventos) + @(@{ quando = '2026-10-27 12:01:00'; tipo = 'decisao'; detalhe = 'Fixture ativa publicada.' })
+    [IO.File]::WriteAllText($estadoPeer, ($e | ConvertTo-Json -Depth 6), $utf8)
+    & git -C $peer add .walle/tarefas/T-0041/estado.json
+    & git -C $peer commit -q -m estado-ativo-publicado
+    & git -C $peer push -q origin $branchSync
+    $headPeer = "$(& git -C $peer rev-parse HEAD)".Trim()
+    Espera (Tarefa 'atualizar' 'T-0041') 0 'main incorpora remoto ativo por avanco rapido'
+    Garantir ((G @('branch', '--show-current')) -eq $branchSync -and (G @('rev-parse', 'HEAD')) -eq $headPeer -and (Estado 'T-0041').ciclos -eq 4 -and (Estado 'T-0041').eventos[-1].tipo -eq 'decisao') 'avanco remoto preserva ciclos e eventos sem novo commit'
+    [IO.File]::WriteAllText((Join-Path $peer 'remoto.txt'), "outra sessao`n", $utf8)
+    & git -C $peer add remoto.txt
+    & git -C $peer commit -q -m trabalho-publicado
+    & git -C $peer push -q origin $branchSync
+    $headPeer = "$(& git -C $peer rev-parse HEAD)".Trim()
+    Espera (Tarefa 'atualizar' 'T-0041') 0 'proprio branch incorpora remoto ativo'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headPeer -and (Test-Path -LiteralPath (Join-Path $repo 'remoto.txt'))) 'arquivo publicado alcancou branch local'
+
+    [IO.File]::WriteAllText((Join-Path $repo 'local.txt'), "trabalho local legitimo`n", $utf8)
+    G @('add', 'local.txt') | Out-Null
+    G @('commit', '-q', '-m', 'trabalho local') | Out-Null
+    $headLocalSync = G @('rev-parse', 'HEAD')
+    Espera (Tarefa 'atualizar' 'T-0041') 0 'local a frente permanece intacto'
+    G @('switch', '-q', 'main') | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0041') 0 'main preserva trabalho local a frente'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headLocalSync -and (G @('rev-parse', "origin/$branchSync")) -eq $headPeer -and (Estado 'T-0041').ciclos -eq 4) 'local a frente nao e descartado nem reduz ciclos'
+
+    # Depois de FF, conflito com main preserva o avanco ja publicado e restaura o branch inicial.
+    G @('push', '-q', 'origin', $branchSync) | Out-Null
+    & git -C $peer pull -q --ff-only origin $branchSync
+    [IO.File]::WriteAllText((Join-Path $peer 'sincronizacao.txt'), "remoto publicado`n", $utf8)
+    & git -C $peer add sincronizacao.txt
+    & git -C $peer commit -q -m conflito-no-remoto
+    & git -C $peer push -q origin $branchSync
+    $headPeer = "$(& git -C $peer rev-parse HEAD)".Trim()
+    & git -c core.autocrlf=false clone -q $origem $mainSincronizacao
+    & git -C $mainSincronizacao config user.email teste@walle
+    & git -C $mainSincronizacao config user.name Teste
+    & git -C $mainSincronizacao config core.autocrlf false
+    [IO.File]::WriteAllText((Join-Path $mainSincronizacao 'sincronizacao.txt'), "main publicado`n", $utf8)
+    & git -C $mainSincronizacao add sincronizacao.txt
+    & git -C $mainSincronizacao commit -q -m conflito-no-main
+    & git -C $mainSincronizacao push -q origin main
+    G @('switch', '-q', 'main') | Out-Null
+    $headMainSync = G @('rev-parse', 'HEAD')
+    $r = Tarefa 'atualizar' 'T-0041'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'conflitos') 'conflito com main depois de FF e recusado'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', 'HEAD')) -eq $headMainSync -and -not (G @('status', '--porcelain'))) 'conflito apos FF restaura main original'
+    Garantir ((G @('rev-parse', $branchSync)) -eq $headPeer -and (G @('show', "${branchSync}:sincronizacao.txt")) -eq 'remoto publicado') 'conflito nao desfaz o avanco ja publicado'
+    G @('switch', '-q', $branchSync) | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0041') 2 'conflito no proprio branch preserva avanco remoto'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headPeer -and -not (G @('status', '--porcelain'))) 'conflito no proprio branch nao descarta commit remoto'
+
+    [IO.File]::WriteAllText((Join-Path $repo 'local-divergiu.txt'), "local`n", $utf8)
+    G @('add', 'local-divergiu.txt') | Out-Null
+    G @('commit', '-q', '-m', 'divergencia local') | Out-Null
+    $headLocalSync = G @('rev-parse', 'HEAD')
+    [IO.File]::WriteAllText((Join-Path $peer 'remoto-divergiu.txt'), "remoto`n", $utf8)
+    & git -C $peer add remoto-divergiu.txt
+    & git -C $peer commit -q -m divergencia-remota
+    & git -C $peer push -q origin $branchSync
+    $headPeer = "$(& git -C $peer rev-parse HEAD)".Trim()
+    $r = Tarefa 'atualizar' 'T-0041'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'diverg') 'divergencia recusa antes de merge com main'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headLocalSync -and (G @('rev-parse', "origin/$branchSync")) -eq $headPeer -and -not (G @('status', '--porcelain'))) 'divergencia preserva ambos os historicos e a arvore'
+    G @('switch', '-q', 'main') | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0041') 2 'divergencia desde main nao seleciona tarefa'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', $branchSync)) -eq $headLocalSync) 'divergencia desde main preserva branch inicial'
+    & git -C $peer push -q origin HEAD:refs/heads/tarefa/T-0041-ambigua
+    $r = Tarefa 'atualizar' 'T-0041'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'mais de um branch') 'referencia remota ambigua recusa mesmo com branch local'
+
     # Atualizacao usa outro clone isolado: nada do trabalho pendente acima e tocado.
     $repo = Join-Path $temporario 'atualizacao'
     $mainAtualizacao = Join-Path $temporario 'main-atualizacao'
@@ -339,7 +449,10 @@ try {
     G @('config', 'user.name', 'Teste') | Out-Null
     G @('config', 'core.autocrlf', 'false') | Out-Null
     [IO.File]::WriteAllText((Join-Path $repo 'comum.txt'), "base`n", $utf8)
-    G @('add', 'comum.txt') | Out-Null
+    $scriptDoClone = Join-Path $repo '.claude/hooks/tarefa.ps1'
+    [IO.Directory]::CreateDirectory((Split-Path -Parent $scriptDoClone)) | Out-Null
+    [IO.File]::WriteAllText($scriptDoClone, "param([ValidateSet('retomar')][string]`$Acao)`nexit 99`n", $utf8)
+    G @('add', 'comum.txt', '.claude/hooks/tarefa.ps1') | Out-Null
     G @('commit', '-q', '-m', 'base para atualizar') | Out-Null
     G @('push', '-q', 'origin', 'main') | Out-Null
     & git -c core.autocrlf=false clone -q $origem $mainAtualizacao
@@ -363,11 +476,18 @@ try {
     Garantir ([IO.File]::ReadAllText((Join-Path $repo 'pendente.txt')) -eq "nao perder`n" -and (G @('rev-parse', 'HEAD')) -eq $headAtualizacao) 'recusa preserva trabalho e HEAD'
     Remove-Item -LiteralPath (Join-Path $repo 'pendente.txt')
     G @('switch', '-q', 'main') | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0040') 0 'atualizar desde main seleciona tarefa sem novidades'
+    Garantir ((G @('branch', '--show-current')) -eq $branchAtualizacao) 'main seleciona o branch pedido'
+    G @('switch', '-q', 'tarefa/T-0001-robo-sentinela') | Out-Null
     Espera (Tarefa 'atualizar' 'T-0040') 2 'atualizar recusa branch de outra tarefa'
+    Garantir ((G @('branch', '--show-current')) -eq 'tarefa/T-0001-robo-sentinela') 'recusa nao troca outra tarefa'
     G @('switch', '-q', $branchAtualizacao) | Out-Null
 
     [IO.File]::WriteAllText((Join-Path $mainAtualizacao 'componente.txt'), "componente do main`n", $utf8)
     & git -C $mainAtualizacao add componente.txt
+    $scriptNovoNoMain = Join-Path $mainAtualizacao '.claude/hooks/tarefa.ps1'
+    [IO.File]::WriteAllText($scriptNovoNoMain, [IO.File]::ReadAllText($script, $utf8), $utf8)
+    & git -C $mainAtualizacao add .claude/hooks/tarefa.ps1
     & git -C $mainAtualizacao commit -q -m componente
     & git -C $mainAtualizacao push -q origin main
     # Falha no commit nao deixa arquivos do merge nem altera o ledger.
@@ -378,13 +498,35 @@ try {
     Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and -not (G @('status', '--porcelain'))) 'commit recusado restaura HEAD e arvore limpa'
     Garantir ([IO.File]::ReadAllText($estadoAtualizacao, $utf8) -ceq $textoEstadoAntes) 'commit recusado restaura bytes do ledger'
     Remove-Item -LiteralPath $hookAtualizacao
-    Espera (Tarefa 'atualizar' 'T-0040') 0 'incorpora main atrasado'
+    G @('switch', '-q', 'main') | Out-Null
+    G @('pull', '-q', '--ff-only', 'origin', 'main') | Out-Null
+    $headMainAtualizacao = G @('rev-parse', 'HEAD')
+    Espera (Tarefa 'atualizar' 'T-0999') 2 'tarefa inexistente nao troca main'
+    Espera (Tarefa 'atualizar' 'T-0001') 2 'tarefa integrada nao troca main'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', 'HEAD')) -eq $headMainAtualizacao) 'recusas preservam main'
+    [IO.File]::WriteAllText((Join-Path $repo 'pendente.txt'), "pendencia no main`n", $utf8)
+    Espera (Tarefa 'atualizar' 'T-0040') 2 'main sujo nao seleciona tarefa'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and [IO.File]::ReadAllText((Join-Path $repo 'pendente.txt')) -eq "pendencia no main`n") 'main sujo permanece intacto'
+    Remove-Item -LiteralPath (Join-Path $repo 'pendente.txt')
+    [IO.File]::WriteAllText($hookAtualizacao, "#!/bin/sh`nexit 1`n", $utf8)
+    Espera (Tarefa 'atualizar' 'T-0040') 1 'falha commit desde main restaura branch de origem'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', 'HEAD')) -eq $headMainAtualizacao -and -not (G @('status', '--porcelain'))) 'falha desde main retorna ao main intacto'
+    Garantir ((G @('rev-parse', $branchAtualizacao)) -eq $headAtualizacao) 'falha desde main preserva HEAD da tarefa'
+    Remove-Item -LiteralPath $hookAtualizacao
+    # O processo carrega a versao nova do main antes de trocar para o arquivo antigo do branch.
+    $scriptOriginal = $script
+    $script = $scriptDoClone
+    try { Espera (Tarefa 'atualizar' 'T-0040') 0 'bootstrap main atualiza branch com script antigo sem atualizar' } finally { $script = $scriptOriginal }
     Garantir ((Test-Path -LiteralPath (Join-Path $repo 'componente.txt')) -and (Estado 'T-0040').ciclos -eq 2) 'componente incorporado sem zerar ciclos'
     Garantir ((Estado 'T-0040').eventos[-1].tipo -eq 'atualizada' -and -not (G @('status', '--porcelain'))) 'evento da atualizacao commitado'
     Garantir ((& git -C $origem rev-parse $branchAtualizacao) -eq (G @('rev-parse', 'HEAD'))) 'atualizacao publicada no origin'
     $headAtualizacao = G @('rev-parse', 'HEAD')
     Espera (Tarefa 'atualizar' 'T-0040') 0 'segunda atualizacao nao faz outro commit'
     Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao) 'atualizacao repetida e idempotente'
+    G @('switch', '-q', 'main') | Out-Null
+    G @('branch', '-q', '-D', $branchAtualizacao) | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0040') 0 'main seleciona tarefa que existe so no origin'
+    Garantir ((G @('branch', '--show-current')) -eq $branchAtualizacao -and (G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and (Estado 'T-0040').ciclos -eq 2) 'branch remoto recuperado sem alterar commits ou ciclos'
 
     # Conflito cancela o merge inteiro, preservando o trabalho original e o ledger.
     [IO.File]::WriteAllText((Join-Path $repo 'comum.txt'), "da tarefa`n", $utf8)
@@ -401,11 +543,22 @@ try {
     Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and -not (G @('status', '--porcelain'))) 'conflito preserva HEAD e arvore limpa'
     Garantir ([IO.File]::ReadAllText((Join-Path $repo 'comum.txt')) -eq "da tarefa`n" -and [IO.File]::ReadAllText($estadoAtualizacao, $utf8) -ceq $textoEstadoAntes) 'conflito preserva conteudo e ledger'
     Garantir (-not (Test-Path -LiteralPath (Join-Path $repo '.git/MERGE_HEAD'))) 'conflito nao deixa merge incompleto'
+    G @('switch', '-q', 'main') | Out-Null
+    G @('pull', '-q', '--ff-only', 'origin', 'main') | Out-Null
+    $headMainAtualizacao = G @('rev-parse', 'HEAD')
+    $r = Tarefa 'atualizar' 'T-0040'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'conflitos') 'conflito desde main explica recusa'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', 'HEAD')) -eq $headMainAtualizacao -and -not (G @('status', '--porcelain'))) 'conflito desde main restaura main'
+    Garantir ((G @('rev-parse', $branchAtualizacao)) -eq $headAtualizacao) 'conflito desde main preserva tarefa'
+    G @('switch', '-q', $branchAtualizacao) | Out-Null
 
     Local 'T-0040' 'notas.md' 'Precisa decisao antes de atualizar.'
     Espera (Tarefa 'bloquear' 'T-0040') 0 'bloquear tarefa de atualizacao'
     Espera (Tarefa 'atualizar' 'T-0040') 2 'atualizar nao desbloqueia nem zera ciclos'
     Garantir ((Estado 'T-0040').ciclos -eq 2) 'tarefa bloqueada preserva ciclos'
+    G @('switch', '-q', 'main') | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0040') 2 'bloqueada nao troca main'
+    Garantir ((G @('branch', '--show-current')) -eq 'main' -and (G @('rev-parse', 'HEAD')) -eq $headMainAtualizacao) 'recusa bloqueada preserva main'
 } finally {
     $env:PATH = $pathAnterior
     foreach ($nome in $variaveis) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
