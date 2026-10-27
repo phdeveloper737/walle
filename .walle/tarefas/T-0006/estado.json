@@ -4,10 +4,10 @@
     "origem":  "PLAN 3.2",
     "tipo":  "plano",
     "dono":  "walle-robos",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0006-bot-sentinela-robo-que-coleta-o-sentinel",
-    "pr":  0,
+    "pr":  21,
     "base":  "df8e4d7b29d994edc8d7cf744d142b0cab898b2d",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 00:17:15",
                         "tipo":  "commit",
                         "detalhe":  "Bot Sentinela: robô que coleta o sentinela.php dos clientes (task 3.2)"
+                    },
+                    {
+                        "quando":  "2026-10-27 00:17:23",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #21 aberto"
                     }
                 ]
 }
