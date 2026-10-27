@@ -151,17 +151,23 @@ try {
     Espera (Tarefa 'integrar' 'T-0001') 2 'parecer do Codex com sha curto'
     Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nVeredito do Codex: APROVADO"
     Espera (Tarefa 'integrar' 'T-0001') 2 'parecer do Codex sem a contagem de bloqueantes'
-    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 2`n- **P1** a.php:3 - x`n- **P0** b.php:1 - y"
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 2`n- **P1** ``a.php:3`` - x"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'contagem de bloqueantes diferente da lista do Codex'
+    Local 'T-0001' 'revisao-codex.md' "Commit revisado: $head`nBloqueantes do Codex: 2`n- **P1** ``a.php:3`` - x`n- **P0** ``b.php:1`` - y`n- **P2** ``c.php:5`` - z"
     Espera (Tarefa 'integrar' 'T-0001') 2 'achados P0/P1 do Codex sem descarte'
     Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo"
     Espera (Tarefa 'integrar' 'T-0001') 2 'so um dos dois achados P0/P1 descartado'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P1 a.php:3 - de novo"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'descarte repetido do mesmo achado nao cobre o outro'
+    Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P0 b.php:1 -"
+    Espera (Tarefa 'integrar' 'T-0001') 2 'descarte sem motivo nao conta'
     Local 'T-0001' 'revisao.md' "Commit revisado: $curto`nVeredito: APROVADO`nCodex descartado: P1 a.php:3 - falso positivo`nCodex descartado: P0 b.php:1 - fora do diff"
     $env:WALLE_TEST_GH_CHECKS = '8'
     Espera (Tarefa 'integrar' 'T-0001') 4 'CI pendente devolve 4 (tente de novo)'
     $env:WALLE_TEST_GH_CHECKS = '1'
     Espera (Tarefa 'integrar' 'T-0001') 2 'CI vermelho recusa'
     Garantir ((ChamadasGh '^pr merge') -eq 0) 'nenhum merge sem CI verde'
-    Garantir ((ChamadasGh '^pr comment') -eq 6) 'cada parecer do HEAD (5 do arquiteto e 1 do Codex) publicado uma vez so, inclusive os que reprovam'
+    Garantir ((ChamadasGh '^pr comment') -eq 9) 'cada parecer do HEAD (7 do arquiteto e 2 do Codex) publicado uma vez so, inclusive os que reprovam'
     $env:WALLE_TEST_GH_CHECKS = '0'
     Espera (Tarefa 'integrar' 'T-0001') 0 'integrar com tudo verde'
     Garantir ((ChamadasGh "^pr merge 42 --squash --delete-branch --match-head-commit $head") -eq 1) 'merge amarrado ao HEAD conferido'

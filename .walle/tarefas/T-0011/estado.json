@@ -5,7 +5,7 @@
     "tipo":  "harness",
     "dono":  "walle-harness",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0011-harness-revisao-do-codex-obrigatoria-par",
     "pr":  25,
     "base":  "2d7d13accb5dd563192616bead82f51a2e289f6f",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-27 02:39:54",
                         "tipo":  "pr",
                         "detalhe":  "PR #25 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 02:46:19",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0011: integrar confere o descarte de cada achado do Codex"
                     }
                 ]
 }

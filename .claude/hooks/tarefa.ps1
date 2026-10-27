@@ -346,7 +346,8 @@ switch ($Acao) {
         if ($vereditos.Count -ne 1 -or $vereditos[0] -notmatch '^(?i)APROVADO\b') { Recusar "a revisao precisa de exatamente uma linha 'Veredito: APROVADO' (achadas: $($vereditos -join ' / '))." }
 
         # Revisao obrigatoria do Codex (decisao do usuario de 27/10/2026): parecer do mesmo HEAD, gravado pelo
-        # revisao-codex.ps1; cada achado P0/P1 so passa com uma linha 'Codex descartado:' do arquiteto no revisao.md.
+        # revisao-codex.ps1; cada achado P0/P1 so passa com um descarte do arquiteto no revisao.md para ele
+        # ('Codex descartado: <P0|P1> <arquivo:linha> - <motivo>'), um por achado.
         $codex = TextoLocal 'revisao-codex.md'
         if (-not $codex) { Recusar "sem o parecer do Codex em .walle/local/$Tarefa/revisao-codex.md: rode .claude/hooks/revisao-codex.ps1 -Tarefa $Tarefa." }
         if ($codex -notmatch '(?im)^\s*Commit revisado:\s*([0-9a-f]{40})\s*$' -or $Matches[1] -cne $head) { Recusar "o parecer do Codex nao e do HEAD ${head}: rode a revisao do Codex de novo." }
@@ -357,8 +358,16 @@ switch ($Acao) {
             Rodar 'gh' @('pr', 'comment', [string]$estado.pr, '--body-file', (Join-Path $pastaLocal 'revisao-codex.md')) | Out-Null
             [IO.File]::WriteAllText($comentadoCodex, (Agora), $utf8)
         }
-        $descartados = @([regex]::Matches($revisao, '(?im)^\s*Codex descartado:\s*\S')).Count
-        if ($descartados -lt $bloqueantesCodex) { Recusar "o Codex apontou $bloqueantesCodex achado(s) P0/P1 e o arquiteto descartou ${descartados}: corrija ou registre 'Codex descartado: <achado> - <motivo>' no revisao.md." }
+        # Achado = prioridade + arquivo:linha, como o revisao-codex.ps1 lista; descarte repetido ou sem motivo nao conta.
+        $exigidos = @{}
+        foreach ($achado in [regex]::Matches($codex, '(?m)^- \*\*(P[01])\*\* `([^`\s]+)`')) { $chave = "$($achado.Groups[1].Value) $($achado.Groups[2].Value)"; $exigidos[$chave] = 1 + [int]$exigidos[$chave] }
+        $listados = 0
+        foreach ($quantidade in $exigidos.Values) { $listados += $quantidade }
+        if ($listados -ne $bloqueantesCodex) { Recusar "o parecer do Codex diz $bloqueantesCodex achado(s) P0/P1 mas lista ${listados}: rode a revisao do Codex de novo." }
+        $feitos = @{}
+        foreach ($descarte in [regex]::Matches($revisao, '(?im)^\s*Codex descartado:\s*(P[01])\s+(\S+)\s+-\s+\S')) { $chave = "$($descarte.Groups[1].Value.ToUpperInvariant()) $($descarte.Groups[2].Value)"; $feitos[$chave] = 1 + [int]$feitos[$chave] }
+        $pendentes = @($exigidos.Keys | Where-Object { [int]$feitos[$_] -lt $exigidos[$_] } | Sort-Object)
+        if ($pendentes.Count -gt 0) { Recusar "achado(s) P0/P1 do Codex sem descarte do arquiteto: $($pendentes -join '; '). Corrija ou registre 'Codex descartado: <P0|P1> <arquivo:linha> - <motivo>' no revisao.md." }
 
         # CI: verde segue; vermelho recusa; pendente espera ate $esperaCi segundos e devolve 4 (tente de novo).
         $relogio = [Diagnostics.Stopwatch]::StartNew()
