@@ -48,6 +48,10 @@ class Saude extends Component
                 $this->horizon($supervisores),
                 $this->agendador(),
                 $this->roboAutorizadas($robo),
+                $this->roboSimples('Robô das Contingências', 'receipt_long', 'contingencias', 'WALLE_CONTINGENCIAS_ATIVO'),
+                $this->roboSimples('Robô do Sentinela', 'monitor_heart', 'sentinela', 'WALLE_SENTINELA_ATIVO'),
+                $this->roboSimples('Robô do CleanTax', 'verified', 'cleantax', 'WALLE_CLEANTAX_ATIVO'),
+                $this->roboSimples('Robô das Tarefas agendadas', 'event_repeat', 'tarefas', 'WALLE_TAREFAS_ATIVO'),
             ],
             'conferidoEm' => now(),
         ]);
@@ -126,6 +130,23 @@ class Saude extends Component
             'icone' => 'schedule',
             'ok' => $segundos < 120,
             'detalhe' => "Última batida há {$segundos} s ({$batida->format('H:i:s')})",
+        ];
+    }
+
+    /**
+     * Robô sem pausa própria: desligado no .env ou ligado.
+     *
+     * @return array{nome: string, icone: string, ok: bool, detalhe: string}
+     */
+    private function roboSimples(string $nome, string $icone, string $bloco, string $variavel): array
+    {
+        $ligado = (bool) config("walle.{$bloco}.ativo");
+
+        return [
+            'nome' => $nome,
+            'icone' => $icone,
+            'ok' => true,
+            'detalhe' => $ligado ? 'Ligado neste servidor' : "Desligado neste servidor ({$variavel}=false)",
         ];
     }
 

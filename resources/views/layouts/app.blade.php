@@ -24,8 +24,15 @@
             <x-ui.menu-item rota="autorizadas" icone="verified">Autorizadas</x-ui.menu-item>
             <x-ui.menu-item rota="sactus" icone="dns">Sactus</x-ui.menu-item>
             <x-ui.menu-item rota="concorrentes" icone="query_stats">Concorrentes</x-ui.menu-item>
+            <x-ui.menu-item rota="relatorios" icone="analytics">Relatórios</x-ui.menu-item>
+            <x-ui.menu-item rota="sentinela" icone="monitor_heart">Sentinela</x-ui.menu-item>
+            <x-ui.menu-item rota="clean-tax" icone="verified">CleanTax</x-ui.menu-item>
             @can('admin')
                 <x-ui.menu-item rota="conhecimento" icone="neurology">Cérebro do RAG</x-ui.menu-item>
+                {{-- Programação: só para admin --}}
+                <p class="mt-2 px-3 text-xs text-on-surface-variant" x-bind:class="recolhido && 'lg:hidden'">Programação</p>
+                <x-ui.menu-item rota="ferramentas" icone="build">Ferramentas</x-ui.menu-item>
+                <x-ui.menu-item rota="crontab" icone="schedule">Crontab</x-ui.menu-item>
             @endcan
             <x-ui.menu-item rota="saude" icone="monitor_heart">Saúde do sistema</x-ui.menu-item>
             <x-ui.menu-item href="/horizon" icone="stacks" target="_blank">Filas (Horizon)</x-ui.menu-item>
