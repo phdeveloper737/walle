@@ -4,10 +4,10 @@
     "origem":  "PLAN 6.1",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0015-tela-de-relatorios-clientes-contingencia",
-    "pr":  0,
+    "pr":  29,
     "base":  "f9430506c5775cd705877690285238713c2076c8",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 04:16:17",
                         "tipo":  "commit",
                         "detalhe":  "T-0015: Tela de Relatorios: Clientes, Contingencia NFC-e e Motivos"
+                    },
+                    {
+                        "quando":  "2026-10-27 04:16:25",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #29 aberto"
                     }
                 ]
 }
