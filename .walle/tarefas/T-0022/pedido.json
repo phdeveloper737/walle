@@ -1,0 +1,7 @@
+{
+    "titulo":  "Crontab: Cron Control Center",
+    "origem":  "PLAN 6.7",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Criar app/Livewire/Crontab.php e resources/views/livewire/crontab.blade.php listando cada rotina do routes/console.php com nome, frequencia, proxima execucao e estado ligada ou desligada. Rota e menu ficam para a Fase 7."
+}

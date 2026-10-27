@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0022",
+    "titulo":  "Crontab: Cron Control Center",
+    "origem":  "PLAN 6.7",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0022-crontab-cron-control-center",
+    "pr":  0,
+    "base":  "16a81056753f6c1bc6d9516e832a1e0a8d52f522",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 07:04:14",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0022-crontab-cron-control-center a partir de 16a81056753f6c1bc6d9516e832a1e0a8d52f522"
+                    }
+                ]
+}
