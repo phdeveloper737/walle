@@ -15,6 +15,11 @@
                         "quando":  "2026-10-27 12:26:25",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0029-atualizar-tarefas-com-versoes-antigas-do a partir de 5a5532ab14ae643957580733b02618651e0b9c8c"
+                    },
+                    {
+                        "quando":  "2026-10-27 12:34:53",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0029: Atualizar branches antigos a partir do main"
                     }
                 ]
 }
