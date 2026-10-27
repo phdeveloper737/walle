@@ -4,10 +4,10 @@
     "origem":  "PLAN 6.5",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0018-painel-do-cleantax",
-    "pr":  0,
+    "pr":  32,
     "base":  "1d7b43d3cb4c2ada2e3cc178fc160a88feabca3e",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 05:21:24",
                         "tipo":  "commit",
                         "detalhe":  "T-0018: Painel do CleanTax"
+                    },
+                    {
+                        "quando":  "2026-10-27 05:21:34",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #32 aberto"
                     }
                 ]
 }
