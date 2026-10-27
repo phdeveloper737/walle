@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario",
     "tipo":  "feature",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0020-componente-de-area-de-texto-do-walle-ui",
-    "pr":  0,
+    "pr":  34,
     "base":  "0f202cc6d063211a985eb4e38b39290187ba17ab",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 06:24:19",
                         "tipo":  "commit",
                         "detalhe":  "T-0020: walle-ui: componente de area de texto"
+                    },
+                    {
+                        "quando":  "2026-10-27 06:24:26",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #34 aberto"
                     }
                 ]
 }
