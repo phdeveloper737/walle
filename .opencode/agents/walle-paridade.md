@@ -1,7 +1,6 @@
 ---
 description: 'QA de paridade entre o walle e o newsuporte/220. Captura amostras reais no testes220 (somente leitura), monta fixtures em tests/Fixtures/legado e escreve testes que provam que o walle grava, calcula e envia exatamente o mesmo que o 220 com os mesmos dados. Não corrige o código da aplicação; relata as divergências. Use para as tasks do PLAN.md com o papel "QA — paridade com o newsuporte" (12.x).'
 mode: subagent
-model: anthropic/claude-sonnet-5-5
 permission:
   edit: allow
   webfetch: deny

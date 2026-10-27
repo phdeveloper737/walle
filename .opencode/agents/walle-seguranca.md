@@ -1,7 +1,6 @@
 ---
 description: 'Backend Laravel do walle para funcionalidades sensíveis. Cobre SQL manual nos clientes (só admin com senha confirmada antes de conectar), conversão de certificado inteiramente em memória, a trava que mantém o Help Desk somente leitura e revisão de riscos (segredos, autorização, auditoria). Use para as tasks do PLAN.md com o papel "Backend Laravel — segurança" (8.3, 10.1) ou quando uma mudança mexer em autenticação, autorização, segredos, certificados ou proteção de bancos externos.'
 mode: subagent
-model: anthropic/claude-opus-5-5
 permission:
   edit: allow
   webfetch: deny
