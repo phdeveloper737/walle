@@ -1,0 +1,7 @@
+{
+    "titulo":  "Task Scheduler: robo que executa as queries agendadas nos clientes",
+    "origem":  "PLAN 3.5",
+    "tipo":  "plano",
+    "dono":  "walle-robos",
+    "resumo":  "Porta task.scheduler.bot.php do 220 para RoboTarefas e Job RodarTarefasAgendadas, executando task_scheduler_querys nos clientes e gravando task_scheduler_querys_log, desligado por padrao."
+}

@@ -22,6 +22,20 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
   - Retomada de 24/10/2026, após implementar a task 3.1: Pint dos quatro PHP da task e PHPStan completo passaram; `docker exec -e DB_DATABASE=walle_testes walle-app ./vendor/bin/pest tests/Unit tests/Feature tests/Migrations --compact` terminou com exit 0, `243 passed (1033 assertions)`, em 257,54 s. As nove falhas anteriores foram encerradas; o RAG não exigiu alterações adicionais.
 
 
+### T-0008 — Painel do cérebro do RAG
+
+Pedido explícito de 27/10/2026. Painel interno em /conhecimento, com rota e menu para admin,
+leitura do índice existente e grafo de similaridade. Nenhuma alteração na captura dos agentes.
+
+Entregue no mesmo PR da T-0009 por decisão do usuário de 27/10/2026: o trabalho das duas tarefas
+ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separar os branches.
+
+- [x] Leitura somente leitura do SQLite existente, incluindo dados recentes do WAL, sem criar o banco ausente.
+- [x] Memórias paginadas, agentes, categorias, última indexação e filtros com seleção do conteúdo escapado.
+- [x] Grafo com conexões por similaridade real dos embeddings, limites explícitos e alternativa acessível.
+- [x] Autorização de admin na rota e nas interações; índice indisponível e filtros sem resultados tratados.
+- [x] Pint, PHPStan, testes do módulo, build e gate completo válido para o commit; revisão e CI conferidos pelo `integrar` da T-0009.
+
 ## Sprint 1 — Tabelas locais do 220 e importação dos dados (`docker exec walle-app ./vendor/bin/pest tests/Migrations tests/Feature/ImportarSuporteTest.php` passa)
 
 ### Fase 1 — Tabelas locais do 220 · verificação: `docker exec walle-app ./vendor/bin/pest tests/Migrations`
@@ -129,8 +143,9 @@ fases de migração do 220; não altera sua numeração nem autoriza tarefas fun
 - Input: models da task 1.5 e `ConectorDeCliente`
 - Output: `app/Ferramentas/RoboTarefas.php` (`rodarPendentes(): void`) que executa as queries agendadas de `task_scheduler_querys` no banco de cada cliente e grava o resultado em `task_scheduler_querys_log`; `app/Jobs/RodarTarefasAgendadas.php`
 - Testes críticos:
-  - [ ] `tests/Feature/Ferramentas/RoboTarefasTest.php`: uma query agendada para agora roda no cliente falso uma vez e gera um log com o resultado
-  - [ ] erro de SQL no cliente vira log de erro e não reexecuta a query no mesmo ciclo
+  - [x] `tests/Feature/Ferramentas/RoboTarefasTest.php`: uma query agendada para agora roda no cliente falso uma vez e gera um log com o resultado
+  - [x] erro de SQL no cliente vira log de erro e não reexecuta a query no mesmo ciclo
+- Entregue na T-0009, junto com o painel da T-0008 (decisão do usuário de 27/10/2026). Agenda, configuração (`walle.tarefas.*`) e fila ficam para a task 5.1.
 
 ### Fase 5 — Ligar os robôs no agendador e nas filas · conclui com `docker exec walle-app ./vendor/bin/pest --filter=Agendador && docker exec walle-app php artisan schedule:list`
 > Dependências: Fase 3
