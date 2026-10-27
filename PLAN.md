@@ -213,8 +213,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: models da task 1.5
 - Output: `app/Livewire/Ferramentas.php` com `ABAS` `querys` e `relatorio` (criar, editar, ativar/desativar queries — só admin com `ConfirmaSenha`, métodos em `ACOES_COM_SENHA`) e `resources/views/livewire/ferramentas/{querys,relatorio}.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/Ferramentas/PainelFerramentasTest.php`: admin cria uma query depois de confirmar a senha e ela aparece na lista com `Auditoria`
-  - [ ] usuário que não é admin recebe `403` ao salvar
+  - [x] `tests/Feature/Ferramentas/PainelFerramentasTest.php`: admin cria uma query depois de confirmar a senha e ela aparece na lista com `Auditoria`
+  - [x] usuário que não é admin recebe `403` ao salvar
+- Decisões da 6.6: query nova nasce desativada (o 220 usa o default do banco); editar pede senha, porque carrega o SQL no formulário; a lista não mostra o SQL. A auditoria guarda só o id da query. Execução nos clientes é da 8.3; rota e menu, da 7.1.
 
 #### Task 6.7 — Crontab (substitui `crontab/index.php`, Cron Control Center)
 - Agent: Frontend Livewire (walle-ui)
