@@ -4,10 +4,10 @@
     "origem":  "PLAN 3.5",
     "tipo":  "plano",
     "dono":  "walle-robos",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0009-task-scheduler-robo-que-executa-as-queri",
-    "pr":  0,
+    "pr":  23,
     "base":  "644acf04071ec2425d0e33abf83a772aa85655e7",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-27 01:17:13",
                         "tipo":  "commit",
                         "detalhe":  "T-0009: Task Scheduler e painel do cérebro do RAG (T-0008)"
+                    },
+                    {
+                        "quando":  "2026-10-27 01:24:57",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #23 aberto"
                     }
                 ]
 }
