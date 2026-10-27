@@ -1,0 +1,7 @@
+{
+    "titulo":  "Remover cliente da lista de contingencias",
+    "origem":  "PLAN 8.2",
+    "tipo":  "plano",
+    "dono":  "walle-dados",
+    "resumo":  "Cria RemocaoDeCliente (remover(int clienteId): int, em transacao, apaga as vendas e os itens do cliente em contingencias_versatus_venda) e o botao na lista de Livewire Contingencias, so para admin com ConfirmaSenha e Auditoria."
+}
