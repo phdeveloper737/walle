@@ -1,0 +1,7 @@
+{
+    "titulo":  "Harness: Codex revisa o PR em modo somente leitura",
+    "origem":  "pedido do usuario em 27/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Script .claude/hooks/revisao-codex.ps1 roda codex exec review --base origin/main em sandbox read-only e grava .walle/local/T-NNNN/revisao-codex.md; o orquestrador roda o script depois do gate e entrega os achados ao walle-arquiteto, que confirma ou descarta cada um no parecer. Consultivo: o integrar continua exigindo so o parecer do arquiteto."
+}

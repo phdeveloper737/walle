@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0010",
+    "titulo":  "Harness: Codex revisa o PR em modo somente leitura",
+    "origem":  "pedido do usuario em 27/10/2026",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0010-harness-codex-revisa-o-pr-em-modo-soment",
+    "pr":  0,
+    "base":  "d725a09a67d379132d04868c6537615a4cd07bdd",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 01:41:04",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0010-harness-codex-revisa-o-pr-em-modo-soment a partir de d725a09a67d379132d04868c6537615a4cd07bdd"
+                    }
+                ]
+}
