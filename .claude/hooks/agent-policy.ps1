@@ -110,7 +110,9 @@ try {
         if ($politica.tipo -eq 'orquestrador' -and $shell) {
             $tarefa = '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/tarefa\.ps1 -Acao '
             if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|retomar|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
-            Bloquear 'O orquestrador so roda .claude/hooks/tarefa.ps1 com uma acao e o id da tarefa; o resto e delegado aos especialistas.'
+            # Revisao consultiva do Codex (somente leitura), decisao do usuario de 27/10/2026.
+            if ($comando -cmatch '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/revisao-codex\.ps1 -Tarefa T-[0-9]{4}\z') { exit 0 }
+            Bloquear 'O orquestrador so roda .claude/hooks/tarefa.ps1 (acao e id da tarefa) e .claude/hooks/revisao-codex.ps1 (id da tarefa); o resto e delegado aos especialistas.'
         }
         if ($politica.tipo -eq 'operacao' -and $edicao) { Bloquear 'O walle-migracao nao edita arquivos; so roda os comandos fixos de migracao do Docker.' }
         if ($politica.tipo -eq 'verificacao' -and $edicao) { Bloquear 'O verificador le e executa validadores; nao edita arquivos.' }

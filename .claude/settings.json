@@ -46,6 +46,7 @@
             "Edit(./**)",
             "Write(./**)",
             "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tarefa.ps1:*)",
+            "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/revisao-codex.ps1:*)",
             "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1:*)",
             "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tests/agent-policy.Tests.ps1)",
             "Bash(docker run --rm -v C:/docker/walle:/app -w /app node:24-alpine node --test .opencode/plugin/agent-hooks.test.mjs)",

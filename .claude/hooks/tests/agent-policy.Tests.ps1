@@ -246,6 +246,62 @@ foreach ($comando in @(($baseTarefa + 'proxima'), ($baseTarefa + 'status'), ($ba
 foreach ($comando in @(($baseTarefa + 'abrir'), ($baseTarefa + 'abrir -Tarefa T-1'), ($baseTarefa + 'integrar -Tarefa T-0001 -Raiz C:/outro'), ($baseTarefa + 'apagar -Tarefa T-0001'), ($baseTarefa + 'ciclo -Tarefa T-0001'), ($baseTarefa + 'integrar -Tarefa t-0001'), 'git push', 'gh pr merge 1 --squash', 'docker exec walle-app ./vendor/bin/pest')) {
     Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 2
 }
+# Orquestrador: alem do tarefa.ps1, so o revisao-codex.ps1 com o id da tarefa.
+$baseCodex = 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/revisao-codex.ps1'
+Conferir 'walle-orquestrador' 'Bash' @{command=($baseCodex + ' -Tarefa T-0010')} 0
+foreach ($comando in @($baseCodex, ($baseCodex + ' -Tarefa T-1'), ($baseCodex + ' -Tarefa t-0010'), ($baseCodex + ' -Tarefa T-0010 -Raiz C:/outro'), ($baseCodex + ' -Tarefa T-0010; git push'), 'codex exec review --base main', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/outro.ps1 -Tarefa T-0010')) {
+    Conferir 'walle-orquestrador' 'Bash' @{command=$comando} 2
+}
+# revisao-codex.ps1 num repositorio temporario, com um Codex falso que grava o parecer no -o (caminho fixo da tarefa).
+$repoCodex = Join-Path ([IO.Path]::GetTempPath()) ('walle-codex-' + [guid]::NewGuid().ToString('N'))
+$codexAnterior = $env:WALLE_CODEX
+try {
+    New-Item -ItemType Directory -Path (Join-Path $repoCodex '.walle/tarefas/T-0001') -Force | Out-Null
+    [IO.File]::WriteAllText((Join-Path $repoCodex '.walle/tarefas/T-0001/estado.json'), '{"tarefa":"T-0001","branch":"tarefa/T-0001-teste"}')
+    & git -C $repoCodex init -q -b main 2>&1 | Out-Null
+    & git -C $repoCodex -c user.name=t -c user.email=t@t commit -q --allow-empty -m base 2>&1 | Out-Null
+    & git -C $repoCodex checkout -q -b tarefa/T-0001-teste 2>&1 | Out-Null
+    & git -C $repoCodex add .walle 2>&1 | Out-Null
+    & git -C $repoCodex -c user.name=t -c user.email=t@t commit -q -m tarefa 2>&1 | Out-Null
+    $head = (& git -C $repoCodex rev-parse HEAD).Trim()
+    $falso = Join-Path $repoCodex 'codex-falso.cmd'
+    [IO.File]::WriteAllText($falso, "@echo off`r`nif `"%WALLE_TEST_CODEX_EXIT%`"==`"1`" exit /b 1`r`necho P1 achado falso> `".walle\local\T-0001\revisao-codex.tmp`"`r`nexit /b 0`r`n")
+    $argumentos = " -Raiz `"$repoCodex`""
+
+    $env:WALLE_CODEX = $falso
+    foreach ($caso in @(@{ a = ' -Tarefa T-1'; c = 2 }, @{ a = ' -Tarefa T-0002'; c = 2 })) {
+        $resultado = Rodar 'revisao-codex.ps1' ($caso.a + $argumentos) ''
+        if ($resultado.codigo -ne $caso.c) { throw "revisao-codex $($caso.a): esperado $($caso.c), recebido $($resultado.codigo): $($resultado.saida)" }
+        $script:casos++
+    }
+    $env:WALLE_CODEX = Join-Path $repoCodex 'nao-existe.cmd'
+    $resultado = Rodar 'revisao-codex.ps1' (' -Tarefa T-0001' + $argumentos) ''
+    if ($resultado.codigo -ne 2 -or $resultado.saida -notmatch 'Codex indisponivel') { throw "revisao-codex sem Codex: $($resultado.codigo) $($resultado.saida)" }
+    $script:casos++
+
+    $env:WALLE_CODEX = $falso
+    $resultado = Rodar 'revisao-codex.ps1' (' -Tarefa T-0001' + $argumentos) ''
+    $parecer = Join-Path $repoCodex '.walle/local/T-0001/revisao-codex.md'
+    if ($resultado.codigo -ne 0) { throw "revisao-codex ok: esperado 0, recebido $($resultado.codigo): $($resultado.saida)" }
+    $texto = [IO.File]::ReadAllText($parecer)
+    if (-not $texto.StartsWith("Commit revisado: $head`n") -or $texto -notmatch 'P1 achado falso' -or (Test-Path (Join-Path $repoCodex '.walle/local/T-0001/revisao-codex.tmp'))) { throw "revisao-codex.md inesperado: $texto" }
+    $script:casos++
+
+    $env:WALLE_TEST_CODEX_EXIT = '1'
+    $resultado = Rodar 'revisao-codex.ps1' (' -Tarefa T-0001' + $argumentos) ''
+    if ($resultado.codigo -ne 1) { throw "revisao-codex com Codex falhando: esperado 1, recebido $($resultado.codigo): $($resultado.saida)" }
+    $script:casos++
+
+    Remove-Item Env:WALLE_TEST_CODEX_EXIT
+    & git -C $repoCodex checkout -q main 2>&1 | Out-Null
+    $resultado = Rodar 'revisao-codex.ps1' (' -Tarefa T-0001' + $argumentos) ''
+    if ($resultado.codigo -ne 2) { throw "revisao-codex fora do branch: esperado 2, recebido $($resultado.codigo): $($resultado.saida)" }
+    $script:casos++
+} finally {
+    Remove-Item Env:WALLE_TEST_CODEX_EXIT -ErrorAction SilentlyContinue
+    if ($codexAnterior) { $env:WALLE_CODEX = $codexAnterior } else { Remove-Item Env:WALLE_CODEX -ErrorAction SilentlyContinue }
+    Remove-Item -LiteralPath $repoCodex -Recurse -Force -ErrorAction SilentlyContinue
+}
 foreach ($arquivo in @('.walle/local/T-0001/commit.txt', '.walle/local/T-0001/notas.md', 'PLAN.md', 'docs/features/x/relatorio.md')) {
     Conferir 'walle-orquestrador' 'Write' @{file_path=$arquivo} 0
 }
