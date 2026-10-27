@@ -42,6 +42,7 @@ function Limpar {
 try {
     [IO.File]::WriteAllText((Join-Path $temporario 'docker.cmd'), (@(
         '@echo off'
+        'echo Detalhe completo do Pest falso'
         'echo Tests: falso %*'
         'if defined WALLE_TEST_DOCKER_TOCA echo mudou> "%WALLE_TEST_DOCKER_TOCA%"'
         'if defined WALLE_TEST_GATE_COPIA copy /y "%WALLE_TEST_GATE_SAIDA%" "%WALLE_TEST_GATE_COPIA%" >nul'
@@ -67,6 +68,11 @@ try {
     Garantir ($e.valida_para_commit -eq ($e.verde -and $e.arvore_igual_ao_commit)) 'valida_para_commit = verde e arvore do commit'
     if (-not $pendente) { Garantir ($e.arvore -eq $arvoreDoCommit) 'sem pendencias, arvore = arvore do commit (inclusive bit de executavel)' }
     Garantir (Test-Path -LiteralPath (Join-Path $temporario 'historico.jsonl')) 'historico gravado'
+    Garantir (Test-Path -LiteralPath $e.saida_pest) 'saida completa do Pest referenciada na evidencia'
+    $conteudoPest = [IO.File]::ReadAllText($e.saida_pest)
+    Garantir ($conteudoPest -match 'Detalhe completo do Pest falso' -and $conteudoPest -match 'Tests: falso') 'saida preserva detalhes alem do resumo'
+    Garantir ([IO.File]::ReadAllText((Join-Path $temporario 'pest-ultimo.txt')) -eq $conteudoPest) 'atalho para ultimo Pest definitivo'
+    $primeiroLog = $e.saida_pest
 
     # 2. Gate parcial: as etapas pedidas passam (saida 0), mas nunca vale como evidencia.
     Limpar
@@ -84,6 +90,15 @@ try {
     $e = Evidencia
     Garantir ($e.verde -eq $false -and (($e.motivos -join ' ') -match 'etapas com falha: politicas, gate, tarefa')) "motivo com as etapas: $($e.motivos)"
 
+    # Pest falhando tambem preserva a saida completa, sem sobrescrever o arquivo de outra execucao.
+    Limpar
+    $env:WALLE_TEST_DOCKER_EXIT = '1'
+    $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida)
+    $e = Evidencia
+    Garantir ($r.codigo -eq 1 -and $e.saida_pest -ne $primeiroLog) 'Pest falhou com arquivo proprio'
+    Garantir ([IO.File]::ReadAllText($e.saida_pest) -match 'Detalhe completo do Pest falso') 'detalhe de falha preservado'
+    Garantir (Test-Path -LiteralPath $primeiroLog) 'log anterior continua preservado'
+
     # 4. Sem -Banco, vale WALLE_HOOK_TEST_DATABASE (sessao paralela); o -Banco explicito vence.
     Limpar
     $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t7'
@@ -93,6 +108,7 @@ try {
     Garantir ($e.preliminar -eq $true) 'gate de sessao paralela e preliminar'
     $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida, '-Banco', 'walle_testes_t9')
     Garantir ((Evidencia).banco -eq 'walle_testes_t9') '-Banco explicito vence'
+    Garantir (Test-Path -LiteralPath (Join-Path $temporario 'pest-ultimo-walle_testes_t9.txt')) 'ultimo Pest separado por banco'
 
     # 5. Banco fora de walle_testes(_tNN), inclusive por variavel ou com maiusculas, e etapa desconhecida:
     #    recusados com saida 2, antes de rodar ou gravar qualquer coisa.
@@ -144,6 +160,39 @@ try {
     $r = RodarGate @('-Etapas', 'pint', '-Saida', $saida)
     $durante = Get-Content -LiteralPath $copia -Raw | ConvertFrom-Json
     Garantir ($durante.verde -eq $false -and (($durante.motivos -join ' ') -match 'em andamento')) 'durante o gate a evidencia diz em andamento'
+
+    # Trava de evidencia: uma segunda execucao recusa sem apagar o resultado do dono.
+    Limpar
+    . "$raiz/.claude/hooks/trava-testes.ps1"
+    [IO.File]::WriteAllText($saida, '{"dono": "primeiro"}')
+    $trava = AbrirTravaWalle ('gate:' + [IO.Path]::GetFullPath($saida))
+    try {
+        $r = RodarGate @('-Etapas', 'pint', '-Saida', $saida)
+        Garantir ($r.codigo -eq 2 -and (Evidencia).dono -eq 'primeiro') 'gate concorrente nao sobrescreve evidencia'
+    } finally { FecharTravaWalle $trava }
+
+    # A mesma trava de banco e usada pelo Stop. Bancos diferentes continuam independentes.
+    Limpar
+    $trava = AbrirTravaWalle 'docker:walle-app:banco:walle_testes_t98765'
+    try {
+        $r = RodarGate @('-Etapas', 'pest', '-Banco', 'walle_testes_t98765', '-Saida', $saida)
+        Garantir ($r.codigo -eq 1 -and (Evidencia).valida_para_commit -eq $false) 'banco ocupado nao gera validacao'
+        Garantir ([IO.File]::ReadAllText((Evidencia).saida_pest) -match 'Banco de testes ocupado') 'banco ocupado nao chama Docker'
+        $r = RodarGate @('-Etapas', 'pest', '-Banco', 'walle_testes_t98766', '-Saida', $saida)
+        Garantir ($r.codigo -eq 0) 'banco diferente pode validar'
+    } finally { FecharTravaWalle $trava }
+    $r = RodarGate @('-Etapas', 'pest', '-Banco', 'walle_testes_t98765', '-Saida', $saida)
+    Garantir ($r.codigo -eq 0) 'banco liberado depois da validacao'
+
+    # Falha na gravacao dos logs impede uma etapa Pest verde.
+    Limpar
+    $pastaSemLog = Join-Path $temporario 'sem-log'
+    [IO.Directory]::CreateDirectory($pastaSemLog) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $pastaSemLog 'pest'), 'arquivo bloqueia a pasta')
+    $saidaSemLog = Join-Path $pastaSemLog 'gate.json'
+    $r = RodarGate @('-Etapas', 'pest', '-Saida', $saidaSemLog)
+    $e = [IO.File]::ReadAllText($saidaSemLog) | ConvertFrom-Json
+    Garantir ($r.codigo -eq 1 -and $e.etapas[0].codigo -eq 1 -and $e.valida_para_commit -eq $false) 'sem log preservado, gate falha fechado'
 } finally {
     $env:PATH = $pathAnterior
     Limpar

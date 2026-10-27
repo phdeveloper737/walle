@@ -18,9 +18,9 @@
 ## Fase 2 — Ledger, retomada e Git automático
 
 - `.walle/tarefas/T-NNNN/` (`pedido.json` e `estado.json`): estado de cada tarefa (`em_execucao`, `em_revisao` ou `bloqueada`), dono, ciclos de correção, eventos, branch e PR. Versionado no branch da tarefa; integrada é a tarefa cuja pasta está no `origin/main`. Bloqueadas e abertas ficam visíveis pelos branches no origin: a retomada funciona em qualquer máquina.
-- `.claude/hooks/tarefa.ps1`: único caminho do orquestrador para o Git (`proxima`, `abrir`, `retomar`, `bloquear`, `commitar`, `publicar`, `integrar`, `status`). O `integrar` faz o merge só com gate `valida_para_commit` para o HEAD, revisão APROVADO do `walle-arquiteto` para o mesmo commit e CI verde, amarrado ao HEAD conferido; é idempotente. O `commitar` conta os ciclos depois do PR e bloqueia no terceiro. Recusa a Classificação Mercadológica.
+- `.claude/hooks/tarefa.ps1`: único caminho do orquestrador para o Git (`proxima`, `abrir`, `retomar`, `atualizar`, `bloquear`, `commitar`, `publicar`, `integrar`, `status`). O `integrar` faz o merge só com gate `valida_para_commit` para o HEAD, revisão APROVADO do `walle-arquiteto` para o mesmo commit e CI verde, amarrado ao HEAD conferido; é idempotente. O `commitar` conta os ciclos depois do PR e bloqueia no terceiro. Recusa a Classificação Mercadológica.
 - `/executar-plano`: tarefas do `PLAN.md` já estão aprovadas; o orquestrador segue em ordem de dependência e para só em decisão do usuário, bloqueio ou na seção manual.
-- `/retomar`: continua a partir do ledger.
+- `/retomar`: continua a partir do ledger. Branch de tarefa atrasado pode incorporar `origin/main` com `-Acao atualizar`: exige árvore limpa, aborta em conflito e preserva os ciclos de correção. Para tarefas anteriores à criação dessa ação, execute `atualizar` ainda no `main` atualizado: ele seleciona a tarefa e faz a incorporação no mesmo processo, mesmo que o branch tenha um script antigo. Falha antes do commit retorna ao `main` original; sucesso ou ausência de novidades deixa a tarefa selecionada. O novo HEAD exige novo gate e novas revisões.
 - `maxTurns` em todos os agentes.
 - Aceite: `claude --agent walle-orquestrador -p "/executar-plano ..."` executa uma tarefa pequena de ponta a ponta, sem intervenção, deixando ledger, gate, PR, revisão e merge como evidência.
 
@@ -41,6 +41,12 @@ Premissas: servidor de 2 a 4 vCPU, 4 a 8 GB de RAM, SSD, sem GPU; dezenas de mil
 
 - Hooks, gate e `tarefa.ps1` em PowerShell 7 (`pwsh`) ou Node; caminhos relativos ao projeto (sem `C:/...`); duplos de teste sem `.cmd`; CI só em Linux.
 - Aceite: o ciclo completo de uma tarefa roda num contêiner Linux, sem Windows.
+
+## Diagnóstico e concorrência das validações
+
+- Gate e Stop usam a mesma trava por banco de testes; se o banco estiver ocupado, a validação é recusada e deve ser repetida após a execução anterior terminar. O banco continua no padrão `walle_testes` ou `walle_testes_tNN`.
+- Cada execução do gate preserva a saída completa do Pest em `pest/<banco>/` na pasta da evidência e informa o caminho em `saida_pest`. O arquivo `pest-ultimo.txt` (ou com sufixo do banco) facilita o diagnóstico. Falha ao gravar a saída impede evidência válida.
+- Uma trava por arquivo de evidência impede que outro gate sobrescreva a execução em andamento. Essas travas não substituem o controle de memória nem a regra de um implementador por vez.
 
 ## Pendências da revisão da Fase 1 (para a Fase 4)
 

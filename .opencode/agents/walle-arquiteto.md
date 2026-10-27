@@ -1,7 +1,6 @@
 ---
 description: 'Arquiteto do walle, somente leitura. Antes de implementar uma task ambígua, escreve o contrato (comportamento exato do 220, limites, timeouts, textos, tabelas, arquivos afetados e riscos). Analisa conflitos entre o 220, o PLAN.md e as regras do projeto, propõe opções com recomendação e revisa um diff contra as regras do CLAUDE.md. Não edita arquivos, exceto o parecer de revisão do PR em .walle/local/T-NNNN/revisao.md. Use antes de tasks com "registrar no contrato antes de implementar", quando um agente bloquear por conflito ou para revisar uma fase antes do PR.'
 mode: subagent
-model: anthropic/claude-sonnet-5-5
 permission:
   edit: allow
   bash: deny

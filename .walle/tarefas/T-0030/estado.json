@@ -1,0 +1,40 @@
+{
+    "tarefa":  "T-0030",
+    "titulo":  "Agentes do OpenCode neutros em relacao ao provedor",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-harness",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0030-agentes-do-opencode-neutros-em-relacao-a",
+    "pr":  44,
+    "base":  "5bc0cf88694ea953012defab5b791f8d7b959ada",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 19:06:03",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0030-agentes-do-opencode-neutros-em-relacao-a a partir de 5bc0cf88694ea953012defab5b791f8d7b959ada"
+                    },
+                    {
+                        "quando":  "2026-10-27 19:10:19",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueio: nenhum agente pode editar .opencode/agents/walle-harness.md (a politica do walle-harness exclui a propria definicao e nenhum outro agente a cobre). 11 de 12 agentes ja tiveram a linha model removida. Decisao do usuario: remover a linha 4 (model: anthropic/claude-sonnet-5-5) de .opencode/agents/walle-harness.md a mao, ou autorizar outro caminho."
+                    },
+                    {
+                        "quando":  "2026-10-27 19:13:59",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario: removeu a mao a linha model de .opencode/agents/walle-harness.md. Os 12 agentes estao sem model. Seguir o fluxo normal."
+                    },
+                    {
+                        "quando":  "2026-10-27 19:14:05",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0030: Agentes do OpenCode neutros em relacao ao provedor"
+                    },
+                    {
+                        "quando":  "2026-10-27 19:14:13",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #44 aberto"
+                    }
+                ],
+    "notas_bloqueio":  "4844655f8dfb97ac8f0e66fc1afee5c7964da04ab0314c1b24b1c3deb27898b5"
+}

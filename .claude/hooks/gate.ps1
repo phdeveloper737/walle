@@ -116,6 +116,14 @@ function Gravar($Evidencia, [switch]$Historico) {
     if ($Historico) { [IO.File]::AppendAllText((Join-Path (Split-Path -Parent $Saida) 'historico.jsonl'), ($Evidencia | ConvertTo-Json -Depth 5 -Compress) + "`n", $utf8) }
 }
 
+. "$PSScriptRoot/trava-testes.ps1"
+$travaGate = $null
+try { $travaGate = AbrirTravaWalle ('gate:' + [IO.Path]::GetFullPath($Saida)) } catch {
+    [Console]::Error.WriteLine('[gate] Outra execucao usa esta evidencia ou a trava esta indisponivel. Aguarde terminar; nada foi sobrescrito.')
+    exit 2
+}
+
+try {
 $inicio = Get-Date
 $commit = ConsultarGit @('rev-parse', 'HEAD')
 $arvoreDoCommit = ConsultarGit @('rev-parse', 'HEAD^{tree}')
@@ -135,6 +143,7 @@ $evidencia = [ordered]@{
     inicio                 = $inicio.ToString('yyyy-MM-dd HH:mm:ss')
     fim                    = ''
     etapas                 = @()
+    saida_pest             = ''
 }
 # Grava ja no inicio: se o gate for interrompido, a evidencia anterior nao continua parecendo atual.
 Gravar $evidencia
@@ -145,7 +154,29 @@ foreach ($etapa in $listaEtapas) {
     $comando = $comandos[$etapa]
     Write-Output "[gate] $etapa ..."
     $relogio = [Diagnostics.Stopwatch]::StartNew()
-    $execucao = Rodar $comando
+    if ($etapa -ceq 'pest') {
+        $travaBanco = $null
+        try {
+            $travaBanco = AbrirTravaWalle "docker:walle-app:banco:$Banco"
+            $execucao = Rodar $comando
+        } catch {
+            $execucao = @{ codigo = 1; saida = @('Banco de testes ocupado ou trava indisponivel; validacao nao executada. Aguarde terminar e rode o gate novamente.') }
+        } finally { FecharTravaWalle $travaBanco }
+        try {
+            $pastaSaida = [IO.Path]::GetFullPath((Split-Path -Parent $Saida))
+            $pastaPest = Join-Path $pastaSaida "pest/$Banco"
+            [IO.Directory]::CreateDirectory($pastaPest) | Out-Null
+            $arquivoPest = Join-Path $pastaPest ((Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffffffZ') + '-' + [guid]::NewGuid().ToString('N') + '.txt')
+            $textoPest = ($execucao.saida -join [Environment]::NewLine) + [Environment]::NewLine
+            [IO.File]::WriteAllText($arquivoPest, $textoPest, $utf8)
+            $nomeUltimo = if ($Banco -ceq 'walle_testes') { 'pest-ultimo.txt' } else { "pest-ultimo-$Banco.txt" }
+            [IO.File]::WriteAllText((Join-Path $pastaSaida $nomeUltimo), $textoPest, $utf8)
+            $evidencia.saida_pest = $arquivoPest
+        } catch {
+            $execucao.codigo = 1
+            $execucao.saida = @($execucao.saida) + @('Falha ao preservar a saida completa do Pest; gate invalido.')
+        }
+    } else { $execucao = Rodar $comando }
     $relogio.Stop()
     $resultados += [ordered]@{
         nome      = $etapa
@@ -179,3 +210,4 @@ $veredito = if ($evidencia.verde) { 'VERDE' } elseif ($passou) { 'PARCIAL (etapa
 Write-Output "[gate] $veredito | arvore $arvoreFinal | igual ao commit: $($evidencia.arvore_igual_ao_commit) | valida para o commit: $($evidencia.valida_para_commit) | evidencia: $Saida"
 if ($passou) { exit 0 }
 exit 1
+} finally { FecharTravaWalle $travaGate }
