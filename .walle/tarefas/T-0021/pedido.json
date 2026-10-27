@@ -1,0 +1,7 @@
+{
+    "titulo":  "Ferramentas: Task Scheduler e relatorio refeito a partir do main",
+    "origem":  "PLAN 6.6",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Refaz a task 6.6 a partir do main (substitui a T-0019): tela Ferramentas com abas querys e relatorio, query guardada em base64, area de texto x-ui.area-texto, ConfirmaSenha, Auditoria e testes."
+}

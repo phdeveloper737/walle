@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0021",
+    "titulo":  "Ferramentas: Task Scheduler e relatorio refeito a partir do main",
+    "origem":  "PLAN 6.6",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0021-ferramentas-task-scheduler-e-relatorio-r",
+    "pr":  0,
+    "base":  "5938e40ad6a5be5bb8e3c2ef654d5da135413f94",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 06:41:48",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0021-ferramentas-task-scheduler-e-relatorio-r a partir de 5938e40ad6a5be5bb8e3c2ef654d5da135413f94"
+                    }
+                ]
+}
