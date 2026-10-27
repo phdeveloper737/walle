@@ -109,7 +109,7 @@ try {
         # Orquestrador: delega o trabalho; no terminal, so o ledger e o Git das tarefas (tarefa.ps1, acoes fixas).
         if ($politica.tipo -eq 'orquestrador' -and $shell) {
             $tarefa = '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/tarefa\.ps1 -Acao '
-            if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|retomar|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
+            if ($comando -cmatch ($tarefa + '(proxima|status)\z') -or $comando -cmatch ($tarefa + '(abrir|retomar|atualizar|bloquear|commitar|publicar|integrar|status) -Tarefa T-[0-9]{4}\z')) { exit 0 }
             # Revisao obrigatoria do Codex (somente leitura), decisao do usuario de 27/10/2026.
             if ($comando -cmatch '^powershell -NoProfile -ExecutionPolicy Bypass -File \.claude/hooks/revisao-codex\.ps1 -Tarefa T-[0-9]{4}\z') { exit 0 }
             Bloquear 'O orquestrador so roda .claude/hooks/tarefa.ps1 (acao e id da tarefa) e .claude/hooks/revisao-codex.ps1 (id da tarefa); o resto e delegado aos especialistas.'
@@ -244,9 +244,16 @@ try {
             $banco = $env:WALLE_HOOK_TEST_DATABASE
         }
         $argumentos = @('exec', '-e', "DB_DATABASE=$banco", 'walle-app', './vendor/bin/pest')
-        & docker @argumentos
-        if ($LASTEXITCODE -ne 0) {
-            Bloquear 'Os testes falharam ou nao puderam executar. Corrija o que e do seu dominio ou relate a pendencia; validacao nao concluida. Se a falha nao for sua, relate; na proxima parada o hook libera e a validacao fica PENDENTE.'
+        . "$PSScriptRoot/trava-testes.ps1"
+        $travaBanco = $null
+        try {
+            try { $travaBanco = AbrirTravaWalle "docker:walle-app:banco:$banco" } catch { Bloquear 'Banco de testes ocupado por outra validacao. Aguarde o gate ou o Stop terminar e tente novamente; validacao PENDENTE.' }
+            & docker @argumentos
+            if ($LASTEXITCODE -ne 0) {
+                Bloquear 'Os testes falharam ou nao puderam executar. Corrija o que e do seu dominio ou relate a pendencia; validacao nao concluida. Se a falha nao for sua, relate; na proxima parada o hook libera e a validacao fica PENDENTE.'
+            }
+        } finally {
+            FecharTravaWalle $travaBanco
         }
     } finally { Pop-Location }
     Remove-Item -LiteralPath $marcador -Force -ErrorAction SilentlyContinue

@@ -3,12 +3,12 @@
 # esta no origin/main foi integrada (so chega la por merge); as demais vivem no branch tarefa/T-NNNN-<slug>.
 # Local em .walle/local/T-NNNN/ (ignorado pelo git): pedido.json (antes de abrir), commit.txt, pr.md e notas.md,
 # escritos pelo orquestrador, e revisao.md, escrito so pelo walle-arquiteto.
-# Acoes: proxima | abrir | retomar | bloquear | commitar | publicar | integrar | status
+# Acoes: proxima | abrir | retomar | atualizar | bloquear | commitar | publicar | integrar | status
 # Saida: 0 = ok; 2 = recusado (pre-condicao); 3 = bloqueada (terceiro ciclo de correcao); 4 = CI ainda pendente
 # (rode integrar de novo); 1 = erro inesperado.
 # Sem acentos: o PowerShell 5.1 le este arquivo como ANSI.
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('proxima', 'abrir', 'retomar', 'bloquear', 'commitar', 'publicar', 'integrar', 'status')][string]$Acao,
+    [Parameter(Mandatory = $true)][ValidateSet('proxima', 'abrir', 'retomar', 'atualizar', 'bloquear', 'commitar', 'publicar', 'integrar', 'status')][string]$Acao,
     [string]$Tarefa,
     # So para os testes (repositorio temporario); a politica dos agentes nao aceita este parametro.
     [string]$Raiz
@@ -215,6 +215,42 @@ switch ($Acao) {
             CommitarLedger "Ledger: $Tarefa desbloqueada" $estado
         }
         Write-Output "[tarefa] $Tarefa retomada no branch $($estado.branch) (estado $($estado.estado), PR #$($estado.pr), ciclos $($estado.ciclos))"
+        exit 0
+    }
+
+    'atualizar' {
+        ExigirTarefa
+        $estado = Estado
+        ExigirBranch $estado
+        if ($estado.estado -ceq 'bloqueada') { Recusar "a tarefa $Tarefa esta bloqueada; registre a decisao e use retomar." }
+        if ((Repo @('status', '--porcelain')).texto) { Recusar 'ha alteracoes pendentes; commite o trabalho antes de atualizar.' }
+        if (-not (TemOrigem)) { Recusar 'atualizar exige o remoto origin.' }
+        try { Repo @('fetch', '-q', 'origin') | Out-Null } catch { Recusar 'nao foi possivel buscar origin; nenhuma atualizacao foi aplicada.' }
+        if (NoMain $Tarefa) { Recusar "$Tarefa ja foi integrada no main." }
+        if ((Repo @('rev-parse', '--verify', 'origin/main') -PodeFalhar).codigo -ne 0) { Recusar 'origin/main nao existe; nenhuma atualizacao foi aplicada.' }
+        $ancestral = Repo @('merge-base', '--is-ancestor', 'origin/main', 'HEAD') -PodeFalhar
+        if ($ancestral.codigo -eq 0) {
+            Write-Output "[tarefa] $Tarefa ja contem origin/main; nenhuma alteracao."
+            exit 0
+        }
+        if ($ancestral.codigo -ne 1) { Recusar 'nao foi possivel comparar o branch com origin/main.' }
+        $baseNova = (Repo @('rev-parse', 'origin/main')).texto
+        # Sem commit automatico: o merge e o evento entram juntos, sem contar um ciclo de correcao.
+        $merge = Repo @('merge', '--no-commit', '--no-ff', 'origin/main') -PodeFalhar
+        if ($merge.codigo -ne 0) {
+            if ((Repo @('rev-parse', '--verify', '--quiet', 'MERGE_HEAD') -PodeFalhar).codigo -eq 0) { Repo @('merge', '--abort') | Out-Null }
+            Recusar 'origin/main tem conflitos com a tarefa; o merge foi cancelado e o trabalho original foi preservado.'
+        }
+        try {
+            Registrar $estado 'atualizada' "origin/main $baseNova incorporado; ciclos preservados em $($estado.ciclos)."
+            Repo @('add', '-A') | Out-Null
+            Repo @('commit', '-q', '-m', "Ledger: $Tarefa atualizada com main") | Out-Null
+        } catch {
+            if ((Repo @('rev-parse', '--verify', '--quiet', 'MERGE_HEAD') -PodeFalhar).codigo -eq 0) { Repo @('merge', '--abort') | Out-Null }
+            throw
+        }
+        Repo @('push', '-q', '-u', 'origin', $estado.branch) | Out-Null
+        Write-Output "[tarefa] $Tarefa atualizada com origin/main $baseNova (ciclos $($estado.ciclos)); rode gate e revisoes para o novo HEAD."
         exit 0
     }
 

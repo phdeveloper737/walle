@@ -1,0 +1,7 @@
+{
+    "titulo":  "Corrigir isolamento e evidencias do harness",
+    "origem":  "Pedido do usuario de 27/10/2026 e decisoes-pendentes A1 A2 A4 A5",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Registrar as permissoes ja aprovadas pelo usuario, sincronizar definicoes, preservar saida do Pest, serializar validacoes por banco, acrescentar atualizacao segura do branch via ledger e separar as alteracoes pendentes da T-0027. Sem enfraquecer gate, revisoes ou CI."
+}

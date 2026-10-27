@@ -330,6 +330,82 @@ try {
     $noCommit = @((G @('show', '--name-only', '--format=', 'HEAD')) -split "`n" | Where-Object { $_.Trim() })
     Garantir ($noCommit.Count -gt 0 -and -not @($noCommit | Where-Object { $_ -notlike '.walle/tarefas/T-0003/*' }).Count) "commit do desbloqueio so com o ledger: $($noCommit -join ', ')"
     Garantir ((G @('diff', '--cached', '--name-only')) -eq 'preparado.txt' -and (G @('diff', '--name-only')) -match 'trabalho\.txt') 'stage e trabalho pendente preservados'
+
+    # Atualizacao usa outro clone isolado: nada do trabalho pendente acima e tocado.
+    $repo = Join-Path $temporario 'atualizacao'
+    $mainAtualizacao = Join-Path $temporario 'main-atualizacao'
+    & git -c core.autocrlf=false clone -q $origem $repo
+    G @('config', 'user.email', 'teste@walle') | Out-Null
+    G @('config', 'user.name', 'Teste') | Out-Null
+    G @('config', 'core.autocrlf', 'false') | Out-Null
+    [IO.File]::WriteAllText((Join-Path $repo 'comum.txt'), "base`n", $utf8)
+    G @('add', 'comum.txt') | Out-Null
+    G @('commit', '-q', '-m', 'base para atualizar') | Out-Null
+    G @('push', '-q', 'origin', 'main') | Out-Null
+    & git -c core.autocrlf=false clone -q $origem $mainAtualizacao
+    & git -C $mainAtualizacao config user.email teste@walle
+    & git -C $mainAtualizacao config user.name Teste
+    & git -C $mainAtualizacao config core.autocrlf false
+    Local 'T-0040' 'pedido.json' '{"titulo": "Atualizacao", "origem": "pedido", "tipo": "harness"}'
+    Espera (Tarefa 'abrir' 'T-0040') 0 'abrir tarefa de atualizacao'
+    $branchAtualizacao = G @('branch', '--show-current')
+    $estadoAtualizacao = Join-Path $repo '.walle/tarefas/T-0040/estado.json'
+    $e = Estado 'T-0040'
+    $e.ciclos = 2
+    [IO.File]::WriteAllText($estadoAtualizacao, ($e | ConvertTo-Json -Depth 6), $utf8)
+    G @('add', '.walle/tarefas/T-0040/estado.json') | Out-Null
+    G @('commit', '-q', '-m', 'fixture com dois ciclos') | Out-Null
+    $headAtualizacao = G @('rev-parse', 'HEAD')
+    Espera (Tarefa 'atualizar' 'T-0040') 0 'main ja incorporado'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and (Estado 'T-0040').ciclos -eq 2) 'atualizar sem novidade e idempotente'
+    [IO.File]::WriteAllText((Join-Path $repo 'pendente.txt'), "nao perder`n", $utf8)
+    Espera (Tarefa 'atualizar' 'T-0040') 2 'atualizar recusa arvore suja'
+    Garantir ([IO.File]::ReadAllText((Join-Path $repo 'pendente.txt')) -eq "nao perder`n" -and (G @('rev-parse', 'HEAD')) -eq $headAtualizacao) 'recusa preserva trabalho e HEAD'
+    Remove-Item -LiteralPath (Join-Path $repo 'pendente.txt')
+    G @('switch', '-q', 'main') | Out-Null
+    Espera (Tarefa 'atualizar' 'T-0040') 2 'atualizar recusa branch de outra tarefa'
+    G @('switch', '-q', $branchAtualizacao) | Out-Null
+
+    [IO.File]::WriteAllText((Join-Path $mainAtualizacao 'componente.txt'), "componente do main`n", $utf8)
+    & git -C $mainAtualizacao add componente.txt
+    & git -C $mainAtualizacao commit -q -m componente
+    & git -C $mainAtualizacao push -q origin main
+    # Falha no commit nao deixa arquivos do merge nem altera o ledger.
+    $textoEstadoAntes = [IO.File]::ReadAllText($estadoAtualizacao, $utf8)
+    $hookAtualizacao = Join-Path $repo '.git/hooks/pre-commit'
+    [IO.File]::WriteAllText($hookAtualizacao, "#!/bin/sh`nexit 1`n", $utf8)
+    Espera (Tarefa 'atualizar' 'T-0040') 1 'atualizar com commit recusado'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and -not (G @('status', '--porcelain'))) 'commit recusado restaura HEAD e arvore limpa'
+    Garantir ([IO.File]::ReadAllText($estadoAtualizacao, $utf8) -ceq $textoEstadoAntes) 'commit recusado restaura bytes do ledger'
+    Remove-Item -LiteralPath $hookAtualizacao
+    Espera (Tarefa 'atualizar' 'T-0040') 0 'incorpora main atrasado'
+    Garantir ((Test-Path -LiteralPath (Join-Path $repo 'componente.txt')) -and (Estado 'T-0040').ciclos -eq 2) 'componente incorporado sem zerar ciclos'
+    Garantir ((Estado 'T-0040').eventos[-1].tipo -eq 'atualizada' -and -not (G @('status', '--porcelain'))) 'evento da atualizacao commitado'
+    Garantir ((& git -C $origem rev-parse $branchAtualizacao) -eq (G @('rev-parse', 'HEAD'))) 'atualizacao publicada no origin'
+    $headAtualizacao = G @('rev-parse', 'HEAD')
+    Espera (Tarefa 'atualizar' 'T-0040') 0 'segunda atualizacao nao faz outro commit'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao) 'atualizacao repetida e idempotente'
+
+    # Conflito cancela o merge inteiro, preservando o trabalho original e o ledger.
+    [IO.File]::WriteAllText((Join-Path $repo 'comum.txt'), "da tarefa`n", $utf8)
+    G @('add', 'comum.txt') | Out-Null
+    G @('commit', '-q', '-m', 'alteracao da tarefa') | Out-Null
+    [IO.File]::WriteAllText((Join-Path $mainAtualizacao 'comum.txt'), "do main`n", $utf8)
+    & git -C $mainAtualizacao add comum.txt
+    & git -C $mainAtualizacao commit -q -m conflito
+    & git -C $mainAtualizacao push -q origin main
+    $headAtualizacao = G @('rev-parse', 'HEAD')
+    $textoEstadoAntes = [IO.File]::ReadAllText($estadoAtualizacao, $utf8)
+    $r = Tarefa 'atualizar' 'T-0040'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'conflitos') 'atualizacao conflitante explica a recusa'
+    Garantir ((G @('rev-parse', 'HEAD')) -eq $headAtualizacao -and -not (G @('status', '--porcelain'))) 'conflito preserva HEAD e arvore limpa'
+    Garantir ([IO.File]::ReadAllText((Join-Path $repo 'comum.txt')) -eq "da tarefa`n" -and [IO.File]::ReadAllText($estadoAtualizacao, $utf8) -ceq $textoEstadoAntes) 'conflito preserva conteudo e ledger'
+    Garantir (-not (Test-Path -LiteralPath (Join-Path $repo '.git/MERGE_HEAD'))) 'conflito nao deixa merge incompleto'
+
+    Local 'T-0040' 'notas.md' 'Precisa decisao antes de atualizar.'
+    Espera (Tarefa 'bloquear' 'T-0040') 0 'bloquear tarefa de atualizacao'
+    Espera (Tarefa 'atualizar' 'T-0040') 2 'atualizar nao desbloqueia nem zera ciclos'
+    Garantir ((Estado 'T-0040').ciclos -eq 2) 'tarefa bloqueada preserva ciclos'
 } finally {
     $env:PATH = $pathAnterior
     foreach ($nome in $variaveis) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
