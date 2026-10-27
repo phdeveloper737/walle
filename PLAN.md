@@ -277,8 +277,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: tabela `informacao_tecnica_painel_contingencias` (task 1.2) e `c_cliente` (conexão `help`)
 - Output: `app/InformacoesTecnicas/ConfiguracaoTecnica.php` (`salvar(int $clienteId, array $dados): void`, `importarDoHelpDesk(int $clienteId): void`) e `app/Livewire/InformacoesTecnicas.php` com `resources/views/livewire/informacoes-tecnicas.blade.php` (formulário com `<x-ui.campo>`)
 - Testes críticos:
-  - [ ] `tests/Feature/InformacoesTecnicas/InformacoesTecnicasTest.php`: salvar as configurações de servidor e PDV grava a linha do cliente e reabrir mostra os mesmos valores
-  - [ ] campo obrigatório vazio ou porta fora do intervalo mostra o erro de validação e não grava
+  - [x] `tests/Feature/InformacoesTecnicas/InformacoesTecnicasTest.php`: salvar as configurações de servidor e PDV grava a linha do cliente e reabrir mostra os mesmos valores
+  - [x] campo obrigatório vazio ou porta fora do intervalo mostra o erro de validação e não grava
+- Decisões da 8.4 (usuário, 27/10/2026): salvar e importar exigem admin e `ConfirmaSenha`, porque a tabela guarda senhas; senhas nunca vão à tela, a log nem à auditoria (campo vazio mantém a atual, como o "OCULTA" do 220); só as colunas de uma lista fixa são gravadas (o `sets.php` do 220 aceitava nomes de coluna do cliente); a importação lê o Help Desk (SELECT) e grava só no banco local, preservando `tips_*` e `emissao_cupons` (o `REPLACE` do 220 recriava a linha) e sem a senha SSH literal do `atualizar.php`. Validação nova (o 220 não validava): obrigatórios e portas de 1 a 65535; campos do Docker só quando `tips_server` = DO. Rota e menu na task 11.1.
 
 ### Fase 10 — Ferramentas auxiliares · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Conversor tests/Feature/Updates`
 > Dependências: Fase 7
