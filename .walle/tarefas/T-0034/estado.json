@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e",
     "pr":  48,
     "base":  "434fd9885f27242c74a401ec6008bb37842e5137",
@@ -25,6 +25,11 @@
                         "quando":  "2026-10-28 13:12:44",
                         "tipo":  "pr",
                         "detalhe":  "PR #48 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:31:33",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0034: decide o limite pelo retorno atomico do hit"
                     }
                 ]
 }

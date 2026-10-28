@@ -298,8 +298,8 @@ test('o limite conta a tentativa antes de decidir, então nenhuma consulta passa
 
     expect(RateLimiter::attempts('autorizadas:consulta-manual'))->toBe(9);
 
-    // A décima passa e a décima primeira é barrada, como se as duas chegassem juntas:
-    // cada uma conta a própria tentativa antes de olhar o contador.
+    // O teste é sequencial: com o contador em 9, a próxima tentativa recebe 10 e passa, a seguinte
+    // recebe 11 e é barrada. Prova que a decisão vem da tentativa já somada, não da leitura do contador.
     Livewire::test(Chave::class)->set('entrada', $chave)->call('consultarSefaz')->assertSet('erro', null);
     Livewire::test(Chave::class)->set('entrada', $chave)->call('consultarSefaz')->assertSee('Muitas consultas seguidas');
 

@@ -78,10 +78,10 @@ class Chave extends Component
             return;
         }
 
-        // Conta antes de decidir: as CONSULTAS_POR_MINUTO primeiras chegam na Sefaz e a seguinte já é barrada, mesmo em disparos simultâneos.
-        RateLimiter::hit(self::CHAVE_LIMITE, 60);
+        // O hit() devolve o número da própria tentativa já somado: até CONSULTAS_POR_MINUTO chegam na Sefaz, a seguinte é barrada, inclusive em disparos simultâneos.
+        $tentativa = RateLimiter::hit(self::CHAVE_LIMITE, 60);
 
-        if (RateLimiter::attempts(self::CHAVE_LIMITE) > self::CONSULTAS_POR_MINUTO) {
+        if ($tentativa > self::CONSULTAS_POR_MINUTO) {
             $this->erro = 'Muitas consultas seguidas (o certificado é um só). Espere '.RateLimiter::availableIn(self::CHAVE_LIMITE).' s.';
 
             return;
