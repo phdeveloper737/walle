@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0034",
+    "titulo":  "Autorizadas: limite de consulta atomico e texto proprio da senha",
+    "origem":  "sugestoes da revisao do PR #47 (T-0033)",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e",
+    "pr":  0,
+    "base":  "434fd9885f27242c74a401ec6008bb37842e5137",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 12:58:23",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e a partir de 434fd9885f27242c74a401ec6008bb37842e5137"
+                    }
+                ]
+}
