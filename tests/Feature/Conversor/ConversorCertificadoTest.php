@@ -292,6 +292,32 @@ test('a tela recebe o .pfx sem upload do Livewire: nenhum input de arquivo ligad
         ->and(class_uses_recursive(Conversor::class))->not->toContain(Livewire\WithFileUploads::class);
 });
 
+test('o corpo que o navegador envia com o .pfx no limite cabe nos 16 KB que o PHP-FPM guarda em memória', function () {
+    entrarNoConversor();
+    $tela = Livewire::test(Conversor::class);
+
+    // O pior caso aceito: .pfx no limite (em base64, como o FileReader manda) e uma senha longa com acentos
+    $pfxBase64 = base64_encode(random_bytes(ConversorCertificado::TAMANHO_MAXIMO));
+    $senha = str_repeat('çã', 32);
+    $snapshot = $tela->snapshot;
+    // O caminho real da página entra no snapshot; um caminho longo de propósito, para não depender da rota
+    $snapshot['memo']['path'] = str_repeat('caminho/', 12).'conversor';
+    $json = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR;
+
+    // O mesmo envelope que o livewire.js monta (JSON.stringify não escapa "/" nem acentos)
+    $corpo = json_encode([
+        '_token' => str_repeat('t', 40),
+        'components' => [[
+            'snapshot' => json_encode($snapshot, $json),
+            'updates' => (object) [],
+            'calls' => [['method' => 'converter', 'params' => [$pfxBase64, $senha], 'metadata' => (object) []]],
+        ]],
+    ], $json);
+
+    // SAPI_POST_BLOCK_SIZE do PHP: acima disso o php://input vai para arquivo temporário. Folga de 1 KB.
+    expect(strlen($corpo))->toBeLessThan(16_384 - 1024);
+});
+
 test('o serviço converte em memória e recusa senha errada com exceção clara', function () {
     $convertido = app(ConversorCertificado::class)->converter(pfxDeTeste(), SENHA_DO_PFX_DE_TESTE);
 

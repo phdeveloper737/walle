@@ -15,7 +15,9 @@ class ConversorCertificado
 {
     /**
      * Limite do .pfx: um A1 com a cadeia tem uns 3 a 8 KB. Com o base64 e o resto do pedido do Livewire,
-     * o corpo fica abaixo de 16 KB, que é o que o PHP e o nginx guardam em memória antes de usar arquivo temporário.
+     * o corpo fica em uns 14,5 KB (medido no teste do conversor), abaixo dos 16 KB que o PHP-FPM guarda em memória
+     * (SAPI_POST_BLOCK_SIZE) antes de usar arquivo temporário. O nginx tem buffer padrão de só 8 KB; por isso o
+     * docker/nginx/default.conf define client_body_buffer_size 32k e fastcgi_max_temp_file_size 0.
      */
     public const TAMANHO_MAXIMO = 10 * 1024;
 
