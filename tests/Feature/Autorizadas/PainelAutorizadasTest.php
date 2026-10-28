@@ -210,6 +210,8 @@ test('o diagnóstico explica por que a chave entra ou não na fila', function ()
 });
 
 test('consulta à mão: autorizada fica gravada com o cliente e a data fiscal do histórico', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $chave = chaveValida(10);
     criarHistoricoContingencia(7, $chave, '2026-10-18 15:00:00');
     $sefaz = sefazFalsa([$chave => '100']);
@@ -232,6 +234,8 @@ test('consulta à mão: autorizada fica gravada com o cliente e a data fiscal do
 });
 
 test('consulta à mão que não volta autorizada não grava nada', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $chave = chaveValida(11);
     sefazFalsa();
 
@@ -254,6 +258,8 @@ test('a gravação à mão não troca a referência nem apaga o cliente', functi
 });
 
 test('consumo indevido numa consulta à mão pausa o robô e bloqueia as próximas', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $chave = chaveValida(13);
     $sefaz = sefazFalsa([$chave => '656']);
 
@@ -266,6 +272,8 @@ test('consumo indevido numa consulta à mão pausa o robô e bloqueia as próxim
 });
 
 test('chave inválida ou consultas demais não chegam na Sefaz', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $sefaz = sefazFalsa();
 
     Livewire::test(Chave::class)->set('entrada', '123')->call('consultarSefaz')->assertSee('Chave deve ter 44 dígitos');
@@ -276,4 +284,89 @@ test('chave inválida ou consultas demais não chegam na Sefaz', function () {
     Livewire::test(Chave::class)->set('entrada', chaveValida(14))->call('consultarSefaz')->assertSee('Muitas consultas seguidas');
 
     expect($sefaz->consultadas)->toBe([]);
+});
+
+test('verificar continua livre para quem não é admin e não chama a Sefaz', function () {
+    $chave = chaveValida(15);
+    $sefaz = sefazFalsa();
+
+    Livewire::test(Chave::class)
+        ->set('entrada', 'NFe '.chunk_split($chave, 4, ' '))
+        ->call('verificar')
+        ->assertSet('entrada', $chave)
+        ->assertSee($chave)
+        ->assertDontSee('Consultar na Sefaz');
+
+    expect($sefaz->consultadas)->toBe([]);
+});
+
+test('quem não é admin recebe 403 na consulta à Sefaz, sem chamar, gravar, auditar nem pausar o robô', function () {
+    $chave = chaveValida(16);
+    criarHistoricoContingencia(7, $chave, '2026-10-18 15:00:00');
+    $sefaz = sefazFalsa([$chave => '100']);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+
+    Livewire::test(Chave::class)
+        ->set('entrada', $chave)
+        ->call('consultarSefaz')
+        ->assertForbidden()
+        ->assertSet('pedindoSenha', false);
+
+    expect($sefaz->consultadas)->toBe([])
+        ->and(DB::table('history_contingencia_auth')->count())->toBe(0)
+        ->and(Auditoria::where('acao', 'autorizadas.consulta_sefaz')->count())->toBe(0)
+        ->and(app(RoboAutorizadas::class)->pausa())->toBeNull();
+});
+
+test('admin sem a senha confirmada só recebe o pedido de senha e não consulta', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->forget('walle.senha_confirmada_em');
+    $chave = chaveValida(17);
+    criarHistoricoContingencia(7, $chave, '2026-10-18 15:00:00');
+    $sefaz = sefazFalsa([$chave => '100']);
+
+    Livewire::test(Chave::class)
+        ->set('entrada', $chave)
+        ->call('consultarSefaz')
+        ->assertSet('pedindoSenha', true)
+        ->assertSet('acaoPendente', 'consultarSefaz')
+        ->assertDontSee('Gravada como autorizada na base.');
+
+    expect($sefaz->consultadas)->toBe([])
+        ->and(DB::table('history_contingencia_auth')->count())->toBe(0)
+        ->and(Auditoria::where('acao', 'autorizadas.consulta_sefaz')->count())->toBe(0);
+});
+
+test('admin consulta a Sefaz depois de confirmar a senha, grava a autorizada e audita', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->forget('walle.senha_confirmada_em');
+    $chave = chaveValida(18);
+    criarHistoricoContingencia(7, $chave, '2026-10-18 15:00:00');
+    $sefaz = sefazFalsa([$chave => '100']);
+
+    Livewire::test(Chave::class)
+        ->set('entrada', $chave)
+        ->call('consultarSefaz')
+        ->assertSet('pedindoSenha', true)
+        ->set('senhaConfirmacao', 'segredo')
+        ->call('confirmarSenha')
+        ->assertSet('pedindoSenha', false)
+        ->assertSee('Gravada como autorizada na base.');
+
+    expect($sefaz->consultadas)->toBe([$chave])
+        ->and(DB::table('history_contingencia_auth')->where('chave', $chave)->first())
+        ->fk_c_cliente->toBe(7)
+        ->autorizada->toBe('S')
+        ->and(Auditoria::where('acao', 'autorizadas.consulta_sefaz')->sole()->detalhes)
+        ->toEqual(['chave' => $chave, 'cStat' => '100']);
+});
+
+test('o admin vê o botão de consultar na Sefaz e quem não é admin não vê', function () {
+    $chave = chaveValida(19);
+
+    Livewire::test(Chave::class)->set('entrada', $chave)->assertDontSee('Consultar na Sefaz');
+
+    config(['walle.admins' => [$this->usuario->id]]);
+
+    Livewire::test(Chave::class)->set('entrada', $chave)->assertSee('Consultar na Sefaz');
 });

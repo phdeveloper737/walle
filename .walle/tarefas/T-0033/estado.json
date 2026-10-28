@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 12:14:13",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0033-autorizadas-consulta-manual-na-sefaz-so a partir de 5bec3ae1c82b7163d848429a222bd2e68e46752a"
+                    },
+                    {
+                        "quando":  "2026-10-28 12:24:46",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0033: consulta manual na Sefaz so para admin com senha"
                     }
                 ]
 }

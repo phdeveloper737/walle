@@ -5,11 +5,13 @@ namespace App\Livewire\Autorizadas;
 use App\Autorizadas\DiagnosticoChave;
 use App\Autorizadas\RoboAutorizadas;
 use App\Contingencias\ListaDeClientes;
+use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Sefaz\ChaveDeAcesso;
 use App\Sefaz\ConsultaSituacao;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -23,6 +25,10 @@ use Livewire\Component;
  */
 class Chave extends Component
 {
+    use ConfirmaSenha;
+
+    public const ACOES_COM_SENHA = ['consultarSefaz'];
+
     /** Consultas à mão por minuto, somando todo mundo: o certificado é um só. */
     public const CONSULTAS_POR_MINUTO = 10;
 
@@ -42,8 +48,16 @@ class Chave extends Component
         unset($this->diagnostico);
     }
 
-    public function consultarSefaz(ConsultaSituacao $sefaz, RoboAutorizadas $robo): void
+    // Sem injeção nos parâmetros: depois da senha o trait chama o método direto
+    public function consultarSefaz(): void
     {
+        if (! $this->adminConfirmado('consultarSefaz')) {
+            return;
+        }
+
+        $sefaz = app(ConsultaSituacao::class);
+        $robo = app(RoboAutorizadas::class);
+
         $this->erro = null;
         $diagnostico = $this->diagnostico;
 
@@ -110,7 +124,9 @@ class Chave extends Component
 
     public function render(): View
     {
-        return view('livewire.autorizadas.chave');
+        return view('livewire.autorizadas.chave', [
+            'admin' => Gate::allows('admin'),
+        ]);
     }
 
     /** Referência que vai para a base: a que já está lá, a data fiscal do histórico ou o mês da chave. */
