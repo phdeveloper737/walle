@@ -87,11 +87,17 @@
                             Se voltar autorizada, fica gravada na base.
                         </p>
                     </div>
-                    <x-ui.botao variante="tonal" icone="cloud_sync" class="sm:ml-auto" wire:click="consultarSefaz" wire:loading.attr="disabled" wire:target="consultarSefaz"
-                        :disabled="$d->problema !== null">
-                        <span wire:loading.remove wire:target="consultarSefaz">Consultar na Sefaz</span>
-                        <span wire:loading wire:target="consultarSefaz">Consultando…</span>
-                    </x-ui.botao>
+                    @if ($admin)
+                        <x-ui.botao variante="tonal" icone="cloud_sync" class="sm:ml-auto" wire:click="consultarSefaz" wire:loading.attr="disabled" wire:target="consultarSefaz"
+                            :disabled="$d->problema !== null">
+                            <span wire:loading.remove wire:target="consultarSefaz">Consultar na Sefaz</span>
+                            <span wire:loading wire:target="consultarSefaz">Consultando…</span>
+                        </x-ui.botao>
+                    @else
+                        <p class="text-sm text-on-surface-variant sm:ml-auto sm:max-w-72 sm:text-right">
+                            Só os admins do walle consultam a Sefaz na hora, porque a consulta usa o certificado de verdade.
+                        </p>
+                    @endif
                 </div>
 
                 @if ($erro)
@@ -160,4 +166,6 @@
             Mostra o que o walle sabe da chave, se o robô vai consultá-la e permite consultar na Sefaz na hora.
         </x-ui.vazio>
     @endif
+
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" />
 </div>

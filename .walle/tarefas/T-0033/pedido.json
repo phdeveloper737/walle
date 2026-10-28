@@ -1,0 +1,7 @@
+{
+    "titulo":  "Autorizadas: consulta manual na Sefaz so para admin com senha",
+    "origem":  "achado da revisao da T-0032 (fora do escopo)",
+    "tipo":  "bug",
+    "dono":  "walle-telas",
+    "resumo":  "consultarSefaz na aba Consultar chave do painel Autorizadas nao exige admin nem senha: qualquer usuario logado consulta a Sefaz de verdade com o certificado unico, grava history_contingencia_auth e pode pausar o robo por consumo indevido (656), com auditoria. Aplicar o padrao da T-0032: Gate::allows admin, ConfirmaSenha com consultarSefaz em ACOES_COM_SENHA, botao e pedido de senha no Blade como nos outros paineis, auditoria preservada e testes de 403 para nao admin sem consulta nem gravacao, admin sem senha sem consulta, admin com senha consultando com Sefaz falsa, e o limite de consultas por minuto mantido. Verificar continua local e livre, porque so interpreta a chave."
+}
