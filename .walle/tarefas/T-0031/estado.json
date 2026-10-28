@@ -4,10 +4,10 @@
     "origem":  "revisao do PR #41 (T-0027, PLAN 8.4)",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0031-informacoes-tecnicas-fechar-as-sugestoes",
-    "pr":  0,
+    "pr":  45,
     "base":  "13776d9ed5615b2a7ff65a0413cea91fcf3f6007",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-28 11:16:28",
                         "tipo":  "commit",
                         "detalhe":  "T-0031: fecha as sugestoes da revisao das Informacoes Tecnicas"
+                    },
+                    {
+                        "quando":  "2026-10-28 11:16:39",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #45 aberto"
                     }
                 ]
 }
