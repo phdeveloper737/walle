@@ -1,0 +1,7 @@
+{
+    "titulo":  "Conversor de certificado",
+    "origem":  "PLAN 10.1",
+    "tipo":  "plano",
+    "dono":  "walle-seguranca",
+    "resumo":  "ConversorCertificado em memoria (PFX para PEM) com transporte sem gravar em disco; auditoria sem a senha."
+}
