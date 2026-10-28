@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0033",
+    "titulo":  "Autorizadas: consulta manual na Sefaz so para admin com senha",
+    "origem":  "achado da revisao da T-0032 (fora do escopo)",
+    "tipo":  "bug",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0033-autorizadas-consulta-manual-na-sefaz-so",
+    "pr":  0,
+    "base":  "5bec3ae1c82b7163d848429a222bd2e68e46752a",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 12:14:13",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0033-autorizadas-consulta-manual-na-sefaz-so a partir de 5bec3ae1c82b7163d848429a222bd2e68e46752a"
+                    }
+                ]
+}
