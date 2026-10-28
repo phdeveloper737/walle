@@ -1,0 +1,60 @@
+{
+    "tarefa":  "T-0027",
+    "titulo":  "Informacoes Tecnicas do cliente",
+    "origem":  "PLAN 8.4",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0027-informacoes-tecnicas-do-cliente",
+    "pr":  41,
+    "base":  "ee416b23707cbebb5fa7ad3993fd822fe350c301",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-27 10:28:05",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0027-informacoes-tecnicas-do-cliente a partir de ee416b23707cbebb5fa7ad3993fd822fe350c301"
+                    },
+                    {
+                        "quando":  "2026-10-27 10:35:37",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0027: Informacoes Tecnicas do cliente"
+                    },
+                    {
+                        "quando":  "2026-10-27 10:35:46",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #41 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-27 10:53:00",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0027: Informacoes Tecnicas do cliente e lista de decisoes pendentes"
+                    },
+                    {
+                        "quando":  "2026-10-27 11:11:18",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0027: Informacoes Tecnicas nao vaza senha em falha de gravacao"
+                    },
+                    {
+                        "quando":  "2026-10-27 19:39:18",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 5a959e8c8e5d85fb81258fc1eb45c55a6b0a66d8 incorporado; ciclos preservados em 2."
+                    },
+                    {
+                        "quando":  "2026-10-27 20:30:58",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Revisao do Codex indisponivel: ERROR: You\u0027ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at 9:03 PM.\n\nContexto: HEAD e8d6cba9e672f5ba7665e567f49a272e5692a89f (origem/main 5a959e8 incorporado em 27/10/2026 19:39), gate completo VERDE e valida_para_commit true (Pint 228 arquivos, PHPStan ok, Pest 552 passed / 2286 assertions, politicas 437, gate 48, tarefa 178, plugin e RAG ok). Falta apenas o parecer do Codex do HEAD, exigido pelo integrar; duas tentativas do revisao-codex.ps1 falharam pelo limite de uso da conta. Ciclos ja em 2 de 2: qualquer commit novo bloqueia a tarefa.\n\nDecisoes do usuario em 27/10/2026 (seguir as recomendacoes): salvar e importar exigem admin com ConfirmaSenha, porque a tabela guarda senhas; senhas nunca vao a tela (campo vazio, so substitui se preenchido, como o OCULTA do 220); gravar so colunas de uma lista fixa (o sets.php do 220 aceitava nomes de coluna do cliente); importarDoHelpDesk le o Help Desk (SELECT) e grava so no banco local com updateOrCreate preservando tips_* e emissao_cupons (o REPLACE do 220 recriava a linha); validacao nova: campos obrigatorios e porta entre 1 e 65535 (o 220 nao validava); nenhum log com SQL ou segredo."
+                    },
+                    {
+                        "quando":  "2026-10-28 01:52:09",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario em 28/10/2026: opcao 1, aguardar o reset do limite do Codex e retomar nesta tentativa, refazendo revisao do Codex, revisao do walle-arquiteto e integrar para o HEAD e8d6cba9e672f5ba7665e567f49a272e5692a89f (gate completo ja VERDE e valida_para_commit true nesse commit). Nenhuma mudanca de codigo, de plano ou de politica.\n\nDecisoes do usuario em 27/10/2026 (seguir as recomendacoes): salvar e importar exigem admin com ConfirmaSenha, porque a tabela guarda senhas; senhas nunca vao a tela (campo vazio, so substitui se preenchido, como o OCULTA do 220); gravar so colunas de uma lista fixa (o sets.php do 220 aceitava nomes de coluna do cliente); importarDoHelpDesk le o Help Desk (SELECT) e grava so no banco local com updateOrCreate preservando tips_* e emissao_cupons (o REPLACE do 220 recriava a linha); validacao nova: campos obrigatorios e porta entre 1 e 65535 (o 220 nao validava); nenhum log com SQL ou segredo."
+                    },
+                    {
+                        "quando":  "2026-10-28 10:12:53",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0027: preserva senhas e corrige confirmacao no Livewire"
+                    }
+                ],
+    "notas_bloqueio":  "045070879c561b2fb29970793e072be975dcff7008c94ba81a8d4eec655c2124"
+}

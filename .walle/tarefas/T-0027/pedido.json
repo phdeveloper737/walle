@@ -1,0 +1,7 @@
+{
+    "titulo":  "Informacoes Tecnicas do cliente",
+    "origem":  "PLAN 8.4",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Cria ConfiguracaoTecnica (salvar e importarDoHelpDesk) e a tela Livewire InformacoesTecnicas com formulario de configuracoes de servidor e PDV sobre informacao_tecnica_painel_contingencias, sem gravar no Help Desk, com segredos protegidos. Rota e menu ficam para a task 11.1."
+}
