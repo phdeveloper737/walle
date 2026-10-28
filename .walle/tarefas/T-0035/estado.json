@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-seguranca",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0035-conversor-de-certificado",
     "pr":  50,
     "base":  "769c2923dab1d8e228dd1a44a73e67885a550828",
@@ -44,6 +44,11 @@
                         "quando":  "2026-10-28 18:43:15",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: T-0035: Conversor: corrigir o buffer do nginx e medir o corpo da requisicao"
+                    },
+                    {
+                        "quando":  "2026-10-28 19:04:26",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0035: Conversor: limitar a senha do certificado a 128 caracteres"
                     }
                 ],
     "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"

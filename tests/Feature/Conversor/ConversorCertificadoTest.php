@@ -292,13 +292,66 @@ test('a tela recebe o .pfx sem upload do Livewire: nenhum input de arquivo ligad
         ->and(class_uses_recursive(Conversor::class))->not->toContain(Livewire\WithFileUploads::class);
 });
 
-test('o corpo que o navegador envia com o .pfx no limite cabe nos 16 KB que o PHP-FPM guarda em memória', function () {
+test('a senha do certificado tem limite na tela e no navegador, com a mesma constante do servidor', function () {
+    entrarNoConversor();
+
+    $html = Livewire::test(Conversor::class)->html();
+
+    expect($html)->toContain('maxlength="'.ConversorCertificado::SENHA_MAXIMA.'"')
+        ->toContain('limiteSenha: '.ConversorCertificado::SENHA_MAXIMA);
+});
+
+test('senha acima do limite é recusada no servidor sem chamar a conversão, sem ecoar nem registrar o valor', function () {
+    entrarNoConversor();
+    $conversor = Mockery::mock(ConversorCertificado::class);
+    $conversor->shouldNotReceive('converter');
+    app()->instance(ConversorCertificado::class, $conversor);
+    $pfx = pfxDeTeste();
+    $senha = str_repeat('Xy9', 43); // 129 caracteres
+    $segredos = [...segredosDaConversao($pfx, SENHA_DO_PFX_DE_TESTE), $senha, 'Xy9Xy9Xy9'];
+    $tela = Livewire::test(Conversor::class);
+    $antes = arquivosQuePoderiamGuardarOCertificado();
+    $vigia = vigiarPersistencia();
+
+    $tela->call('converter', base64_encode($pfx), $senha);
+
+    $resposta = $tela->effects['returns'][0];
+    expect($resposta['ok'])->toBeFalse()
+        ->and($resposta['erro'])->toContain('mais de '.ConversorCertificado::SENHA_MAXIMA.' caracteres')
+        ->and($resposta)->not->toHaveKey('pem');
+    semSegredos($resposta, $segredos);
+
+    $auditoria = Auditoria::where('acao', 'conversor.converter')->sole();
+    expect($auditoria->detalhes)->toBe(['resultado' => 'senha_invalida']);
+    semSegredos($auditoria->getRawOriginal('detalhes'), $segredos);
+    semSegredos($tela->snapshot, $segredos);
+    semSegredos(session()->all(), $segredos);
+    expect($vigia->logs)->toBe([])
+        ->and($vigia->cache)->toBe([])
+        ->and(arquivosSuspeitos($antes, $segredos))->toBe([]);
+    Queue::assertNothingPushed();
+});
+
+test('senha no limite, contada em caracteres e não em bytes, segue para a conversão', function () {
+    entrarNoConversor();
+    $senha = str_repeat('😀', ConversorCertificado::SENHA_MAXIMA);
+    $conversor = Mockery::mock(ConversorCertificado::class);
+    $conversor->shouldReceive('converter')->once()->with(Mockery::any(), $senha)->andThrow(CertificadoInvalido::senhaIncorreta());
+    app()->instance(ConversorCertificado::class, $conversor);
+
+    $tela = Livewire::test(Conversor::class)->call('converter', base64_encode(pfxDeTeste()), $senha);
+
+    expect($tela->effects['returns'][0]['erro'])->toContain('Senha do certificado incorreta');
+});
+
+test('o corpo que o navegador envia com o .pfx e a senha no limite cabe nos 16 KB que o PHP-FPM guarda em memória', function (string $caractere) {
     entrarNoConversor();
     $tela = Livewire::test(Conversor::class);
 
-    // O pior caso aceito: .pfx no limite (em base64, como o FileReader manda) e uma senha longa com acentos
+    // O pior caso aceito: .pfx no limite (em base64, como o FileReader manda) e a senha no limite com o
+    // caractere que mais ocupa no JSON (4 bytes em UTF-8, ou 6 quando o JSON.stringify escapa um controle)
     $pfxBase64 = base64_encode(random_bytes(ConversorCertificado::TAMANHO_MAXIMO));
-    $senha = str_repeat('çã', 32);
+    $senha = str_repeat($caractere, ConversorCertificado::SENHA_MAXIMA);
     $snapshot = $tela->snapshot;
     // O caminho real da página entra no snapshot; um caminho longo de propósito, para não depender da rota
     $snapshot['memo']['path'] = str_repeat('caminho/', 12).'conversor';
@@ -316,7 +369,10 @@ test('o corpo que o navegador envia com o .pfx no limite cabe nos 16 KB que o PH
 
     // SAPI_POST_BLOCK_SIZE do PHP: acima disso o php://input vai para arquivo temporário. Folga de 1 KB.
     expect(strlen($corpo))->toBeLessThan(16_384 - 1024);
-});
+})->with([
+    'emoji (4 bytes)' => ['😀'],
+    'controle escapado (6 bytes)' => ["\u{1}"],
+]);
 
 test('o serviço converte em memória e recusa senha errada com exceção clara', function () {
     $convertido = app(ConversorCertificado::class)->converter(pfxDeTeste(), SENHA_DO_PFX_DE_TESTE);

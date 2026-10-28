@@ -21,6 +21,13 @@ class ConversorCertificado
      */
     public const TAMANHO_MAXIMO = 10 * 1024;
 
+    /**
+     * Limite da senha do .pfx, em caracteres (maxlength e Alpine na tela, mb_strlen no servidor). Sem ele, uma senha
+     * longa colada por engano passaria o corpo do pedido dos 16 KB e levaria PFX e senha ao temporário do PHP/nginx
+     * antes de qualquer validação. No pior caso (128 caracteres de 6 bytes no JSON) o corpo segue abaixo de 15 KB.
+     */
+    public const SENHA_MAXIMA = 128;
+
     /** @throws CertificadoInvalido */
     public function converter(#[SensitiveParameter] string $conteudoPfx, #[SensitiveParameter] string $senha): CertificadoConvertido
     {

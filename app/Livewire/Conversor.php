@@ -63,6 +63,11 @@ class Conversor extends Component
         $this->skipRender();
 
         try {
+            // A tela já limita a senha; aqui é a mesma regra, sem ecoar o valor nem passá-lo adiante
+            if (mb_strlen($senha) > ConversorCertificado::SENHA_MAXIMA) {
+                throw CertificadoInvalido::senhaGrandeDemais(ConversorCertificado::SENHA_MAXIMA);
+            }
+
             $convertido = app(ConversorCertificado::class)->converter($this->decodificar($pfxBase64), $senha);
         } catch (CertificadoInvalido $falha) {
             Auditoria::registrar('conversor.converter', null, ['resultado' => $falha->motivo]);
@@ -107,6 +112,9 @@ class Conversor extends Component
 
     public function render(): View
     {
-        return view('livewire.conversor', ['tamanhoMaximo' => ConversorCertificado::TAMANHO_MAXIMO]);
+        return view('livewire.conversor', [
+            'tamanhoMaximo' => ConversorCertificado::TAMANHO_MAXIMO,
+            'senhaMaxima' => ConversorCertificado::SENHA_MAXIMA,
+        ]);
     }
 }

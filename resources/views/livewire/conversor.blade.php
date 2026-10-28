@@ -18,6 +18,7 @@
             convertendo: false,
             aguardandoSenha: false,
             limite: {{ $tamanhoMaximo }},
+            limiteSenha: {{ $senhaMaxima }},
             escolher(evento) {
                 let arquivo = evento.target.files[0]
                 evento.target.value = ''
@@ -43,6 +44,11 @@
             },
             async converter() {
                 if (! this.arquivo) { this.erro = 'Escolha o arquivo .pfx do certificado.'; return }
+                {{-- Em caracteres (code points), como o mb_strlen do servidor; nada é enviado acima do limite --}}
+                if ([...this.senha].length > this.limiteSenha) {
+                    this.erro = 'A senha tem mais de ' + this.limiteSenha + ' caracteres, o que não é uma senha de certificado comum. Confira se colou a senha certa.'
+                    return
+                }
                 this.convertendo = true
                 this.erro = ''
                 this.pem = ''
@@ -103,7 +109,7 @@
                 </div>
 
                 <x-ui.campo label="Senha do certificado" tipo="password" icone="key" id="conversor-senha" x-model="senha"
-                    autocomplete="off" spellcheck="false" x-on:keydown.enter="converter()" />
+                    maxlength="{{ $senhaMaxima }}" autocomplete="off" spellcheck="false" x-on:keydown.enter="converter()" />
 
                 <div class="flex flex-wrap items-center gap-2">
                     <x-ui.botao icone="sync_alt" x-on:click="converter()" x-bind:disabled="convertendo">
