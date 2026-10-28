@@ -69,7 +69,9 @@ try {
         '@echo off'
         'echo %*>> "%WALLE_TEST_GH_LOG%"'
         'if "%1 %2"=="pr create" (echo x> "%WALLE_TEST_GH_DIR%\criado" & echo https://github.com/x/walle/pull/42 & exit /b 0)'
+        'if "%1 %2"=="pr checks" if "%WALLE_TEST_GH_CHECKS%"=="1" echo qualidade fail 1m https://github.com/x/walle/actions/runs/777/job/888'
         'if "%1 %2"=="pr checks" exit /b %WALLE_TEST_GH_CHECKS%'
+        'if "%1 %2"=="run view" (echo FAILED Tests\Feature\X UnexpectedValueException& echo Tests: 1 failed& exit /b 0)'
         'if "%1 %2"=="pr merge" if "%WALLE_TEST_GH_SEM_MERGE%"=="1" exit /b 0'
         'if "%1 %2"=="pr merge" (echo MERGED> "%WALLE_TEST_GH_DIR%\estado" & exit /b 0)'
         'if "%1 %2"=="pr view" goto ver'
@@ -174,7 +176,10 @@ try {
     $env:WALLE_TEST_GH_CHECKS = '8'
     Espera (Tarefa 'integrar' 'T-0001') 4 'CI pendente devolve 4 (tente de novo)'
     $env:WALLE_TEST_GH_CHECKS = '1'
-    Espera (Tarefa 'integrar' 'T-0001') 2 'CI vermelho recusa'
+    $r = Tarefa 'integrar' 'T-0001'
+    Garantir ($r.codigo -eq 2 -and $r.saida -match 'ci-falha\.md') "CI vermelho recusa e aponta o relatorio: $($r.saida)"
+    $relatorioCi = [IO.File]::ReadAllText((Join-Path $repo '.walle/local/T-0001/ci-falha.md'), $utf8)
+    Garantir ((ChamadasGh '^run view 777 --log-failed') -eq 1 -and $relatorioCi -match 'runs/777' -and $relatorioCi -match 'UnexpectedValueException') 'relatorio do CI com os checks e o log do run que falhou'
     Garantir ((ChamadasGh '^pr merge') -eq 0) 'nenhum merge sem CI verde'
     Garantir ((ChamadasGh '^pr comment') -eq 10) 'cada parecer do HEAD (8 do arquiteto e 2 do Codex) publicado uma vez so, inclusive os que reprovam'
     $env:WALLE_TEST_GH_CHECKS = '0'

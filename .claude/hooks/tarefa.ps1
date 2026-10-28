@@ -2,7 +2,8 @@
 # Versionado em .walle/tarefas/T-NNNN/ (so este script grava): pedido.json e estado.json. Uma tarefa cuja pasta
 # esta no origin/main foi integrada (so chega la por merge); as demais vivem no branch tarefa/T-NNNN-<slug>.
 # Local em .walle/local/T-NNNN/ (ignorado pelo git): pedido.json (antes de abrir), commit.txt, pr.md e notas.md,
-# escritos pelo orquestrador, e revisao.md, escrito so pelo walle-arquiteto.
+# escritos pelo orquestrador, revisao.md, escrito so pelo walle-arquiteto, e ci-falha.md, escrito pelo integrar
+# quando o CI falha.
 # Acoes: proxima | abrir | retomar | atualizar | bloquear | commitar | publicar | integrar | status
 # Saida: 0 = ok; 2 = recusado (pre-condicao); 3 = bloqueada (terceiro ciclo de correcao); 4 = CI ainda pendente
 # (rode integrar de novo); 1 = erro inesperado.
@@ -132,6 +133,35 @@ function NumeroDoPr([string]$Texto) {
     if ($Texto -match '/pull/([0-9]+)') { return [int]$Matches[1] }
     return 0
 }
+# CI vermelho: grava em .walle/local/T-NNNN/ci-falha.md os checks e o log dos jobs que falharam (gh run view
+# --log-failed), sem cores e resumido, para o orquestrador repassar ao dono sem precisar do gh. Devolve o caminho.
+function RelatorioDoCi($Estado, [string]$Head, [string]$Checks) {
+    $relativo = ".walle/local/$Tarefa/ci-falha.md"
+    $linhas = @("# CI do PR #$($Estado.pr)", '', "Commit: $Head", '', '## Checks', '', '```', $Checks, '```')
+    # Cores ANSI chegam com ESC ou ja escapadas pelo gh como o texto ^[ ; o check do Pest (U+2713) marca teste que passou.
+    $ansi = "(?:$([char]27)|\^\[)\[[0-9;]*[A-Za-z]"
+    $passou = [string][char]0x2713
+    $runs = @([regex]::Matches($Checks, '(?im)^.*\bfail\b.*actions/runs/([0-9]+)') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+    # O gh escreve UTF-8; sem console (stdio redirecionado) a troca pode falhar e o log sai so com acentos trocados.
+    $codificacao = [Console]::OutputEncoding
+    try { [Console]::OutputEncoding = $utf8 } catch { }
+    try {
+        foreach ($run in $runs) {
+            $log = Rodar 'gh' @('run', 'view', $run, '--log-failed') -PodeFalhar
+            # Cada linha vem como "job<TAB>passo<TAB>data texto": fica so o texto.
+            $texto = @($log.texto -split "`n" | ForEach-Object { (($_ -replace $ansi, '') -replace '^[^\t]*\t[^\t]*\t\S+Z ?', '').TrimEnd() } | Where-Object { $_ })
+            $falhas = @($texto | Where-Object { -not $_.TrimStart().StartsWith($passou) -and $_ -match '(?i)\bfail(ed|ure)?\b|error|exception|assert|Tests:' } | Select-Object -First 80)
+            $linhas += @('', "## Run $run (gh run view $run --log-failed, codigo $($log.codigo))", '', '### Linhas de falha', '', '```') + $falhas + @('```', '', '### Final do log', '', '```') + @($texto | Select-Object -Last 60) + @('```')
+        }
+    } catch {
+        $linhas += @('', "Falha ao buscar o log do CI: $($_.Exception.Message)")
+    } finally { try { [Console]::OutputEncoding = $codificacao } catch { } }
+    if (-not $runs.Count) { $linhas += @('', 'Nenhum run com falha identificado na saida do gh pr checks.') }
+    [IO.Directory]::CreateDirectory($pastaLocal) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $Raiz $relativo), (($linhas -join "`n") + "`n"), $utf8)
+    return $relativo
+}
+
 function Finalizar($Estado, [string]$Head) {
     if ((Repo @('branch', '--show-current')).texto -cne 'main') { Repo @('switch', '-q', 'main') | Out-Null }
     Repo @('pull', '-q', '--ff-only', 'origin', 'main') | Out-Null
@@ -457,7 +487,10 @@ switch ($Acao) {
             $checks = Rodar 'gh' @('pr', 'checks', [string]$estado.pr) -PodeFalhar
             if ($checks.codigo -eq 0) { break }
             $pendente = $checks.codigo -eq 8 -or $checks.texto -match '(?i)no checks reported'
-            if (-not $pendente) { Recusar "o CI do PR #$($estado.pr) falhou (gh pr checks saiu com $($checks.codigo)): corrija e publique de novo." }
+            if (-not $pendente) {
+                $relatorio = RelatorioDoCi $estado $head $checks.texto
+                Recusar "o CI do PR #$($estado.pr) falhou (gh pr checks saiu com $($checks.codigo)): motivo em $relatorio; corrija e publique de novo."
+            }
             if ($relogio.Elapsed.TotalSeconds -ge $esperaCi) { Recusar "o CI do PR #$($estado.pr) ainda esta rodando; rode integrar de novo daqui a pouco." 4 }
             Start-Sleep -Seconds 20
         }
