@@ -4,7 +4,7 @@
     "origem":  "PLAN 10.1",
     "tipo":  "plano",
     "dono":  "walle-seguranca",
-    "estado":  "bloqueada",
+    "estado":  "em_execucao",
     "ciclos":  0,
     "branch":  "tarefa/T-0035-conversor-de-certificado",
     "pr":  0,
@@ -19,6 +19,11 @@
                         "quando":  "2026-10-28 14:25:29",
                         "tipo":  "bloqueada",
                         "detalhe":  "Pendente de decisao do usuario: transporte do PFX e da senha ate o servidor sem upload temporario e sem gravar o corpo em disco no nginx e no PHP (ex.: campo base64 em JSON ou formulario com limite de corpo em memoria, versus pagina Livewire com leitura no navegador via FileReader e envio como texto). Tambem pendente: formato da entrega do PEM (exibir na tela ou baixar via resposta em memoria)."
+                    },
+                    {
+                        "quando":  "2026-10-28 16:31:37",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (28/10/2026): o navegador le o PFX com FileReader e envia o conteudo em base64, junto com a senha, num POST pequeno em texto (sem upload de arquivo, sem arquivo temporario). O PEM volta numa resposta em memoria, exibido na tela, com botao para baixar (download gerado em memoria, sem gravar em disco)."
                     }
                 ],
     "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"
