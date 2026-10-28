@@ -4,10 +4,10 @@
     "origem":  "PLAN 10.1",
     "tipo":  "plano",
     "dono":  "walle-seguranca",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0035-conversor-de-certificado",
-    "pr":  0,
+    "pr":  50,
     "base":  "769c2923dab1d8e228dd1a44a73e67885a550828",
     "eventos":  [
                     {
@@ -34,6 +34,11 @@
                         "quando":  "2026-10-28 16:41:39",
                         "tipo":  "commit",
                         "detalhe":  "T-0035: Conversor de certificado (PFX para PEM) inteiramente em memoria"
+                    },
+                    {
+                        "quando":  "2026-10-28 16:41:48",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #50 aberto"
                     }
                 ],
     "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"
