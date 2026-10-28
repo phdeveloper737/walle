@@ -4,10 +4,10 @@
     "origem":  "PLAN 10.2",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0036-updates-arvore-de-sistema-app",
-    "pr":  0,
+    "pr":  49,
     "base":  "769c2923dab1d8e228dd1a44a73e67885a550828",
     "eventos":  [
                     {
@@ -29,6 +29,11 @@
                         "quando":  "2026-10-28 16:09:45",
                         "tipo":  "commit",
                         "detalhe":  "T-0036: Cancelar a tela Updates (task 10.2) no plano"
+                    },
+                    {
+                        "quando":  "2026-10-28 16:09:52",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #49 aberto"
                     }
                 ],
     "notas_bloqueio":  "283f0be5ec4db3c240e7f928e4d54491b05a1c4b70fccf467229272995e08474"
