@@ -25,6 +25,10 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/php/fpm-dev.conf:/usr/local/etc/php-fpm.d/zz-dev.conf:ro
+    # O PHP-FPM guarda em memória só os primeiros 16 KB do corpo e passa o resto para /tmp. Em tmpfs, um corpo
+    # forjado acima disso (ex.: .pfx e senha no Conversor) fica na RAM e nunca chega ao disco.
+    tmpfs:
+      - /tmp:size=128m,mode=1777
 
   horizon:
     <<: *php
@@ -44,6 +48,9 @@ services:
     volumes:
       - ./public:/var/www/html/public:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    # Corpo acima do client_body_buffer_size (32k) vai para /var/cache/nginx/client_temp: em tmpfs, fica na RAM.
+    tmpfs:
+      - /var/cache/nginx:size=128m
     depends_on:
       - app
     restart: unless-stopped
