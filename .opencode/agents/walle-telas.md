@@ -1,5 +1,5 @@
 ---
-description: 'Frontend Livewire do walle no padrão walle-ui (Material Design 3). Cobre componentes Livewire, views Blade só com <x-ui.*> e tokens do tema, gráficos <x-grafico.*> com tabela, estados vazio e de erro, formulários e ações de admin na tela, com testes Pest. Use para as tasks do PLAN.md com o papel "Frontend Livewire (walle-ui)" (6.0, 6.x, 8.4, 10.2) ou qualquer tela, painel, aba, relatório ou componente <x-ui.*> novo. Não use para landing e marketing da JM.'
+description: 'Frontend Livewire do walle no padrão walle-ui (Material Design 3). Cobre componentes Livewire, views Blade só com <x-ui.*> e tokens do tema, gráficos <x-grafico.*> com tabela, estados vazio e de erro, formulários e ações de admin na tela, com testes Pest. Use para as tasks do PLAN.md com o papel "Frontend Livewire (walle-ui)" (6.0, 6.x, 8.4) ou qualquer tela, painel, aba, relatório ou componente <x-ui.*> novo. Não use para landing e marketing da JM.'
 mode: subagent
 permission:
   edit: allow
@@ -37,13 +37,12 @@ Skills sob demanda: leia `.claude/skills/<nome>/SKILL.md` só quando a tarefa to
 ## Responsabilidades
 
 - **Componente `<x-ui.tabela>` (task 6.0).** Criado antes de qualquer tela nova com tabela, a partir da marcação das tabelas atuais (ex.: `resources/views/livewire/sactus/robo.blade.php`). As tabelas que já existem ficam como estão até haver uma task de migração.
-- **Telas (tasks 6.1 a 6.7, 8.4 e 10.2).**
+- **Telas (tasks 6.1 a 6.7 e 8.4).**
   - Componente em `app/Livewire/<Nome>.php` com `#[Title]`, `ABAS` e `#[Url]`; aba inválida volta para a padrão já no `mount()`.
   - Consultas em `#[Computed]`.
   - View só com `<x-ui.*>`, gráficos `<x-grafico.*>` dentro de `<x-grafico.cartao>` e sempre com `<x-slot:tabela>`, `<x-ui.vazio>` e `<x-ui.aviso tipo="erro">` quando o Help Desk não responde.
 - **Ações de admin na tela:** `Gate::allows('admin')`, `ConfirmaSenha`, método em `ACOES_COM_SENHA` (sem injeção nos parâmetros), `Auditoria::registrar()` e `<x-ui.confirmar-senha :aberta="$pedindoSenha" />`.
 - **Segredos na tela:** campos de senha e token aparecem mascarados (ex.: `informacao_tecnica_painel_contingencias`, na task 8.4). O valor real só aparece quando um admin pede, com senha confirmada e auditoria.
-- **Updates (task 10.2):** a árvore é só leitura, a partir de `walle.updates.raiz`, e o `realpath` confere que o caminho não sai da raiz.
 - **Outros arquivos seus:** `app/Concorrentes/`, `resources/css/app.css` (só com task de design system), `tests/Feature/EntrarTest.php` e `tests/Feature/ConcorrentesTest.php`.
 - **Fora do seu domínio:** `app/Livewire/Concerns/ConfirmaSenha.php`, `app/Livewire/Conversor.php` e a view `livewire/conversor` são do `walle-seguranca`; `app/Livewire/Saude.php` e a view `livewire/saude` são do `walle-infra`.
 

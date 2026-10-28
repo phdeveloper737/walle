@@ -11,8 +11,8 @@
     },
     "walle-telas": {
         "tipo": "implementacao",
-        "testes": ["tests/Feature/TelasTest.php", "tests/Feature/Contingencias", "tests/Feature/Relatorios", "tests/Feature/Sentinela", "tests/Feature/Mercadologica", "tests/Feature/CleanTax", "tests/Feature/Ferramentas", "tests/Feature/CrontabTest.php", "tests/Feature/InformacoesTecnicas", "tests/Feature/Updates", "tests/Feature/Autorizadas", "tests/Feature/Sactus", "tests/Feature/ConcorrentesTest.php", "tests/Feature/EntrarTest.php"],
-        "arquivos": "^(app/Livewire/(?!Saude\\.php$|Conversor\\.php$|Concerns/ConfirmaSenha\\.php$).+\\.php|app/(InformacoesTecnicas|Concorrentes)/.+\\.php|resources/css/app\\.css|resources/views/(livewire/(?!conversor[/.]|saude\\.blade\\.php$)|components/(ui|grafico)/).+\\.blade\\.php|tests/Feature/(Relatorios|Contingencias|Sentinela|Mercadologica|CleanTax|Ferramentas|InformacoesTecnicas|Updates|Autorizadas|Sactus)/.+\\.php|tests/Feature/(Crontab|Telas|Concorrentes|Entrar)Test\\.php)$"
+        "testes": ["tests/Feature/TelasTest.php", "tests/Feature/Contingencias", "tests/Feature/Relatorios", "tests/Feature/Sentinela", "tests/Feature/Mercadologica", "tests/Feature/CleanTax", "tests/Feature/Ferramentas", "tests/Feature/CrontabTest.php", "tests/Feature/InformacoesTecnicas","tests/Feature/Autorizadas", "tests/Feature/Sactus", "tests/Feature/ConcorrentesTest.php", "tests/Feature/EntrarTest.php"],
+        "arquivos": "^(app/Livewire/(?!Saude\\.php$|Conversor\\.php$|Concerns/ConfirmaSenha\\.php$).+\\.php|app/(InformacoesTecnicas|Concorrentes)/.+\\.php|resources/css/app\\.css|resources/views/(livewire/(?!conversor[/.]|saude\\.blade\\.php$)|components/(ui|grafico)/).+\\.blade\\.php|tests/Feature/(Relatorios|Contingencias|Sentinela|Mercadologica|CleanTax|Ferramentas|InformacoesTecnicas|Autorizadas|Sactus)/.+\\.php|tests/Feature/(Crontab|Telas|Concorrentes|Entrar)Test\\.php)$"
     },
     "walle-infra": {
         "tipo": "implementacao",

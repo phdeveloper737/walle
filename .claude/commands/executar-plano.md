@@ -19,7 +19,7 @@ $ARGUMENTS
 
 - Siga a ordem do plano respeitando as dependências: uma fase só começa quando as fases de que depende estão concluídas (todas as tasks feitas). Antes de abrir uma tarefa dependente, integre as tarefas das quais ela depende; se uma dependência nova foi integrada durante uma tarefa já aberta, use `-Acao atualizar -Tarefa T-NNNN` com árvore limpa, a partir do `main` atualizado ou do próprio branch da tarefa, seguindo o fluxo do orquestrador. A atualização preserva a contagem de ciclos; um novo HEAD exige novo gate completo e novas revisões Codex e do arquiteto. Conflitos cancelam a atualização e são encaminhados ao arquiteto e ao dono da tarefa pelo ledger, sem Git de escrita direto pelo orquestrador; se a chamada começou no `main`, uma falha anterior ao commit retorna a ele.
 - **Nunca abra tarefa** para a seção "Manual, fora da automação" (Classificação Mercadológica: tasks 3.3, 6.4 e 7.2) nem para as "Pendências fora do walle" (ex.: `root@%` do .254); o `tarefa.ps1` também recusa a Mercadológica.
-- Task que depende de decisão do usuário ainda não tomada (ex.: valores do 220 sem resposta inequívoca, transporte do certificado na 10.1, montagem do `sistema/app` na 10.2): abra a tarefa, registre a pergunta em `notas.md`, rode `-Acao bloquear`, pergunte no chat com opções numeradas e recomendação, e siga para a próxima task independente.
+- Task que depende de decisão do usuário ainda não tomada (ex.: valores do 220 sem resposta inequívoca): abra a tarefa, registre a pergunta em `notas.md`, rode `-Acao bloquear`, pergunte no chat com opções numeradas e recomendação, e siga para a próxima task independente.
 - Uma task por vez (um implementador por vez nesta sessão).
 
 ## 3. Execução de cada task
