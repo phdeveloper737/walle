@@ -433,3 +433,74 @@ test('senha vazia no Help Desk mantém a senha local na importação', function 
         ->and($linha->senha_ssh_docker)->toBe('docker-antiga-XYZ')
         ->and($linha->senha_mysql_docker)->toBe('mysql-docker-antiga');
 });
+
+test('salvar preserva os espaços que fazem parte das senhas', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos([
+            'senha_mysql' => ' mysql-nova ',
+            'senha_ssh' => ' ssh-nova ',
+            'senha_ssh_docker' => ' docker-nova ',
+        ]))
+        ->call('salvar')
+        ->assertHasNoErrors()
+        ->assertSet('form.senha_mysql', '')
+        ->assertSet('form.senha_ssh', '')
+        ->assertSet('form.senha_ssh_docker', '');
+
+    $linha = InformacaoTecnicaPainelContingencias::find($id);
+    expect($linha->senha_mysql)->toBe(' mysql-nova ')
+        ->and($linha->senha_ssh)->toBe(' ssh-nova ')
+        ->and($linha->senha_ssh_docker)->toBe(' docker-nova ');
+});
+
+test('importar preserva os espaços das quatro senhas do Help Desk', function () {
+    $id = criarClienteHelpDesk([], [
+        'senha_mysql' => ' mysql-help ',
+        'senha_ssh' => ' ssh-help ',
+        'senha_ssh_docker' => ' ssh-docker-help ',
+        'senha_mysql_docker' => ' mysql-docker-help ',
+    ]);
+    configuracaoTecnicaDoCliente($id);
+
+    app(ConfiguracaoTecnica::class)->importarDoHelpDesk($id);
+
+    $linha = InformacaoTecnicaPainelContingencias::find($id);
+    expect($linha->senha_mysql)->toBe(' mysql-help ')
+        ->and($linha->senha_ssh)->toBe(' ssh-help ')
+        ->and($linha->senha_ssh_docker)->toBe(' ssh-docker-help ')
+        ->and($linha->senha_mysql_docker)->toBe(' mysql-docker-help ');
+});
+
+test('a confirmação de senha fica dentro da raiz da tela ao salvar ou importar', function (string $acao, ?int $confirmadaHaMinutos) {
+    $this->freezeTime();
+    entrarNasInformacoesTecnicas(senha: false);
+    session()->put('walle.senha_confirmada_em', $confirmadaHaMinutos === null ? null : now()->subMinutes($confirmadaHaMinutos)->getTimestamp());
+    config(['walle.confirmar_senha_minutos' => 5]);
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    $tela = Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos())
+        ->call($acao)
+        ->assertSet('pedindoSenha', true);
+
+    $documento = new DOMDocument;
+    $documento->loadHTML($tela->html(), LIBXML_NOERROR | LIBXML_NOWARNING);
+    $xpath = new DOMXPath($documento);
+
+    expect($xpath->evaluate('count(/html/body/*[1]//*[@role="dialog" and @aria-modal="true"])'))->toBe(1.0)
+        ->and($xpath->evaluate('count(/html/body/*)'))->toBe(1.0);
+    expect(InformacaoTecnicaPainelContingencias::find($id)->ip_externo_servidor)->toBe('200.1.2.3')
+        ->and(Auditoria::where('acao', 'like', 'informacoes_tecnicas.%')->count())->toBe(0);
+})->with([
+    'salvar sem confirmação' => ['salvar', null],
+    'salvar com confirmação expirada' => ['salvar', 6],
+    'importar sem confirmação' => ['importar', null],
+    'importar com confirmação expirada' => ['importar', 6],
+]);

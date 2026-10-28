@@ -199,6 +199,7 @@ class ConfiguracaoTecnica
         }
 
         $campo = fn (string $nome): string => trim((string) ($origem->{$nome} ?? ''));
+        $segredo = fn (string $nome): string => (string) ($origem->{$nome} ?? '');
         $portaMysql = $campo('porta_mysql_docker') === '' ? $campo('porta_mysql') : $campo('porta_mysql_docker');
 
         $linha = $this->linhaDoCliente($clienteId);
@@ -217,9 +218,9 @@ class ConfiguracaoTecnica
             'porta_mysql_docker' => $campo('porta_mysql_docker'),
             'porta_ssh_docker' => $campo('porta_ssh_docker'),
             'porta_ssh_container_docker' => $campo('porta_ssh_docker'),
-            'senha_ssh_docker' => $campo('senha_ssh_docker'),
+            'senha_ssh_docker' => $segredo('senha_ssh_docker'),
             'banco_mysql_docker' => $campo('banco_mysql_docker'),
-            'senha_mysql_docker' => $campo('senha_mysql_docker'),
+            'senha_mysql_docker' => $segredo('senha_mysql_docker'),
             'usuario_mysql_docker' => $campo('usuario_mysql_docker'),
             'ip_externo_servidor' => $campo('servidor_docker'),
             'servidor_mysql' => $campo('servidor_docker'),
@@ -227,15 +228,15 @@ class ConfiguracaoTecnica
             'porta_mysql' => $portaMysql,
             'porta_ssh' => '22',
             'banco_mysql' => $campo('banco_mysql'),
-            'senha_mysql' => $campo('senha_mysql'),
-            'senha_ssh' => $campo('senha_ssh'),
+            'senha_mysql' => $segredo('senha_mysql'),
+            'senha_ssh' => $segredo('senha_ssh'),
             'ativo_painel_contingencias' => $this->preenchido($linha->ativo_painel_contingencias) ?? 'S',
             'deletado' => 'N',
             'ip_publico' => $campo('ip_publico'),
         ]);
 
         foreach (['senha_ssh_docker', 'senha_mysql_docker', 'senha_mysql', 'senha_ssh'] as $senha) {
-            if ($campo($senha) === '' && $linha->exists) {
+            if ($segredo($senha) === '' && $linha->exists) {
                 $linha->setAttribute($senha, $linha->getOriginal($senha));
             }
         }
@@ -276,7 +277,7 @@ class ConfiguracaoTecnica
     }
 
     /**
-     * Valores prontos para a coluna: texto aparado, vazio vira null e senha em branco fica de fora.
+     * Valores prontos para a coluna: texto aparado, vazio vira null e senha vazia fica de fora; senhas preservam os espaços.
      *
      * @param  array<string, mixed>  $dados
      * @return array<string, string|null>
@@ -290,7 +291,7 @@ class ConfiguracaoTecnica
         }
 
         foreach ($dados as $campo => $valor) {
-            $texto = trim((string) $valor);
+            $texto = (string) $valor;
 
             if (array_key_exists($campo, self::SEGREDOS)) {
                 if ($texto !== '') {
@@ -300,6 +301,7 @@ class ConfiguracaoTecnica
                 continue;
             }
 
+            $texto = trim($texto);
             $gravar[$campo] = $texto === '' ? null : $texto;
         }
 

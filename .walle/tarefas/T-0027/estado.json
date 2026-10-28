@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0027-informacoes-tecnicas-do-cliente",
     "pr":  41,
     "base":  "ee416b23707cbebb5fa7ad3993fd822fe350c301",
@@ -49,6 +49,11 @@
                         "quando":  "2026-10-28 01:52:09",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario em 28/10/2026: opcao 1, aguardar o reset do limite do Codex e retomar nesta tentativa, refazendo revisao do Codex, revisao do walle-arquiteto e integrar para o HEAD e8d6cba9e672f5ba7665e567f49a272e5692a89f (gate completo ja VERDE e valida_para_commit true nesse commit). Nenhuma mudanca de codigo, de plano ou de politica.\n\nDecisoes do usuario em 27/10/2026 (seguir as recomendacoes): salvar e importar exigem admin com ConfirmaSenha, porque a tabela guarda senhas; senhas nunca vao a tela (campo vazio, so substitui se preenchido, como o OCULTA do 220); gravar so colunas de uma lista fixa (o sets.php do 220 aceitava nomes de coluna do cliente); importarDoHelpDesk le o Help Desk (SELECT) e grava so no banco local com updateOrCreate preservando tips_* e emissao_cupons (o REPLACE do 220 recriava a linha); validacao nova: campos obrigatorios e porta entre 1 e 65535 (o 220 nao validava); nenhum log com SQL ou segredo."
+                    },
+                    {
+                        "quando":  "2026-10-28 10:12:53",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0027: preserva senhas e corrige confirmacao no Livewire"
                     }
                 ],
     "notas_bloqueio":  "045070879c561b2fb29970793e072be975dcff7008c94ba81a8d4eec655c2124"

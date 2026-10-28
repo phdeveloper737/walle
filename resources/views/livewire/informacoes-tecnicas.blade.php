@@ -152,6 +152,6 @@
             </form>
         @endif
     </section>
-</div>
 
-<x-ui.confirmar-senha :aberta="$pedindoSenha" />
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" />
+</div>
