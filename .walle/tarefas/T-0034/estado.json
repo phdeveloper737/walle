@@ -4,10 +4,10 @@
     "origem":  "sugestoes da revisao do PR #47 (T-0033)",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e",
-    "pr":  0,
+    "pr":  48,
     "base":  "434fd9885f27242c74a401ec6008bb37842e5137",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-28 13:12:33",
                         "tipo":  "commit",
                         "detalhe":  "T-0034: limite de consulta a Sefaz atomico e texto do dialogo de senha"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:12:44",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #48 aberto"
                     }
                 ]
 }
