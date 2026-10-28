@@ -24,6 +24,11 @@
                         "quando":  "2026-10-28 15:52:21",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario (28/10/2026): montar C:\\docker\\testes220\\newsuporte\\sistema\\app como somente leitura no conteiner walle-app e apontar walle.updates.raiz para o ponto de montagem. A mudanca no docker-compose esta aprovada."
+                    },
+                    {
+                        "quando":  "2026-10-28 16:09:45",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0036: Cancelar a tela Updates (task 10.2) no plano"
                     }
                 ],
     "notas_bloqueio":  "283f0be5ec4db3c240e7f928e4d54491b05a1c4b70fccf467229272995e08474"
