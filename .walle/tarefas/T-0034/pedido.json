@@ -1,0 +1,7 @@
+{
+    "titulo":  "Autorizadas: limite de consulta atomico e texto proprio da senha",
+    "origem":  "sugestoes da revisao do PR #47 (T-0033)",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Duas sugestoes nao bloqueantes da revisao da T-0033: (1) em app/Livewire/Autorizadas/Chave.php o par RateLimiter tooManyAttempts mais hit nao e atomico, entao duas consultas simultaneas de admins podem passar do limite de 10 por minuto do certificado unico; tornar a checagem e o registro atomicos, mantendo a mensagem de espera e o limite, com teste de concorrencia possivel nos testes (por exemplo duas tentativas no mesmo instante ou lock). (2) o componente compartilhado x-ui.confirmar-senha usa texto generico sobre mexer no servidor do cliente, que nao descreve consulta a Sefaz; dar ao componente um texto opcional por contexto, mantendo o padrao atual para nao mudar os outros paineis, e usar o texto da Sefaz na aba Consultar chave. Sem mudar autorizacao nem ligar robo."
+}

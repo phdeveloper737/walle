@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0034",
+    "titulo":  "Autorizadas: limite de consulta atomico e texto proprio da senha",
+    "origem":  "sugestoes da revisao do PR #47 (T-0033)",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e",
+    "pr":  48,
+    "base":  "434fd9885f27242c74a401ec6008bb37842e5137",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 12:58:23",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e a partir de 434fd9885f27242c74a401ec6008bb37842e5137"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:12:33",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0034: limite de consulta a Sefaz atomico e texto do dialogo de senha"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:12:44",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #48 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:31:33",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0034: decide o limite pelo retorno atomico do hit"
+                    }
+                ]
+}

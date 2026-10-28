@@ -167,5 +167,5 @@
         </x-ui.vazio>
     @endif
 
-    <x-ui.confirmar-senha :aberta="$pedindoSenha" />
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" texto="Esta ação faz uma consulta a Sefaz com o certificado de verdade." />
 </div>
