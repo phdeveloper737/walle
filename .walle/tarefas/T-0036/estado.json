@@ -4,7 +4,7 @@
     "origem":  "PLAN 10.2",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "bloqueada",
+    "estado":  "em_execucao",
     "ciclos":  0,
     "branch":  "tarefa/T-0036-updates-arvore-de-sistema-app",
     "pr":  0,
@@ -19,6 +19,11 @@
                         "quando":  "2026-10-28 14:25:54",
                         "tipo":  "bloqueada",
                         "detalhe":  "Pendente de decisao do usuario: onde o sistema/app do 220 fica acessivel ao conteiner walle-app (montagem somente leitura no docker-compose) e o valor de walle.updates.raiz. A montagem e mudanca de infraestrutura Docker e precisa de aprovacao."
+                    },
+                    {
+                        "quando":  "2026-10-28 15:52:21",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (28/10/2026): montar C:\\docker\\testes220\\newsuporte\\sistema\\app como somente leitura no conteiner walle-app e apontar walle.updates.raiz para o ponto de montagem. A mudanca no docker-compose esta aprovada."
                     }
                 ],
     "notas_bloqueio":  "283f0be5ec4db3c240e7f928e4d54491b05a1c4b70fccf467229272995e08474"
