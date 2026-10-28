@@ -1,0 +1,7 @@
+{
+    "titulo":  "Updates: arvore de sistema/app",
+    "origem":  "PLAN 10.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Tela Updates com arvore somente leitura a partir de walle.updates.raiz, conferindo realpath."
+}
