@@ -239,7 +239,7 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - [x] visitante é redirecionado para `entrar`; usuário que não é admin não vê o menu Programação
 - Na 7.1, as rotas `ferramentas` e `crontab` abrem para qualquer usuário logado (conforme o teste crítico); as ações sensíveis ficam protegidas dentro da tela (admin + senha) e só o menu Programação é restrito a admin. A Saúde mostra os robôs novos só como ligado/desligado, sem conferir o último ciclo.
 
-## Sprint 4 — As ações do newsuporte mantidas no escopo existem no walle (excluídas escritas no Help Desk), só para admin, com senha confirmada (`ConfirmaSenha`) e registro em `Auditoria` (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Ferramentas tests/Feature/Sactus tests/Feature/Conversor tests/Feature/InformacoesTecnicas tests/Feature/Updates` passa)
+## Sprint 4 — As ações do newsuporte mantidas no escopo existem no walle (excluídas escritas no Help Desk), só para admin, com senha confirmada (`ConfirmaSenha`) e registro em `Auditoria` (`docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias tests/Feature/Ferramentas tests/Feature/Sactus tests/Feature/Conversor tests/Feature/InformacoesTecnicas` passa)
 
 ### Fase 8 — Ações nos servidores dos clientes e no banco `walle` · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Contingencias/AcoesContingenciasTest.php tests/Feature/Contingencias/ListaDeClientesAcoesTest.php tests/Feature/Ferramentas/ExecucaoDeQueryTest.php tests/Feature/InformacoesTecnicas`
 > Dependências: Fase 7
@@ -281,9 +281,9 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - [x] campo obrigatório vazio ou porta fora do intervalo mostra o erro de validação e não grava
 - Decisões da 8.4 (usuário, 27/10/2026): salvar e importar exigem admin e `ConfirmaSenha`, porque a tabela guarda senhas; senhas nunca vão à tela, a log nem à auditoria (campo vazio mantém a atual, como o "OCULTA" do 220); só as colunas de uma lista fixa são gravadas (o `sets.php` do 220 aceitava nomes de coluna do cliente); a importação lê o Help Desk (SELECT) e grava só no banco local, preservando `tips_*` e `emissao_cupons` (o `REPLACE` do 220 recriava a linha) e sem a senha SSH literal do `atualizar.php`. Validação nova (o 220 não validava): obrigatórios e portas de 1 a 65535; campos do Docker só quando `tips_server` = DO. Rota e menu na task 11.1.
 
-### Fase 10 — Ferramentas auxiliares · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Conversor tests/Feature/Updates`
+### Fase 10 — Ferramentas auxiliares · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Conversor`
 > Dependências: Fase 7
-> Paralelismo: 10.1 e 10.2 rodam em paralelo (módulos próprios)
+> Paralelismo: nenhum (uma task: 10.1)
 
 #### Task 10.1 — Conversor de certificado (substitui `menu/conversor.php`)
 - Agent: Backend Laravel — segurança
@@ -293,25 +293,20 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - [ ] `tests/Feature/Conversor/ConversorCertificadoTest.php`: um `.pfx` de teste com a senha certa vira PEM com certificado e chave, e `Auditoria` registra a conversão sem a senha
   - [ ] senha errada ou conteúdo que não é `.pfx` mostra o erro; sucesso e falha não criam arquivos, inclusive temporários de upload, nem persistem senha/PFX/PEM/chave em sessão, cache, fila ou log
 
-#### Task 10.2 — Updates (substitui `programacao/updates`, árvore de `sistema/app`)
-- Agent: Frontend Livewire (walle-ui)
-- Input: decisão de onde o `sistema/app` do 220 fica acessível ao contêiner `walle-app` (montagem só leitura) e a chave `walle.updates.raiz`
-- Output: `app/Livewire/Updates.php` e `resources/views/livewire/updates.blade.php` (árvore só leitura a partir de `walle.updates.raiz`, com `realpath` conferindo que o caminho não sai da raiz)
-- Testes críticos:
-  - [ ] `tests/Feature/Updates/UpdatesTest.php`: com uma raiz de teste, a árvore lista pastas e arquivos na ordem certa
-  - [ ] caminho com `../` ou fora da raiz mostra "Caminho inválido" e não lista nada
+#### Task 10.2 — Updates (substitui `programacao/updates`, árvore de `sistema/app`) — CANCELADA
+- Decisão do usuário de 28/10/2026: o `programacao/updates` do 220 não vem para o walle. Nenhuma tela, rota, configuração (`walle.updates.raiz`) nem montagem do `sistema/app` será criada.
 
 ### Fase 11 — Rotas e menu das telas do Sprint 4 · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php`
 > Dependências: Fase 8 e Fase 10
 > Paralelismo: nenhum (uma task: arquivos compartilhados)
 
-#### Task 11.1 — Registrar Informações Técnicas, Conversor e Updates
+#### Task 11.1 — Registrar Informações Técnicas e Conversor
 - Agent: Backend Laravel — infraestrutura
-- Input: componentes das tasks 8.4, 10.1 e 10.2
-- Output: rotas `informacoes-tecnicas`, `conversor` e `updates` em `routes/web.php` e itens no menu Programação de `resources/views/layouts/app.blade.php`
+- Input: componentes das tasks 8.4 e 10.1
+- Output: rotas `informacoes-tecnicas` e `conversor` em `routes/web.php` e itens no menu Programação de `resources/views/layouts/app.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/TelasTest.php`: as três rotas abrem para admin logado
-  - [ ] usuário que não é admin recebe `403` nas três
+  - [ ] `tests/Feature/TelasTest.php`: as duas rotas abrem para admin logado
+  - [ ] usuário que não é admin recebe `403` nas duas
 
 ## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados, exceto a Classificação Mercadológica, que segue no 220 até a seção manual no fim do plano (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
 

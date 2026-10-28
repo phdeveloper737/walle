@@ -24,6 +24,11 @@
                         "quando":  "2026-10-28 16:31:37",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario (28/10/2026): o navegador le o PFX com FileReader e envia o conteudo em base64, junto com a senha, num POST pequeno em texto (sem upload de arquivo, sem arquivo temporario). O PEM volta numa resposta em memoria, exibido na tela, com botao para baixar (download gerado em memoria, sem gravar em disco)."
+                    },
+                    {
+                        "quando":  "2026-10-28 16:31:46",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 59832882f55363a333e9e1670394cbc97219a3d9 incorporado; ciclos preservados em 0."
                     }
                 ],
     "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"
