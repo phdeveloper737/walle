@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 12:58:23",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0034-autorizadas-limite-de-consulta-atomico-e a partir de 434fd9885f27242c74a401ec6008bb37842e5137"
+                    },
+                    {
+                        "quando":  "2026-10-28 13:12:33",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0034: limite de consulta a Sefaz atomico e texto do dialogo de senha"
                     }
                 ]
 }

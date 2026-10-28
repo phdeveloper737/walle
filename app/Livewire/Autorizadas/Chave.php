@@ -32,6 +32,9 @@ class Chave extends Component
     /** Consultas à mão por minuto, somando todo mundo: o certificado é um só. */
     public const CONSULTAS_POR_MINUTO = 10;
 
+    /** Contador das consultas à mão, um só para todo mundo (o certificado é um só). */
+    public const CHAVE_LIMITE = 'autorizadas:consulta-manual';
+
     #[Url(as: 'chave', except: '')]
     public string $entrada = '';
 
@@ -75,13 +78,14 @@ class Chave extends Component
             return;
         }
 
-        if (RateLimiter::tooManyAttempts('autorizadas:consulta-manual', self::CONSULTAS_POR_MINUTO)) {
-            $this->erro = 'Muitas consultas seguidas (o certificado é um só). Espere '.RateLimiter::availableIn('autorizadas:consulta-manual').' s.';
+        // Conta antes de decidir: as CONSULTAS_POR_MINUTO primeiras chegam na Sefaz e a seguinte já é barrada, mesmo em disparos simultâneos.
+        RateLimiter::hit(self::CHAVE_LIMITE, 60);
+
+        if (RateLimiter::attempts(self::CHAVE_LIMITE) > self::CONSULTAS_POR_MINUTO) {
+            $this->erro = 'Muitas consultas seguidas (o certificado é um só). Espere '.RateLimiter::availableIn(self::CHAVE_LIMITE).' s.';
 
             return;
         }
-
-        RateLimiter::hit('autorizadas:consulta-manual', 60);
 
         $r = $sefaz->consultar([$diagnostico->chave->chave], pausaMs: 0)[0];
         $gravou = false;

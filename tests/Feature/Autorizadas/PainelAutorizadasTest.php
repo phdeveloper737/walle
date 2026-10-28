@@ -286,6 +286,46 @@ test('chave inválida ou consultas demais não chegam na Sefaz', function () {
     expect($sefaz->consultadas)->toBe([]);
 });
 
+test('o limite conta a tentativa antes de decidir, então nenhuma consulta passa do teto', function () {
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+    $sefaz = sefazFalsa();
+    $chave = chaveValida(20);
+
+    foreach (range(1, Chave::CONSULTAS_POR_MINUTO - 1) as $i) {
+        Livewire::test(Chave::class)->set('entrada', $chave)->call('consultarSefaz')->assertSet('erro', null);
+    }
+
+    expect(RateLimiter::attempts('autorizadas:consulta-manual'))->toBe(9);
+
+    // A décima passa e a décima primeira é barrada, como se as duas chegassem juntas:
+    // cada uma conta a própria tentativa antes de olhar o contador.
+    Livewire::test(Chave::class)->set('entrada', $chave)->call('consultarSefaz')->assertSet('erro', null);
+    Livewire::test(Chave::class)->set('entrada', $chave)->call('consultarSefaz')->assertSee('Muitas consultas seguidas');
+
+    expect(RateLimiter::attempts('autorizadas:consulta-manual'))->toBe(11)
+        ->and($sefaz->consultadas)->toBe(array_fill(0, Chave::CONSULTAS_POR_MINUTO, $chave));
+});
+
+test('o diálogo de senha da consulta à Sefaz fala da consulta e as outras telas mantêm o texto padrão', function () {
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    session()->forget('walle.senha_confirmada_em');
+    $chave = chaveValida(21);
+    criarHistoricoContingencia(7, $chave, '2026-10-18 15:00:00');
+
+    Livewire::test(Chave::class)
+        ->set('entrada', $chave)
+        ->call('consultarSefaz')
+        ->assertSet('pedindoSenha', true)
+        ->assertSee('consulta a Sefaz com o certificado de verdade')
+        ->assertDontSee('mexe no servidor do cliente');
+
+    Livewire::test(Robo::class)
+        ->call('pausar', 4)
+        ->assertSet('pedindoSenha', true)
+        ->assertSee('mexe no servidor do cliente ou mostra um segredo');
+});
+
 test('verificar continua livre para quem não é admin e não chama a Sefaz', function () {
     $chave = chaveValida(15);
     $sefaz = sefazFalsa();

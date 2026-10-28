@@ -1,9 +1,12 @@
 {{--
     Janela "confirme sua senha do Help Desk" das ações de admin (trait App\Livewire\Concerns\ConfirmaSenha).
     Ex.: <x-ui.confirmar-senha :aberta="$pedindoSenha" />
+    O texto pode ser trocado pela tela quando a ação é mais específica:
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" texto="Esta ação faz uma consulta a Sefaz com o certificado de verdade." />
 --}}
 @props([
     'aberta' => false,
+    'texto' => 'Esta ação mexe no servidor do cliente ou mostra um segredo.',
 ])
 
 @if ($aberta)
@@ -17,7 +20,7 @@
                 <h2 id="confirmar-senha-titulo" class="text-lg text-on-surface">Confirme que é você</h2>
             </div>
             <p class="mt-3 text-sm text-on-surface-variant">
-                Esta ação mexe no servidor do cliente ou mostra um segredo. Digite a sua senha do Help Desk
+                {{ $texto }} Digite a sua senha do Help Desk
                 (vale por {{ config('walle.confirmar_senha_minutos') }} minutos). Fica registrado quem fez.
             </p>
 
