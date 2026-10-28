@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 11:39:48",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0032-autorizadas-acoes-do-robo-so-para-admin a partir de 342ba8f4ac64b6633576a7c162f7a18887f7a5d8"
+                    },
+                    {
+                        "quando":  "2026-10-28 11:59:29",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0032: acoes do robo de Autorizadas so para admin com senha"
                     }
                 ]
 }
