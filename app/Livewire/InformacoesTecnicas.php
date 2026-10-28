@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\InformacoesTecnicas\ConfiguracaoTecnica;
 use App\InformacoesTecnicas\FalhaGravacaoLocal;
+use App\InformacoesTecnicas\FalhaLeituraLocal;
 use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\InformacaoTecnicaPainelContingencias;
@@ -128,8 +129,13 @@ class InformacoesTecnicas extends Component
             $this->avisarFalhaDeGravacao();
 
             return;
+        } catch (FalhaLeituraLocal) {
+            $this->avisoErro = true;
+            $this->aviso = 'Não foi possível ler a configuração do cliente no banco do walle. Tente de novo em instantes.';
+
+            return;
         } catch (QueryException $e) {
-            // Só a leitura do Help Desk chega aqui (a gravação local vira FalhaGravacaoLocal) e a consulta leva só o id.
+            // Só a leitura do Help Desk chega aqui (a local vira FalhaLeituraLocal) e a consulta leva só o id.
             report($e);
             $this->avisoErro = true;
             $this->aviso = 'O Help Desk (192.168.10.254) não respondeu. Nada foi importado; tente de novo em instantes.';
@@ -209,7 +215,8 @@ class InformacoesTecnicas extends Component
         $cadastradas = [];
 
         foreach (array_keys(ConfiguracaoTecnica::SEGREDOS) as $segredo) {
-            $cadastradas[$segredo] = $linha !== null && trim((string) $linha->getAttribute($segredo)) !== '';
+            // Qualquer valor não vazio conta como cadastrada, inclusive só espaços; o valor nunca vai para a tela.
+            $cadastradas[$segredo] = $linha !== null && (string) $linha->getAttribute($segredo) !== '';
         }
 
         return $cadastradas;

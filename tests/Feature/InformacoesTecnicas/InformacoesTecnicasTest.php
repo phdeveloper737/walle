@@ -504,3 +504,117 @@ test('a confirmação de senha fica dentro da raiz da tela ao salvar ou importar
     'importar sem confirmação' => ['importar', null],
     'importar com confirmação expirada' => ['importar', 6],
 ]);
+
+test('os campos Docker aceitam nome de host, como jmconsultorias.com.br', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos([
+            'tips_server' => 'DO',
+            'ip_docker_principal' => 'jmconsultorias.com.br',
+            'ip_container_docker' => 'container.jmconsultorias.com.br',
+            'porta_http_docker' => '80',
+            'porta_mysql_docker' => '3306',
+            'porta_ssh_docker' => '22',
+            'porta_ssh_container_docker' => '2222',
+        ]))
+        ->call('salvar')
+        ->assertHasNoErrors();
+
+    $linha = InformacaoTecnicaPainelContingencias::find($id);
+    expect($linha->ip_docker_principal)->toBe('jmconsultorias.com.br')
+        ->and($linha->ip_container_docker)->toBe('container.jmconsultorias.com.br')
+        ->and($linha->tips_server)->toBe('DO');
+});
+
+test('os campos Docker continuam recusando valor que não é IP nem nome de host', function (string $campo) {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos([
+            'tips_server' => 'DO',
+            'ip_docker_principal' => 'jmconsultorias.com.br',
+            'ip_container_docker' => '10.0.0.2',
+            'porta_http_docker' => '80',
+            'porta_mysql_docker' => '3306',
+            'porta_ssh_docker' => '22',
+            'porta_ssh_container_docker' => '2222',
+            $campo => 'ab c;rm -rf',
+        ]))
+        ->call('salvar')
+        ->assertHasErrors(["form.$campo"]);
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->tips_server)->toBe('LO');
+})->with(['ip_docker_principal', 'ip_container_docker']);
+
+test('falha de leitura do Help Desk na importação mostra a mensagem do Help Desk', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    $tela = Livewire::test(InformacoesTecnicas::class)->call('selecionar', $id);
+
+    DB::connection('help')->listen(function ($consulta) use ($id) {
+        if ($consulta->connectionName !== 'help') {
+            return;
+        }
+
+        throw new QueryException('help', 'select * from `c_cliente` where `c`.`id` = ?', [$id], new PDOException('Connection refused'));
+    });
+
+    $tela->call('importar')
+        ->assertSee('O Help Desk (192.168.10.254) não respondeu. Nada foi importado; tente de novo em instantes.')
+        ->assertDontSee('Não foi possível gravar no banco do walle');
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->ip_externo_servidor)->toBe('200.1.2.3')
+        ->and(Auditoria::where('acao', 'informacoes_tecnicas.importar')->count())->toBe(0);
+});
+
+test('falha no SELECT local da importação mostra a mensagem local, não a do Help Desk', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+    Exceptions::fake();
+
+    $tela = Livewire::test(InformacoesTecnicas::class)->call('selecionar', $id);
+
+    DB::listen(function ($consulta) use ($id) {
+        if (str_contains($consulta->sql, 'informacao_tecnica_painel_contingencias')
+            && str_contains($consulta->sql, 'fk_c_cliente')
+            && ! str_contains($consulta->sql, 'deletado')
+            && ! str_contains($consulta->sql, 'order by')) {
+            throw new QueryException('mysql', 'select * from informacao_tecnica_painel_contingencias where fk_c_cliente = ?', [$id], new PDOException('Lock wait timeout'));
+        }
+    });
+
+    $tela->call('importar')
+        ->assertSee('Não foi possível ler a configuração do cliente no banco do walle')
+        ->assertDontSee('Nada foi importado')
+        ->assertDontSee('O Help Desk (192.168.10.254) não respondeu');
+
+    Exceptions::assertNothingReported();
+    expect(InformacaoTecnicaPainelContingencias::find($id)->senha_mysql)->toBe('mysql-antiga-XYZ')
+        ->and(Auditoria::where('acao', 'informacoes_tecnicas.importar')->count())->toBe(0);
+});
+
+test('senha só com espaços conta como cadastrada e não vai para a tela', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id, [
+        'tips_server' => 'DO',
+        'senha_mysql' => '   ',
+        'senha_ssh' => ' ',
+        'senha_ssh_docker' => '  ',
+    ]);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->assertSee('Senha cadastrada. Preencha para substituir.')
+        ->assertDontSee('Nenhuma senha cadastrada');
+});
