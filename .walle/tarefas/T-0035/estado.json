@@ -29,6 +29,11 @@
                         "quando":  "2026-10-28 16:31:46",
                         "tipo":  "atualizada",
                         "detalhe":  "origin/main 59832882f55363a333e9e1670394cbc97219a3d9 incorporado; ciclos preservados em 0."
+                    },
+                    {
+                        "quando":  "2026-10-28 16:41:39",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0035: Conversor de certificado (PFX para PEM) inteiramente em memoria"
                     }
                 ],
     "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"
