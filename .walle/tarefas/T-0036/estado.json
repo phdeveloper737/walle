@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0036",
+    "titulo":  "Updates: arvore de sistema/app",
+    "origem":  "PLAN 10.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0036-updates-arvore-de-sistema-app",
+    "pr":  0,
+    "base":  "769c2923dab1d8e228dd1a44a73e67885a550828",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 14:25:46",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0036-updates-arvore-de-sistema-app a partir de 769c2923dab1d8e228dd1a44a73e67885a550828"
+                    }
+                ]
+}
