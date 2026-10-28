@@ -67,11 +67,17 @@ function arquivosQuePoderiamGuardarOCertificado(): array
     $arquivos = [];
 
     foreach ($raizes as $raiz) {
-        if (! is_dir($raiz)) {
+        if (! is_dir($raiz) || ! is_readable($raiz)) {
             continue;
         }
 
-        $iterador = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($raiz, FilesystemIterator::SKIP_DOTS));
+        // CATCH_GET_CHILD pula só as pastas que o processo não pode listar (ex.: /tmp/systemd-private-* de outros
+        // serviços no CI); os arquivos legíveis do resto da árvore continuam na fotografia
+        $iterador = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($raiz, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY,
+            RecursiveIteratorIterator::CATCH_GET_CHILD,
+        );
 
         foreach ($iterador as $arquivo) {
             /** @var SplFileInfo $arquivo */
@@ -384,4 +390,25 @@ test('o serviço converte em memória e recusa senha errada com exceção clara'
 
     expect(fn () => app(ConversorCertificado::class)->converter(pfxDeTeste(), 'errada'))
         ->toThrow(CertificadoInvalido::class, 'Senha do certificado incorreta');
+});
+
+test('a varredura do disco acha arquivo novo com segredo no diretório temporário e não para em pasta que não pode listar', function () {
+    $pasta = sys_get_temp_dir().DIRECTORY_SEPARATOR.'walle-varredura-'.bin2hex(random_bytes(6));
+    $ilegivel = $pasta.DIRECTORY_SEPARATOR.'ilegivel';
+    mkdir($ilegivel, 0700, true);
+    file_put_contents($ilegivel.DIRECTORY_SEPARATOR.'antigo.txt', 'x');
+    chmod($ilegivel, 0000);
+
+    try {
+        $antes = arquivosQuePoderiamGuardarOCertificado();
+        file_put_contents($pasta.DIRECTORY_SEPARATOR.'vazou.pem', '-----BEGIN PRIVATE KEY-----');
+
+        expect(arquivosSuspeitos($antes, ['PRIVATE KEY']))->toContain($pasta.DIRECTORY_SEPARATOR.'vazou.pem');
+    } finally {
+        chmod($ilegivel, 0700);
+        @unlink($ilegivel.DIRECTORY_SEPARATOR.'antigo.txt');
+        @rmdir($ilegivel);
+        @unlink($pasta.DIRECTORY_SEPARATOR.'vazou.pem');
+        @rmdir($pasta);
+    }
 });

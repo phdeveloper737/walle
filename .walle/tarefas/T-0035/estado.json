@@ -4,8 +4,8 @@
     "origem":  "PLAN 10.1",
     "tipo":  "plano",
     "dono":  "walle-seguranca",
-    "estado":  "em_revisao",
-    "ciclos":  2,
+    "estado":  "bloqueada",
+    "ciclos":  3,
     "branch":  "tarefa/T-0035-conversor-de-certificado",
     "pr":  50,
     "base":  "769c2923dab1d8e228dd1a44a73e67885a550828",
@@ -49,7 +49,12 @@
                         "quando":  "2026-10-28 19:04:26",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 2 de 2: T-0035: Conversor: limitar a senha do certificado a 128 caracteres"
+                    },
+                    {
+                        "quando":  "2026-10-28 19:42:02",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "passou de 2 ciclos de correcao: escalar ao usuario. Decisao do usuario (28/10/2026): o navegador le o PFX com FileReader e envia o conteudo em base64, junto com a senha, num POST pequeno em texto (sem upload de arquivo, sem arquivo temporario). O PEM volta numa resposta em memoria, exibido na tela, com botao para baixar (download gerado em memoria, sem gravar em disco)."
                     }
                 ],
-    "notas_bloqueio":  "ed3a8bd3e7a7ec475d30d81fe8f5769ee93334927bcb5f59f2326f35cf25de01"
+    "notas_bloqueio":  "1832b8a62e2e69db17477bfec8f615b9e2e218b65070eae7bcd3354efb9da0cf"
 }
