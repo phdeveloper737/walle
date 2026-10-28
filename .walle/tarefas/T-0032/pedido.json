@@ -1,0 +1,7 @@
+{
+    "titulo":  "Autorizadas: acoes do robo so para admin com senha",
+    "origem":  "achado da T-0031 (fora do escopo) e sugestoes do parecer do PR #45",
+    "tipo":  "bug",
+    "dono":  "walle-telas",
+    "resumo":  "As acoes pausar, retomar e rodarAgora de app/Livewire/Autorizadas/Robo.php nao conferem Gate::allows admin nem pedem senha, e a rota /autorizadas nao tem can:admin, entao qualquer usuario logado pausa o robo e dispara um ciclo de consultas na Sefaz. Aplicar o mesmo padrao de Sactus/Robo: Gate em cada acao, ConfirmaSenha com as acoes em ACOES_COM_SENHA, auditoria preservada e testes provando 403 para nao admin e 200 com senha confirmada para admin, sem ligar robo. Inclui as tres sugestoes do parecer do PR #45 em Informacoes Tecnicas: bail ou guarda is_string na closure de ipOuHost para array nao virar 500, PHPDoc de importarDoHelpDesk listando FalhaLeituraLocal e FalhaGravacaoLocal, e o texto do erro trocando IP do conteiner por endereco do conteiner. Nao muda a regra da rota sem repetir na tela os botoes de admin."
+}
