@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0031",
+    "titulo":  "Informacoes Tecnicas: fechar as sugestoes da revisao do PR 41",
+    "origem":  "revisao do PR #41 (T-0027, PLAN 8.4)",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0031-informacoes-tecnicas-fechar-as-sugestoes",
+    "pr":  0,
+    "base":  "13776d9ed5615b2a7ff65a0413cea91fcf3f6007",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 10:38:22",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0031-informacoes-tecnicas-fechar-as-sugestoes a partir de 13776d9ed5615b2a7ff65a0413cea91fcf3f6007"
+                    }
+                ]
+}

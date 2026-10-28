@@ -1,0 +1,7 @@
+{
+    "titulo":  "Informacoes Tecnicas: fechar as sugestoes da revisao do PR 41",
+    "origem":  "revisao do PR #41 (T-0027, PLAN 8.4)",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Resolver as tres sugestoes nao bloqueantes do parecer da T-0027: (1) ip_docker_principal e ip_container_docker continuam validados so como IP, mas a importacao copia servidor_docker neles, entao cliente DO com hostname nao salva; aceitar IP ou hostname como ja se faz em ip_externo_servidor, com teste; (2) o catch de QueryException em InformacoesTecnicas.importar tambem captura falha do SELECT local e culpa o Help Desk; separar o tratamento e a mensagem por origem, com teste; (3) senha composta so de espacos e gravada mas aparece como nao cadastrada porque senhasCadastradas apara o valor; contar como cadastrada sem expor o valor, com teste."
+}
