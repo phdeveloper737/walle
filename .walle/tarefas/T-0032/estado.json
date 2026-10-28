@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0032",
+    "titulo":  "Autorizadas: acoes do robo so para admin com senha",
+    "origem":  "achado da T-0031 (fora do escopo) e sugestoes do parecer do PR #45",
+    "tipo":  "bug",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0032-autorizadas-acoes-do-robo-so-para-admin",
+    "pr":  46,
+    "base":  "342ba8f4ac64b6633576a7c162f7a18887f7a5d8",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 11:39:48",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0032-autorizadas-acoes-do-robo-so-para-admin a partir de 342ba8f4ac64b6633576a7c162f7a18887f7a5d8"
+                    },
+                    {
+                        "quando":  "2026-10-28 11:59:29",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0032: acoes do robo de Autorizadas so para admin com senha"
+                    },
+                    {
+                        "quando":  "2026-10-28 11:59:38",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #46 aberto"
+                    }
+                ]
+}

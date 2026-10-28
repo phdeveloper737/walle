@@ -603,6 +603,50 @@ test('falha no SELECT local da importação mostra a mensagem local, não a do H
         ->and(Auditoria::where('acao', 'informacoes_tecnicas.importar')->count())->toBe(0);
 });
 
+test('campo de IP em array mostra erro de validação, sem estourar a tela', function (string $campo) {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos([
+            'tips_server' => 'DO',
+            'ip_docker_principal' => '192.168.10.244',
+            'ip_container_docker' => '10.0.0.2',
+            'porta_http_docker' => '80',
+            'porta_mysql_docker' => '3306',
+            'porta_ssh_docker' => '22',
+            'porta_ssh_container_docker' => '2222',
+        ]))
+        ->set("form.$campo", ['invalido'])
+        ->call('salvar')
+        ->assertHasErrors(["form.$campo"]);
+
+    expect(InformacaoTecnicaPainelContingencias::find($id)->tips_server)->toBe('LO');
+})->with(['ip_docker_principal', 'ip_container_docker']);
+
+test('o erro do campo Docker fala no endereço do contêiner', function () {
+    entrarNasInformacoesTecnicas();
+    $id = criarClienteHelpDesk();
+    configuracaoTecnicaDoCliente($id);
+
+    Livewire::test(InformacoesTecnicas::class)
+        ->call('selecionar', $id)
+        ->set('form', dadosTecnicosValidos([
+            'tips_server' => 'DO',
+            'ip_docker_principal' => '192.168.10.244',
+            'ip_container_docker' => 'ab c;rm -rf',
+            'porta_http_docker' => '80',
+            'porta_mysql_docker' => '3306',
+            'porta_ssh_docker' => '22',
+            'porta_ssh_container_docker' => '2222',
+        ]))
+        ->call('salvar')
+        ->assertHasErrors(['form.ip_container_docker'])
+        ->assertSee('no endereço do contêiner (Docker)');
+});
+
 test('senha só com espaços conta como cadastrada e não vai para a tela', function () {
     entrarNasInformacoesTecnicas();
     $id = criarClienteHelpDesk();

@@ -6,6 +6,7 @@ use App\Jobs\RodarCicloAutorizadas;
 use App\Livewire\Autorizadas\Analise;
 use App\Livewire\Autorizadas\Chave;
 use App\Livewire\Autorizadas\Robo;
+use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Sefaz\ChaveDeAcesso;
 use Illuminate\Support\Carbon;
@@ -16,7 +17,9 @@ use Livewire\Livewire;
 
 beforeEach(function () {
     $this->travelTo(Carbon::parse('2026-10-21 10:00:00'));
-    $this->actingAs(Usuario::find(criarUsuarioHelpDesk()));
+    config(['walle.admins' => []]);
+    $this->usuario = Usuario::find(criarUsuarioHelpDesk());
+    $this->actingAs($this->usuario);
 });
 
 function diagnosticoDe(string $chave): DiagnosticoChave
@@ -44,7 +47,8 @@ test('a análise mostra os números do período e o nome do cliente', function (
 });
 
 test('pausar e retomar pelo painel, guardando quem pausou', function () {
-    config(['walle.autorizadas.ativo' => true]);
+    config(['walle.autorizadas.ativo' => true, 'walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $robo = app(RoboAutorizadas::class);
 
     Livewire::test(Robo::class)->call('pausar', 2)->assertSet('aviso', null);
@@ -61,6 +65,8 @@ test('pausar e retomar pelo painel, guardando quem pausou', function () {
 
 test('rodar agora só com o robô ligado e sem pausa', function () {
     Queue::fake();
+    config(['walle.admins' => [$this->usuario->id]]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
 
     Livewire::test(Robo::class)->call('rodarAgora')->assertSee('O robô está desligado neste servidor');
     Queue::assertNothingPushed();
@@ -73,6 +79,109 @@ test('rodar agora só com o robô ligado e sem pausa', function () {
     app(RoboAutorizadas::class)->retomar();
     Livewire::test(Robo::class)->call('rodarAgora')->assertSee('Ciclo pedido');
     Queue::assertPushed(RodarCicloAutorizadas::class);
+});
+
+test('quem não é admin recebe 403 nas três ações do robô, sem fila e sem auditoria', function (string $acao, array $argumentos) {
+    Queue::fake();
+    config(['walle.admins' => [], 'walle.autorizadas.ativo' => true]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+
+    Livewire::test(Robo::class)->call($acao, ...$argumentos)->assertForbidden();
+
+    Queue::assertNothingPushed();
+    expect(app(RoboAutorizadas::class)->pausa())->toBeNull()
+        ->and(Auditoria::where('acao', 'like', 'autorizadas.robo.%')->count())->toBe(0);
+})->with([
+    'pausar' => ['pausar', [4]],
+    'retomar' => ['retomar', []],
+    'rodarAgora' => ['rodarAgora', []],
+]);
+
+test('admin sem a senha confirmada só recebe o pedido de senha nas três ações', function (string $acao, array $argumentos) {
+    Queue::fake();
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    session()->forget('walle.senha_confirmada_em');
+
+    Livewire::test(Robo::class)->call($acao, ...$argumentos)
+        ->assertSet('pedindoSenha', true)
+        ->assertSet('acaoPendente', $acao);
+
+    Queue::assertNothingPushed();
+    expect(app(RoboAutorizadas::class)->pausa())->toBeNull()
+        ->and(Auditoria::where('acao', 'like', 'autorizadas.robo.%')->count())->toBe(0);
+})->with([
+    'pausar' => ['pausar', [4]],
+    'retomar' => ['retomar', []],
+    'rodarAgora' => ['rodarAgora', []],
+]);
+
+test('admin pausa o robô depois de confirmar a senha e fica na auditoria', function () {
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    session()->forget('walle.senha_confirmada_em');
+
+    Livewire::test(Robo::class)
+        ->call('pausar', 4)
+        ->assertSet('pedindoSenha', true)
+        ->set('senhaConfirmacao', 'segredo')
+        ->call('confirmarSenha')
+        ->assertSet('pedindoSenha', false)
+        ->assertSee('Robô pausado por 4 h.');
+
+    expect(app(RoboAutorizadas::class)->pausa())->motivo->toBe('Pausado por Maria da Silva pelo painel')
+        ->and(Auditoria::where('acao', 'autorizadas.robo.pausar')->sole()->detalhes)->toBe(['horas' => 4]);
+});
+
+test('admin retoma o robô depois de confirmar a senha e fica na auditoria', function () {
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    session()->forget('walle.senha_confirmada_em');
+    app(RoboAutorizadas::class)->pausar(now()->addHour());
+
+    Livewire::test(Robo::class)
+        ->call('retomar')
+        ->assertSet('pedindoSenha', true)
+        ->set('senhaConfirmacao', 'segredo')
+        ->call('confirmarSenha')
+        ->assertSet('pedindoSenha', false)
+        ->assertSee('Robô retomado.');
+
+    expect(app(RoboAutorizadas::class)->pausa())->toBeNull()
+        ->and(Auditoria::where('acao', 'autorizadas.robo.retomar')->count())->toBe(1);
+});
+
+test('admin dispara o ciclo depois de confirmar a senha e fica na auditoria', function () {
+    Queue::fake();
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    session()->forget('walle.senha_confirmada_em');
+
+    Livewire::test(Robo::class)
+        ->call('rodarAgora')
+        ->assertSet('pedindoSenha', true)
+        ->assertDontSee('Ciclo pedido');
+
+    Queue::assertNothingPushed();
+
+    Livewire::test(Robo::class)
+        ->call('rodarAgora')
+        ->set('senhaConfirmacao', 'segredo')
+        ->call('confirmarSenha')
+        ->assertSet('pedindoSenha', false)
+        ->assertSee('Ciclo pedido: começa em instantes.');
+
+    Queue::assertPushed(RodarCicloAutorizadas::class);
+    expect(Auditoria::where('acao', 'autorizadas.robo.rodar_agora')->count())->toBe(1);
+});
+
+test('robô desligado continua avisando sem enfileirar e sem auditar, mesmo para admin', function () {
+    Queue::fake();
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => false]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+
+    Livewire::test(Robo::class)->call('rodarAgora')
+        ->assertSee('O robô está desligado neste servidor')
+        ->assertSet('pedindoSenha', false);
+
+    Queue::assertNothingPushed();
+    expect(Auditoria::where('acao', 'autorizadas.robo.rodar_agora')->count())->toBe(0);
 });
 
 test('o diagnóstico explica por que a chave entra ou não na fila', function () {

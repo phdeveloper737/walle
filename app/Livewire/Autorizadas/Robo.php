@@ -5,6 +5,7 @@ namespace App\Livewire\Autorizadas;
 use App\Autorizadas\AnaliseAutorizadas;
 use App\Autorizadas\RoboAutorizadas;
 use App\Jobs\RodarCicloAutorizadas;
+use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\CicloAutorizadas;
 use App\Models\Usuario;
@@ -12,12 +13,14 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
  * Aba Robô: estado (ligado, pausado, ciclo em andamento), números da base, consultas por hora
  * e os últimos ciclos. Substitui o autorizadas.dash.php (que mexia no systemctl e mostrava o log).
+ * Os controles são de admin com senha: rodar um ciclo consulta a Sefaz.
  *
  * @property-read array<string, mixed> $geral
  * @property-read CicloAutorizadas|null $cicloAtual
@@ -26,6 +29,10 @@ use Livewire\Component;
  */
 class Robo extends Component
 {
+    use ConfirmaSenha;
+
+    public const ACOES_COM_SENHA = ['pausar', 'retomar', 'rodarAgora'];
+
     /** Um ciclo leva minutos; sem terminar depois disso, o worker morreu no meio. */
     public const MINUTOS_CICLO_INTERROMPIDO = 35;
 
@@ -35,31 +42,43 @@ class Robo extends Component
 
     public bool $avisoErro = false;
 
-    public function pausar(int $horas, RoboAutorizadas $robo): void
+    // Sem injeção nos parâmetros: depois da senha o trait chama o método direto, só com os argumentos guardados
+
+    public function pausar(int $horas): void
     {
-        if (! in_array($horas, self::PAUSAS_HORAS, true)) {
+        if (! in_array($horas, self::PAUSAS_HORAS, true) || ! $this->adminConfirmado('pausar', [$horas])) {
             return;
         }
 
-        $robo->pausar(now()->addHours($horas), 'Pausado por '.Usuario::nomeDoLogado().' pelo painel');
+        app(RoboAutorizadas::class)->pausar(now()->addHours($horas), 'Pausado por '.Usuario::nomeDoLogado().' pelo painel');
         Auditoria::registrar('autorizadas.robo.pausar', null, ['horas' => $horas]);
 
         $this->avisar("Robô pausado por {$horas} h.");
     }
 
-    public function retomar(RoboAutorizadas $robo): void
+    public function retomar(): void
     {
-        $robo->retomar();
+        if (! $this->adminConfirmado('retomar')) {
+            return;
+        }
+
+        app(RoboAutorizadas::class)->retomar();
         Auditoria::registrar('autorizadas.robo.retomar');
 
         $this->avisar('Robô retomado.');
     }
 
-    public function rodarAgora(RoboAutorizadas $robo): void
+    public function rodarAgora(): void
     {
+        $robo = app(RoboAutorizadas::class);
+
         if (! $robo->ligado()) {
             $this->avisar('O robô está desligado neste servidor (WALLE_AUTORIZADAS_ATIVO=false).', erro: true);
 
+            return;
+        }
+
+        if (! $this->adminConfirmado('rodarAgora')) {
             return;
         }
 
@@ -77,6 +96,7 @@ class Robo extends Component
 
         // ShouldBeUnique: se o agendador já pôs um ciclo na fila, este não entra de novo
         RodarCicloAutorizadas::dispatch();
+        Auditoria::registrar('autorizadas.robo.rodar_agora');
         $this->avisar('Ciclo pedido: começa em instantes.');
     }
 
@@ -147,6 +167,7 @@ class Robo extends Component
         return view('livewire.autorizadas.robo', [
             'ligado' => $robo->ligado(),
             'pausa' => $robo->pausa(),
+            'admin' => Gate::allows('admin'),
         ]);
     }
 

@@ -1,6 +1,6 @@
 @use('App\Support\Numero')
 
-<div class="flex flex-col gap-3" wire:poll.10s>
+<div class="flex flex-col gap-3" @if (! $pedindoSenha) wire:poll.10s @endif>
     @php
         $atual = $this->cicloAtual;
         // O bloqueio da Sefaz vem primeiro: mesmo com o robô desligado ele trava a consulta à mão
@@ -30,27 +30,29 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 md:ml-auto">
-            @if ($pausa !== null)
-                <x-ui.botao variante="tonal" icone="play_arrow" wire:click="retomar"
-                    :wire:confirm="$pausa['automatica'] ? 'A Sefaz bloqueou por consumo indevido. Retomar antes da hora pode bloquear de novo. Retomar mesmo assim?' : null">
-                    Retomar
-                </x-ui.botao>
-            @elseif ($ligado)
-                <div class="relative" x-data="{ aberto: false }" x-on:click.outside="aberto = false" x-on:keydown.escape="aberto = false">
-                    <x-ui.botao variante="contorno" icone="pause" x-on:click="aberto = ! aberto" x-bind:aria-expanded="aberto" aria-haspopup="menu">Pausar</x-ui.botao>
-                    <div class="absolute right-0 z-30 mt-1 w-36 rounded-sm bg-surface-container-highest py-1 shadow-lg shadow-black/40" role="menu" x-show="aberto" x-cloak>
-                        @foreach (\App\Livewire\Autorizadas\Robo::PAUSAS_HORAS as $horas)
-                            <button type="button" role="menuitem" class="block w-full px-4 py-2 text-left text-sm text-on-surface hover:bg-on-surface/8"
-                                wire:click="pausar({{ $horas }})" x-on:click="aberto = false">Por {{ $horas }} h</button>
-                        @endforeach
+        @if ($admin && $ligado)
+            <div class="flex flex-wrap items-center gap-2 md:ml-auto">
+                @if ($pausa !== null)
+                    <x-ui.botao variante="tonal" icone="play_arrow" wire:click="retomar"
+                        :wire:confirm="$pausa['automatica'] ? 'A Sefaz bloqueou por consumo indevido. Retomar antes da hora pode bloquear de novo. Retomar mesmo assim?' : null">
+                        Retomar
+                    </x-ui.botao>
+                @else
+                    <div class="relative" x-data="{ aberto: false }" x-on:click.outside="aberto = false" x-on:keydown.escape="aberto = false">
+                        <x-ui.botao variante="contorno" icone="pause" x-on:click="aberto = ! aberto" x-bind:aria-expanded="aberto" aria-haspopup="menu">Pausar</x-ui.botao>
+                        <div class="absolute right-0 z-30 mt-1 w-36 rounded-sm bg-surface-container-highest py-1 shadow-lg shadow-black/40" role="menu" x-show="aberto" x-cloak>
+                            @foreach (\App\Livewire\Autorizadas\Robo::PAUSAS_HORAS as $horas)
+                                <button type="button" role="menuitem" class="block w-full px-4 py-2 text-left text-sm text-on-surface hover:bg-on-surface/8"
+                                    wire:click="pausar({{ $horas }})" x-on:click="aberto = false">Por {{ $horas }} h</button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            <x-ui.botao icone="play_circle" wire:click="rodarAgora" wire:loading.attr="disabled" wire:target="rodarAgora"
-                :disabled="! $ligado || $pausa !== null || $atual !== null">Rodar agora</x-ui.botao>
-        </div>
+                <x-ui.botao icone="play_circle" wire:click="rodarAgora" wire:loading.attr="disabled" wire:target="rodarAgora"
+                    :disabled="! $ligado || $pausa !== null || $atual !== null">Rodar agora</x-ui.botao>
+            </div>
+        @endif
     </section>
 
     @if ($aviso)
@@ -169,4 +171,6 @@
             </div>
         @endif
     </section>
+
+    <x-ui.confirmar-senha :aberta="$pedindoSenha" />
 </div>

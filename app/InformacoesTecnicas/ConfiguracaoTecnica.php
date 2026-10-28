@@ -77,7 +77,7 @@ class ConfiguracaoTecnica
             'tips_pdv' => ['required', 'in:'.implode(',', array_keys(self::TIPOS_PDV))],
             'ip_docker_principal' => [...$docker, 'nullable', 'string', 'max:50', $this->regraIpOuHost('no servidor principal (Docker)')],
             'banco_separado_docker' => ['required', 'in:S,N'],
-            'ip_container_docker' => [...$docker, 'nullable', 'string', 'max:50', $this->regraIpOuHost('no IP do contêiner (Docker)')],
+            'ip_container_docker' => [...$docker, 'nullable', 'string', 'max:50', $this->regraIpOuHost('no endereço do contêiner (Docker)')],
             'porta_http_docker' => [...$docker, 'nullable', ...$porta],
             'porta_mysql_docker' => [...$docker, 'nullable', ...$porta],
             'porta_ssh_docker' => [...$docker, 'nullable', ...$porta],
@@ -174,6 +174,8 @@ class ConfiguracaoTecnica
      * já definiu (tips_server, tips_pdv e emissao_cupons). Cliente novo começa com DO e A, como no 220.
      *
      * @throws ValidationException quando o Help Desk não tem o cadastro técnico do cliente
+     * @throws FalhaLeituraLocal quando a leitura da configuração local falha
+     * @throws FalhaGravacaoLocal quando a gravação no banco local falha
      */
     public function importarDoHelpDesk(int $clienteId): void
     {
@@ -318,7 +320,12 @@ class ConfiguracaoTecnica
     private function regraIpOuHost(string $local): Closure
     {
         return function (string $atributo, mixed $valor, Closure $falha) use ($local): void {
-            if (! $this->ipOuHost(trim((string) $valor))) {
+            // A regra `string` já reprova o valor que não é texto; aqui a guarda evita o "Array to string conversion".
+            if (! is_string($valor)) {
+                return;
+            }
+
+            if (! $this->ipOuHost(trim($valor))) {
                 $falha("Informe um IP ou nome de host válido {$local}, como 192.168.10.5 ou servidor.exemplo.com.br.");
             }
         };
