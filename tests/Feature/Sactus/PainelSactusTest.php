@@ -16,6 +16,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Livewire;
 
 beforeEach(function () {
+    config(['walle.admins' => []]);
     $this->usuario = Usuario::find(criarUsuarioHelpDesk());
     $this->actingAs($this->usuario);
 });

@@ -75,18 +75,14 @@ class ConfiguracaoTecnica
             'ativo_painel_contingencias' => ['required', 'in:S,N'],
             'tips_server' => ['required', 'in:'.implode(',', array_keys(self::TIPOS_SERVIDOR))],
             'tips_pdv' => ['required', 'in:'.implode(',', array_keys(self::TIPOS_PDV))],
-            'ip_docker_principal' => [...$docker, 'nullable', 'in:'.implode(',', self::SERVIDORES_DOCKER)],
+            'ip_docker_principal' => [...$docker, 'nullable', 'string', 'max:50', $this->regraIpOuHost('no servidor principal (Docker)')],
             'banco_separado_docker' => ['required', 'in:S,N'],
-            'ip_container_docker' => [...$docker, 'nullable', 'ip', 'max:50'],
+            'ip_container_docker' => [...$docker, 'nullable', 'string', 'max:50', $this->regraIpOuHost('no IP do contêiner (Docker)')],
             'porta_http_docker' => [...$docker, 'nullable', ...$porta],
             'porta_mysql_docker' => [...$docker, 'nullable', ...$porta],
             'porta_ssh_docker' => [...$docker, 'nullable', ...$porta],
             'porta_ssh_container_docker' => [...$docker, 'nullable', ...$porta],
-            'ip_externo_servidor' => ['required', 'string', 'max:50', function (string $atributo, mixed $valor, Closure $falha): void {
-                if (! $this->ipOuHost((string) $valor)) {
-                    $falha('Informe um IP ou nome de host válido no IP externo do servidor, como 192.168.10.5 ou servidor.exemplo.com.br.');
-                }
-            }],
+            'ip_externo_servidor' => ['required', 'string', 'max:50', $this->regraIpOuHost('no IP externo do servidor')],
             'servidor_mysql' => ['required', 'string', 'max:50'],
             'porta_http' => ['required', ...$porta],
             'porta_mysql' => ['required', ...$porta],
@@ -202,7 +198,12 @@ class ConfiguracaoTecnica
         $segredo = fn (string $nome): string => (string) ($origem->{$nome} ?? '');
         $portaMysql = $campo('porta_mysql_docker') === '' ? $campo('porta_mysql') : $campo('porta_mysql_docker');
 
-        $linha = $this->linhaDoCliente($clienteId);
+        try {
+            $linha = $this->linhaDoCliente($clienteId);
+        } catch (QueryException) {
+            // A consulta local falhou: sem a exceção original, o SQL não vai para o log nem para a tela.
+            throw new FalhaLeituraLocal;
+        }
 
         $linha->fill([
             'id_loja' => $campo('loja'),
@@ -306,6 +307,21 @@ class ConfiguracaoTecnica
         }
 
         return $gravar;
+    }
+
+    /**
+     * Aceita IP ou nome de host: a importação copia o servidor_docker do Help Desk, que pode ser hostname.
+     *
+     * @param  string  $local  trecho que completa a frase do erro (ex.: "no IP externo do servidor")
+     * @return Closure(string, mixed, Closure(string): void): void
+     */
+    private function regraIpOuHost(string $local): Closure
+    {
+        return function (string $atributo, mixed $valor, Closure $falha) use ($local): void {
+            if (! $this->ipOuHost(trim((string) $valor))) {
+                $falha("Informe um IP ou nome de host válido {$local}, como 192.168.10.5 ou servidor.exemplo.com.br.");
+            }
+        };
     }
 
     private function ipOuHost(string $valor): bool

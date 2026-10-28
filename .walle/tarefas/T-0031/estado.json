@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 10:38:22",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0031-informacoes-tecnicas-fechar-as-sugestoes a partir de 13776d9ed5615b2a7ff65a0413cea91fcf3f6007"
+                    },
+                    {
+                        "quando":  "2026-10-28 11:16:28",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0031: fecha as sugestoes da revisao das Informacoes Tecnicas"
                     }
                 ]
 }
