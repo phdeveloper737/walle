@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0038",
+    "titulo":  "Paridade dos robôs de coleta",
+    "origem":  "PLAN 12.1",
+    "tipo":  "plano",
+    "dono":  "walle-paridade",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
+    "pr":  0,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 23:33:43",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0038-paridade-dos-robos-de-coleta a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    }
+                ]
+}
