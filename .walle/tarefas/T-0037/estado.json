@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 22:58:18",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0037-registrar-informacoes-tecnicas-e-convers a partir de 296fb30f33420dc3fd4d9787314eb8503ab5be09"
+                    },
+                    {
+                        "quando":  "2026-10-28 23:09:50",
+                        "tipo":  "commit",
+                        "detalhe":  "Registrar Informações Técnicas e Conversor: rotas, menu e testes (task 11.1)"
                     }
                 ]
 }

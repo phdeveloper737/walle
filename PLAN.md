@@ -306,8 +306,8 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: componentes das tasks 8.4 e 10.1
 - Output: rotas `informacoes-tecnicas` e `conversor` em `routes/web.php` e itens no menu Programação de `resources/views/layouts/app.blade.php`
 - Testes críticos:
-  - [ ] `tests/Feature/TelasTest.php`: as duas rotas abrem para admin logado
-  - [ ] usuário que não é admin recebe `403` nas duas
+  - [x] `tests/Feature/TelasTest.php`: as duas rotas abrem para admin logado
+  - [x] usuário que não é admin recebe `403` nas duas
 
 ## Sprint 5 — Com os mesmos dados, cada módulo migrado devolve o mesmo resultado que o newsuporte e os robôs do 220 podem ser desligados, exceto a Classificação Mercadológica, que segue no 220 até a seção manual no fim do plano (`docker exec walle-app ./vendor/bin/pest tests/Feature/Paridade` passa)
 
