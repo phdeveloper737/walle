@@ -59,8 +59,12 @@ test('CleanTax grava linhas completas de sucesso e erro igual ao 220', function 
     foreach (['sucesso', 'erro'] as $tipo) {
         $cliente = $amostra['cliente_'.$tipo];
         $linha = DB::table('painel_cleantax_worker')->where('fk_c_cliente', $cliente['fk_c_cliente'])->first();
-        $obtido = collect((array) $linha)->except(['data', 'tempo_execucao_segundos'])->toArray();
-        expect($obtido)->toEqual(collect($amostra['linha_'.$tipo])->except(['data', 'tempo_execucao_segundos'])->toArray());
+        $obtido = collect((array) $linha)->except(['tempo_execucao_segundos'])->toArray();
+        $esperado = collect($amostra['linha_'.$tipo])->except(['tempo_execucao_segundos'])->toArray();
+        $esperado['data'] = '2026-10-27 10:00:00';
+        expect($obtido)->toEqual($esperado)
+            ->and($linha->tempo_execucao_segundos)->toMatch('/^\d+\.\d{3}$/')
+            ->and((float) $linha->tempo_execucao_segundos)->toBeGreaterThanOrEqual(0.0);
     }
 });
 

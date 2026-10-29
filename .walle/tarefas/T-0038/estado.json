@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -44,6 +44,11 @@
                         "quando":  "2026-10-29 09:33:23",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisão do usuário: harness já ajustado para permitir 5 ciclos de correção. Retomar T-0038 e continuar validação do commit 3f98d3f8775a7489e2cd4ba3489c7c29452e80d4."
+                    },
+                    {
+                        "quando":  "2026-10-29 09:55:13",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: Valida data e tempo de execução na paridade da CleanTax"
                     }
                 ],
     "notas_bloqueio":  "13d8cfaf23e461580451728f8f4d7a95ecba142a93bbe9fe8edc55f4554f1ca9"
