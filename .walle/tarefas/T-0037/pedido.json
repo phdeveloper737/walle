@@ -1,0 +1,7 @@
+{
+    "titulo":  "Registrar Informações Técnicas e Conversor",
+    "origem":  "PLAN 11.1",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "Adicionar rotas autenticadas informacoes-tecnicas e conversor, itens no menu Programação e testes críticos de acesso: admin recebe 200 e não admin recebe 403."
+}
