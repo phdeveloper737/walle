@@ -7,6 +7,7 @@ use App\Contingencias\RoboContingencias;
 use App\Ferramentas\RoboTarefas;
 use App\Sentinela\RoboSentinela;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
@@ -33,13 +34,16 @@ test('Sentinela grava linha completa de sucesso e erro igual ao 220', function (
     // Normalização necessária: id é autoincremento do walle; duracao_ms vem do relógio real
     // (microtime), que travelTo() não controla; json é comparado decodificado porque a ordem
     // das chaves do 220 difere da serialização do PHP.
-    $linhaOk = DB::table('painel_sentinela')->where('fk_c_cliente', $clienteOk)->first();
+    $linhasSentinela = DB::table('painel_sentinela')->orderBy('fk_c_cliente')->get();
+    expect($linhasSentinela)->toHaveCount(2);
+
+    $linhaOk = $linhasSentinela->firstWhere('fk_c_cliente', $clienteOk);
     $obtidoOk = collect((array) $linhaOk)->except(['id', 'duracao_ms', 'json'])->toArray();
     expect($obtidoOk)->toEqual(['fk_c_cliente' => $clienteOk, ...collect($amostra['linha_sucesso'])->except(['duracao_ms', 'json'])->toArray()])
         ->and(json_decode((string) $linhaOk->json, true))->toEqual(json_decode($amostra['json'], true))
         ->and($linhaOk->duracao_ms)->toBeInt()->toBeGreaterThanOrEqual(0);
 
-    $linhaErro = DB::table('painel_sentinela')->where('fk_c_cliente', $clienteErro)->first();
+    $linhaErro = $linhasSentinela->firstWhere('fk_c_cliente', $clienteErro);
     $obtidoErro = collect((array) $linhaErro)->except(['id', 'duracao_ms'])->toArray();
     expect($obtidoErro)->toEqual(['fk_c_cliente' => $clienteErro, ...collect($amostra['linha_erro'])->except(['duracao_ms'])->toArray()])
         ->and($linhaErro->duracao_ms)->toBeInt()->toBeGreaterThanOrEqual(0);
@@ -56,9 +60,12 @@ test('CleanTax grava linhas completas de sucesso e erro igual ao 220', function 
 
     app(RoboCleanTax::class)->rodarCiclo();
 
+    $linhasCleanTax = DB::table('painel_cleantax_worker')->orderBy('fk_c_cliente')->get();
+    expect($linhasCleanTax)->toHaveCount(2);
+
     foreach (['sucesso', 'erro'] as $tipo) {
         $cliente = $amostra['cliente_'.$tipo];
-        $linha = DB::table('painel_cleantax_worker')->where('fk_c_cliente', $cliente['fk_c_cliente'])->first();
+        $linha = $linhasCleanTax->firstWhere('fk_c_cliente', $cliente['fk_c_cliente']);
         $obtido = collect((array) $linha)->except(['tempo_execucao_segundos'])->toArray();
         $esperado = collect($amostra['linha_'.$tipo])->except(['tempo_execucao_segundos'])->toArray();
         $esperado['data'] = '2026-10-27 10:00:00';
@@ -78,16 +85,17 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
     app(RoboContingencias::class)->rodarCiclo();
 
     $painelEsperado = ['fk_c_cliente' => $cliente, ...$amostra['painel']];
-    $painel = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $cliente)->first();
-    expect((array) $painel)->toEqual($painelEsperado);
+    $paineis = DB::table('painel_contingency_crawler')->get();
+    expect($paineis)->toHaveCount(1)
+        ->and((array) $paineis->sole())->toEqual($painelEsperado);
 
     $historicoEsperado = [['fk_c_cliente' => $cliente, ...$amostra['historico'][0]]];
     $historico = DB::table('history_contingencia')->where('fk_c_cliente', $cliente)->get()->map(fn ($linha): array => (array) $linha)->all();
-    $historico = array_map(fn (array $linha): array => collect($linha)->except(['data_clique'])->toArray(), $historico);
-    $historicoEsperado = array_map(fn (array $linha): array => collect($linha)->except(['data_clique'])->toArray(), $historicoEsperado);
-    expect($historico)->toEqual($historicoEsperado);
-
-    // data_clique usa CURRENT_TIMESTAMP; somente esta coluna é não determinística.
+    expect($historico)->toHaveCount(1)
+        ->and(collect($historico[0])->except(['data_clique'])->toArray())
+        ->toEqual(collect($historicoEsperado[0])->except(['data_clique'])->toArray())
+        ->and($historico[0]['data_clique'])->not->toBeNull()
+        ->and(Carbon::parse($historico[0]['data_clique']))->toBeInstanceOf(Carbon::class);
 });
 
 test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
@@ -100,8 +108,13 @@ test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
 
     app(RoboTarefas::class)->rodarPendentes();
 
-    expect(DB::table('task_scheduler_querys_log')->where(['fk_task_scheduler_querys' => $tarefa, 'fk_c_cliente' => $cliente])->value('log_query'))
-        ->toBe($amostra['log_ok']);
+    $logs = DB::table('task_scheduler_querys_log')->get();
+    expect($logs)->toHaveCount(1);
+    $log = (array) $logs->sole();
+    expect($log['fk_task_scheduler_querys'])->toBe($tarefa)
+        ->and($log['fk_c_cliente'])->toBe($cliente)
+        ->and($log['log_query'])->toBe($amostra['log_ok'])
+        ->and(Carbon::parse($log['data_time']))->toBeInstanceOf(Carbon::class);
 });
 
 test('robôs desligados executados não chamam nem gravam', function (): void {
