@@ -82,20 +82,24 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
     criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
     servidorDoClienteNoBancoDeTestes();
 
+    $inicioDoCiclo = Carbon::createFromTimestamp(time());
     app(RoboContingencias::class)->rodarCiclo();
+    $fimDoCiclo = Carbon::createFromTimestamp(time());
 
     $painelEsperado = ['fk_c_cliente' => $cliente, ...$amostra['painel']];
     $paineis = DB::table('painel_contingency_crawler')->get();
     expect($paineis)->toHaveCount(1)
         ->and((array) $paineis->sole())->toEqual($painelEsperado);
 
-    $historicoEsperado = [['fk_c_cliente' => $cliente, ...$amostra['historico'][0]]];
+    $historicoEsperado = ['fk_c_cliente' => $cliente, ...$amostra['historico'][0]];
     $historico = DB::table('history_contingencia')->where('fk_c_cliente', $cliente)->get()->map(fn ($linha): array => (array) $linha)->all();
-    expect($historico)->toHaveCount(1)
-        ->and(collect($historico[0])->except(['data_clique'])->toArray())
-        ->toEqual(collect($historicoEsperado[0])->except(['data_clique'])->toArray())
-        ->and($historico[0]['data_clique'])->not->toBeNull()
-        ->and(Carbon::parse($historico[0]['data_clique']))->toBeInstanceOf(Carbon::class);
+    expect($historico)->toHaveCount(1);
+
+    $dataClique = $historico[0]['data_clique'];
+    $historicoEsperado['data_clique'] = $dataClique;
+    expect($historico[0])->toEqual($historicoEsperado)
+        ->and($dataClique)->toBeString()->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/')
+        ->and(Carbon::createFromFormat('Y-m-d H:i:s', $dataClique)->betweenIncluded($inicioDoCiclo, $fimDoCiclo))->toBeTrue();
 });
 
 test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
