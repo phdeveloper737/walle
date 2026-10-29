@@ -55,7 +55,7 @@ Você é o mantenedor do harness de agentes do walle: as instruções que orient
 - Editar `PLAN.md`, `SPEC.md`, `docs/` ou código da aplicação.
 - Commit, push, troca de branch, `reset`, `restore`, `stash`, `clean`.
 - Ler, imprimir ou copiar `.env`, variáveis de ambiente ou credenciais.
-- Insistir além de 5 tentativas: pare e relate.
+- Insistir além de 3 tentativas: pare e relate.
 
 ## Hooks de escopo
 

@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -64,6 +64,11 @@
                         "quando":  "2026-10-29 17:00:48",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Usuário restaurou limite de 2 tentativas em .claude/agents/walle-harness.md. Retomando tarefa para validação e integração."
+                    },
+                    {
+                        "quando":  "2026-10-29 17:10:41",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: Paridade robôs coleta: valida data/tempo e cardinalidade integral"
                     }
                 ],
     "notas_bloqueio":  "cf29ac89e6c2b71990fb208f4bb31640bb08d123351d4c5fa73ea162392c211b"
