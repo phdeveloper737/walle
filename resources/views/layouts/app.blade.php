@@ -33,6 +33,8 @@
                 <p class="mt-2 px-3 text-xs text-on-surface-variant" x-bind:class="recolhido && 'lg:hidden'">Programação</p>
                 <x-ui.menu-item rota="ferramentas" icone="build">Ferramentas</x-ui.menu-item>
                 <x-ui.menu-item rota="crontab" icone="schedule">Crontab</x-ui.menu-item>
+                <x-ui.menu-item rota="informacoes-tecnicas" icone="settings_input_component">Informações técnicas</x-ui.menu-item>
+                <x-ui.menu-item rota="conversor" icone="swap_horiz">Conversor</x-ui.menu-item>
             @endcan
             <x-ui.menu-item rota="saude" icone="monitor_heart">Saúde do sistema</x-ui.menu-item>
             <x-ui.menu-item href="/horizon" icone="stacks" target="_blank">Filas (Horizon)</x-ui.menu-item>

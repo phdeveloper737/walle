@@ -7,9 +7,11 @@ use App\Livewire\CleanTax;
 use App\Livewire\Concorrentes;
 use App\Livewire\Conhecimento;
 use App\Livewire\Contingencias;
+use App\Livewire\Conversor;
 use App\Livewire\Crontab;
 use App\Livewire\Entrar;
 use App\Livewire\Ferramentas;
+use App\Livewire\InformacoesTecnicas;
 use App\Livewire\Painel;
 use App\Livewire\Relatorios;
 use App\Livewire\Sactus;
@@ -31,6 +33,8 @@ Route::middleware('auth')->group(function () {
     // Programação: abre para quem está logado; as ações sensíveis conferem o admin dentro da tela
     Route::livewire('/ferramentas', Ferramentas::class)->name('ferramentas');
     Route::livewire('/crontab', Crontab::class)->name('crontab');
+    Route::livewire('/informacoes-tecnicas', InformacoesTecnicas::class)->middleware('can:admin')->name('informacoes-tecnicas');
+    Route::livewire('/conversor', Conversor::class)->middleware('can:admin')->name('conversor');
     Route::livewire('/conhecimento', Conhecimento::class)->middleware('can:admin')->name('conhecimento');
     Route::get('/landing/fiscal', LandingFiscalController::class)->name('landing.fiscal');
     Route::livewire('/saude', Saude::class)->name('saude');

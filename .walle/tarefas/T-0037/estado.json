@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0037",
+    "titulo":  "Registrar Informações Técnicas e Conversor",
+    "origem":  "PLAN 11.1",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0037-registrar-informacoes-tecnicas-e-convers",
+    "pr":  54,
+    "base":  "296fb30f33420dc3fd4d9787314eb8503ab5be09",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-28 22:58:18",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0037-registrar-informacoes-tecnicas-e-convers a partir de 296fb30f33420dc3fd4d9787314eb8503ab5be09"
+                    },
+                    {
+                        "quando":  "2026-10-28 23:09:50",
+                        "tipo":  "commit",
+                        "detalhe":  "Registrar Informações Técnicas e Conversor: rotas, menu e testes (task 11.1)"
+                    },
+                    {
+                        "quando":  "2026-10-28 23:10:44",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #54 aberto"
+                    }
+                ]
+}
