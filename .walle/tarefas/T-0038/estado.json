@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.1",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  2,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
@@ -74,7 +74,12 @@
                         "quando":  "2026-10-29 20:29:03",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 2 de 2: Corrige achados da revisão de paridade"
+                    },
+                    {
+                        "quando":  "2026-10-29 20:55:43",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "CI do PR #55 falhou no HEAD 52504a31dcbe698663fae5c7c5da17bddb09bcea: harness, qualidade e rag encerraram em 2 segundos; GitHub devolveu log not found. Gate definitivo local está VERDE e válido para o commit, com 612 testes e 2735 asserções. Tarefa atingiu 2 de 2 ciclos. Decisão necessária: autorizar nova tentativa após reexecução/normalização do CI ou encerrar o PR."
                     }
                 ],
-    "notas_bloqueio":  "cf29ac89e6c2b71990fb208f4bb31640bb08d123351d4c5fa73ea162392c211b"
+    "notas_bloqueio":  "8914b1378f9a0dc35c6d8be7570982033454378686161c88b7dabd092660eea7"
 }
