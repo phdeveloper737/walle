@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.1",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  2,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
@@ -54,7 +54,12 @@
                         "quando":  "2026-10-29 12:03:34",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 2 de 2: Resolve 2 P1 da paridade: data_clique com tipo válido e cardinalidade integral"
+                    },
+                    {
+                        "quando":  "2026-10-29 16:23:05",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada: P0 em .claude/agents/walle-harness.md nao pode ser corrigido por agentes (politica proibe edicao da propria definicao pelo walle-harness). Exige decisao ou edicao manual do usuario no arquivo .claude/agents/walle-harness.md para restaurar limite de 2 tentativas."
                     }
                 ],
-    "notas_bloqueio":  "13d8cfaf23e461580451728f8f4d7a95ecba142a93bbe9fe8edc55f4554f1ca9"
+    "notas_bloqueio":  "cf29ac89e6c2b71990fb208f4bb31640bb08d123351d4c5fa73ea162392c211b"
 }

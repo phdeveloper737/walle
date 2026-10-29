@@ -39,7 +39,7 @@ test('Sentinela grava linha completa de sucesso e erro igual ao 220', function (
 
     $linhaOk = $linhasSentinela->firstWhere('fk_c_cliente', $clienteOk);
     $obtidoOk = collect((array) $linhaOk)->except(['id', 'duracao_ms', 'json'])->toArray();
-    expect($obtidoOk)->toEqual(['fk_c_cliente' => $clienteOk, ...collect($amostra['linha_sucesso'])->except(['duracao_ms', 'json'])->toArray()])
+    expect($obtidoOk)->toEqual(['fk_c_cliente' => $clienteOk, ...collect($amostra['linha_sucesso'])->except(['fk_c_cliente', 'duracao_ms', 'json'])->toArray()])
         ->and(json_decode((string) $linhaOk->json, true))->toEqual(json_decode($amostra['json'], true))
         ->and($linhaOk->duracao_ms)->toBeInt()->toBeGreaterThanOrEqual(0);
 

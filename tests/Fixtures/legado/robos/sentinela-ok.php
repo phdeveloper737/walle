@@ -17,6 +17,7 @@ return [
         'sactus' => ['ok' => true, 'rodando' => true, 'mtime' => '27/10/2026 09:59:00'],
     ], JSON_THROW_ON_ERROR),
     'linha_sucesso' => [
+        'fk_c_cliente' => 999999,
         'status' => 'S', 'http_code' => 200, 'erro' => '', 'host' => '10.8.0.250',
         'url' => 'http://10.8.0.250/sentinela.php?json=S', 'hostname' => 'servidor-ficticio',
         'os' => 'Linux Fictício', 'kernel' => 'kernel-ficticio', 'uptime' => '2d 3h', 'php' => '8.0.0',
