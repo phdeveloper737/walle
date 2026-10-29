@@ -15,6 +15,11 @@
                         "quando":  "2026-10-28 23:33:43",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0038-paridade-dos-robos-de-coleta a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-29 08:17:21",
+                        "tipo":  "commit",
+                        "detalhe":  "Testa paridade dos robôs de coleta"
                     }
                 ]
 }
