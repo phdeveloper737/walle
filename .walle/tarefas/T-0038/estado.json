@@ -4,12 +4,11 @@
     "origem":  "PLAN 12.1",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  2,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-10-28 23:33:43",
@@ -35,6 +34,12 @@
                         "quando":  "2026-10-29 09:18:57",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 2 de 2: Ajusta determinismo e sanitização na paridade dos robôs"
+                    },
+                    {
+                        "quando":  "2026-10-29 09:32:42",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "T-0038 bloqueada temporariamente por dependência decidida pelo usuário: aumentar o limite geral do ledger de 2 para 5 ciclos, com bloqueio no sexto ciclo. Abrir e integrar tarefa própria do walle-hooks antes de retomar T-0038."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "13d8cfaf23e461580451728f8f4d7a95ecba142a93bbe9fe8edc55f4554f1ca9"
 }
