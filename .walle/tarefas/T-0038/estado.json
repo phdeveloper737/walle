@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -30,6 +30,11 @@
                         "quando":  "2026-10-29 08:52:42",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: Fortalece provas de paridade dos robôs"
+                    },
+                    {
+                        "quando":  "2026-10-29 09:18:57",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: Ajusta determinismo e sanitização na paridade dos robôs"
                     }
                 ]
 }

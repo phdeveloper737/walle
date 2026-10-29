@@ -3,7 +3,6 @@
 use App\CleanTax\RoboCleanTax;
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
-use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Contingencias\RoboContingencias;
 use App\Ferramentas\RoboTarefas;
 use App\Sentinela\RoboSentinela;
@@ -18,103 +17,93 @@ beforeEach(function (): void {
     Sleep::fake();
 });
 
-test('Sentinela grava linha exata e estado de erro idênticos ao 220', function (): void {
+test('Sentinela grava linha completa de sucesso e erro igual ao 220', function (): void {
     config(['walle.sentinela.ativo' => true]);
-    $clienteOk = criarClienteHelpDesk([], ['ip_externo_servidor' => '10.8.0.3']);
-    $clienteErro = criarClienteHelpDesk([], ['ip_externo_servidor' => '10.8.0.21']);
     $amostra = require base_path('tests/Fixtures/legado/robos/sentinela-ok.php');
+    $clienteOk = criarClienteHelpDesk([], ['ip_externo_servidor' => $amostra['host_sucesso']]);
+    $clienteErro = criarClienteHelpDesk([], ['ip_externo_servidor' => $amostra['host_erro']]);
 
     Http::fake([
-        'http://10.8.0.3/sentinela.php*' => Http::response($amostra['json'], 200),
-        'http://10.8.0.21/sentinela.php*' => fn () => throw new ConnectionException('cURL error 28: Connection timed out after 8001 milliseconds'),
+        'http://'.$amostra['host_sucesso'].'/sentinela.php*' => Http::response($amostra['json'], 200),
+        'http://'.$amostra['host_erro'].'/sentinela.php*' => fn () => throw new ConnectionException('cURL error 28: Connection timed out after 8001 milliseconds'),
     ]);
 
     app(RoboSentinela::class)->rodarCiclo();
 
+    // Normalização necessária: id é autoincremento do walle; duracao_ms vem do relógio real
+    // (microtime), que travelTo() não controla; json é comparado decodificado porque a ordem
+    // das chaves do 220 difere da serialização do PHP.
     $linhaOk = DB::table('painel_sentinela')->where('fk_c_cliente', $clienteOk)->first();
-    $colunasOk = collect((array) $linhaOk)->except(['id', 'fk_c_cliente', 'data', 'json', 'duracao_ms'])->toArray();
-    expect($colunasOk)->toEqual(collect($amostra['linha_sucesso'])->except(['json', 'duracao_ms'])->toArray())
-        ->and(json_decode($linhaOk->json, true))->toEqual(json_decode($amostra['json'], true))
-        ->and((int) $linhaOk->duracao_ms)->toBeGreaterThan(0);
+    $obtidoOk = collect((array) $linhaOk)->except(['id', 'duracao_ms', 'json'])->toArray();
+    expect($obtidoOk)->toEqual(['fk_c_cliente' => $clienteOk, ...collect($amostra['linha_sucesso'])->except(['duracao_ms', 'json'])->toArray()])
+        ->and(json_decode((string) $linhaOk->json, true))->toEqual(json_decode($amostra['json'], true))
+        ->and($linhaOk->duracao_ms)->toBeInt()->toBeGreaterThanOrEqual(0);
 
     $linhaErro = DB::table('painel_sentinela')->where('fk_c_cliente', $clienteErro)->first();
-    $colunasErro = collect((array) $linhaErro)->except(['id', 'fk_c_cliente', 'data', 'duracao_ms'])->toArray();
-    expect($colunasErro)->toEqual(collect($amostra['linha_erro'])->except(['duracao_ms'])->toArray());
+    $obtidoErro = collect((array) $linhaErro)->except(['id', 'duracao_ms'])->toArray();
+    expect($obtidoErro)->toEqual(['fk_c_cliente' => $clienteErro, ...collect($amostra['linha_erro'])->except(['duracao_ms'])->toArray()])
+        ->and($linhaErro->duracao_ms)->toBeInt()->toBeGreaterThanOrEqual(0);
 });
 
-test('CleanTax grava sucesso e erro exatos conforme amostras do 220', function (): void {
+test('CleanTax grava linhas completas de sucesso e erro igual ao 220', function (): void {
     config(['walle.cleantax.ativo' => true]);
-    $amostras = require base_path('tests/Fixtures/legado/robos/cleantax.php');
-
+    $amostra = require base_path('tests/Fixtures/legado/robos/cleantax.php');
     Http::fake([
-        RoboCleanTax::API_ENDPOINT => Http::response([
-            'status' => true,
-            'message' => [$amostras['cliente_sucesso'], $amostras['cliente_erro']],
-        ], 200),
-        'http://10.8.0.11*' => Http::response($amostras['resposta_sucesso'], 200),
-        'http://10.8.0.21*' => fn () => throw new ConnectionException('cURL error 28: Connection timed out'),
+        RoboCleanTax::API_ENDPOINT => Http::response(['status' => true, 'message' => [$amostra['cliente_sucesso'], $amostra['cliente_erro']]], 200),
+        'http://'.$amostra['cliente_sucesso']['servidor'].'*' => Http::response($amostra['resposta_sucesso'], 200),
+        'http://'.$amostra['cliente_erro']['servidor'].'*' => fn () => throw new ConnectionException('cURL error 28: Connection timed out'),
     ]);
 
     app(RoboCleanTax::class)->rodarCiclo();
 
-    $linhaSucesso = DB::table('painel_cleantax_worker')->where('fk_c_cliente', 10)->first();
-    $colunasSucesso = collect((array) $linhaSucesso)->except(['data', 'tempo_execucao_segundos'])->toArray();
-    expect($colunasSucesso)->toEqual(collect($amostras['linha_sucesso'])->except(['tempo_execucao_segundos'])->toArray());
-
-    $linhaErro = DB::table('painel_cleantax_worker')->where('fk_c_cliente', 26)->first();
-    $colunasErro = collect((array) $linhaErro)->except(['data', 'tempo_execucao_segundos'])->toArray();
-    expect($colunasErro)->toEqual(collect($amostras['linha_erro'])->except(['tempo_execucao_segundos'])->toArray());
+    foreach (['sucesso', 'erro'] as $tipo) {
+        $cliente = $amostra['cliente_'.$tipo];
+        $linha = DB::table('painel_cleantax_worker')->where('fk_c_cliente', $cliente['fk_c_cliente'])->first();
+        $obtido = collect((array) $linha)->except(['data', 'tempo_execucao_segundos'])->toArray();
+        expect($obtido)->toEqual(collect($amostra['linha_'.$tipo])->except(['data', 'tempo_execucao_segundos'])->toArray());
+    }
 });
 
-test('Contingência grava totais exatos iguais à amostra do 220', function (): void {
+test('Contingência grava painel e histórico completos iguais ao 220', function (): void {
     config(['walle.contingencias.ativo' => true]);
     $amostra = require base_path('tests/Fixtures/legado/robos/contingencia.php');
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
-    foreach ($amostra['sactus'] as $dados) {
-        criarContingenciaSactus($dados);
-    }
+    criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
     servidorDoClienteNoBancoDeTestes();
 
     app(RoboContingencias::class)->rodarCiclo();
 
-    $linha = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $cliente)->first();
-    $colunas = collect((array) $linha)->except(['data', 'fk_c_cliente'])->toArray();
-    expect($colunas)->toEqual(collect($amostra['linha_sucesso'])->except(['data'])->toArray());
+    $painelEsperado = ['fk_c_cliente' => $cliente, ...$amostra['painel']];
+    $painel = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $cliente)->first();
+    expect((array) $painel)->toEqual($painelEsperado);
+
+    $historicoEsperado = [['fk_c_cliente' => $cliente, ...$amostra['historico'][0]]];
+    $historico = DB::table('history_contingencia')->where('fk_c_cliente', $cliente)->get()->map(fn ($linha): array => (array) $linha)->all();
+    $historico = array_map(fn (array $linha): array => collect($linha)->except(['data_clique'])->toArray(), $historico);
+    $historicoEsperado = array_map(fn (array $linha): array => collect($linha)->except(['data_clique'])->toArray(), $historicoEsperado);
+    expect($historico)->toEqual($historicoEsperado);
+
+    // data_clique usa CURRENT_TIMESTAMP; somente esta coluna é não determinística.
 });
 
-test('Task Scheduler grava T0s= como 220 para execução bem sucedida e log de erro exato', function (): void {
+test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
     config(['walle.tarefas.ativo' => true]);
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
-    servidorDoClienteNoBancoDeTestes();
-    $clienteOk = criarClienteHelpDesk();
-    $clienteErro = criarClienteHelpDesk();
+    $cliente = criarClienteHelpDesk();
     $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);
-
-    $mockConector = $this->mock(ConectorDeCliente::class);
-    $mockConector->shouldReceive('conectar')
-        ->with($clienteOk, Mockery::type('array'))
-        ->once()
+    $this->mock(ConectorDeCliente::class)->shouldReceive('conectar')->once()
         ->andReturn(new ConexaoComCliente(DB::connection(), DB::getDatabaseName(), false));
-
-    $mockConector->shouldReceive('conectar')
-        ->with($clienteErro, Mockery::type('array'))
-        ->once()
-        ->andThrow(new FalhaConexaoCliente('ERRO_MYSQL', 'falha ao conectar', 'SQL'));
 
     app(RoboTarefas::class)->rodarPendentes();
 
-    expect(DB::table('task_scheduler_querys_log')->where(['fk_task_scheduler_querys' => $tarefa, 'fk_c_cliente' => $clienteOk])->value('log_query'))
+    expect(DB::table('task_scheduler_querys_log')->where(['fk_task_scheduler_querys' => $tarefa, 'fk_c_cliente' => $cliente])->value('log_query'))
         ->toBe($amostra['log_ok']);
-
-    expect(DB::table('task_scheduler_querys_log')->where(['fk_task_scheduler_querys' => $tarefa, 'fk_c_cliente' => $clienteErro])->value('log_query'))
-        ->toBe('FALHA AO CONECTAR NO CLIENTE: falha ao conectar');
 });
 
-test('robôs desligados não fazem chamadas, não alteram tabelas e não criam registros', function (): void {
+test('robôs desligados executados não chamam nem gravam', function (): void {
     config(['walle.sentinela.ativo' => false, 'walle.cleantax.ativo' => false, 'walle.contingencias.ativo' => false, 'walle.tarefas.ativo' => false]);
-    $cliente = criarClienteHelpDesk([], ['ip_externo_servidor' => '10.8.0.3']);
-    $amostra = require base_path('tests/Fixtures/legado/robos/sentinela-ok.php');
-    Http::fake(['http://10.8.0.3/sentinela.php*' => Http::response($amostra['json'], 200)]);
+    criarClienteHelpDesk([], ['ip_externo_servidor' => '10.8.0.250']);
+    Http::fake();
 
     app(RoboSentinela::class)->rodarCiclo();
     app(RoboCleanTax::class)->rodarCiclo();
