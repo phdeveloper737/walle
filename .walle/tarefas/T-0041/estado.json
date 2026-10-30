@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0041",
+    "titulo":  "Otimizar confiabilidade e desempenho do harness",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0041-otimizar-confiabilidade-e-desempenho-do",
+    "pr":  0,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-30 15:26:24",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0041-otimizar-confiabilidade-e-desempenho-do a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    }
+                ]
+}

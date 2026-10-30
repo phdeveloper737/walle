@@ -1,0 +1,7 @@
+{
+    "titulo":  "Otimizar confiabilidade e desempenho do harness",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Corrige bancos paralelos, endurece protecoes, reduz o tempo do gate e dos hooks, melhora CI, retencao, observabilidade e RAG sem enfraquecer as barreiras de merge."
+}
