@@ -4,12 +4,11 @@
     "origem":  "PLAN 12.2",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  1,
     "branch":  "tarefa/T-0039-paridade-dos-relatorios",
     "pr":  56,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-10-29 23:04:18",
@@ -30,6 +29,12 @@
                         "quando":  "2026-10-30 11:19:17",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: Corrige paridade dos relatórios após revisão"
+                    },
+                    {
+                        "quando":  "2026-10-30 11:30:18",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada: o gate nao pode rodar porque o agente walle-verificador usa model haiku, que resolve para modelo aposentado no provedor (deepseek-v4-flash EOL 2026-08-07; glm-5.2 EOL 2026-08-21). Tres tentativas retornaram HTTP 410 Gone. T-0039 ja tem commit efa027f publicado no PR #56 com Pest de Paridade verde, Pint ok e PHPStan 0 erros, mas sem gate completo nao ha gate valido nem revisao Codex/arquiteto para o HEAD, portanto merge fica barrado. Decisao necessaria do usuario: corrigir o mapeamento de modelo do walle-verificador no harness (trocar haiku por modelo disponivel) ou apontar o provedor/modelo valido. Sem isso, todas as tarefas restantes do PLAN ficam sem integracao."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "b7e5272456faacebafa07ca28d011f548eecafa41f6716a5d558814742885e90"
 }
