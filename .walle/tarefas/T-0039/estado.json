@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0039",
+    "titulo":  "Paridade dos relatorios",
+    "origem":  "PLAN 12.2",
+    "tipo":  "plano",
+    "dono":  "walle-paridade",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0039-paridade-dos-relatorios",
+    "pr":  0,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-29 23:04:18",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0039-paridade-dos-relatorios a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    }
+                ]
+}
