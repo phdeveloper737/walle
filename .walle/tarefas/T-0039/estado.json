@@ -15,6 +15,11 @@
                         "quando":  "2026-10-29 23:04:18",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0039-paridade-dos-relatorios a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-30 10:31:19",
+                        "tipo":  "commit",
+                        "detalhe":  "Testa paridade dos relatórios"
                     }
                 ]
 }

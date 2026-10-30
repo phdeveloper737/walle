@@ -1,0 +1,40 @@
+{
+  "_origem": "suporte.c_cliente, captura somente leitura em 2026-10-30; nomes e documentos substituídos por dados fictícios",
+  "filtro": {
+    "consultoria": "S",
+    "deletado": "N"
+  },
+  "clientes": [
+    {
+      "id": 39001,
+      "loja": "",
+      "razao_social": "COMERCIO ALVORADA LTDA",
+      "nome_fantasia": "MERCADO ALVORADA",
+      "tipo": "J",
+      "cnpj": "00.000.000/0001-00",
+      "cpf": null,
+      "contato": "ANA EXEMPLO",
+      "telefone": "(00) 0000-0000",
+      "celular": null,
+      "email": "ana@example.test",
+      "consultoria": "S",
+      "deletado": "N"
+    },
+    {
+      "id": 39002,
+      "loja": "",
+      "razao_social": "DISTRIBUIDORA HORIZONTE LTDA",
+      "nome_fantasia": "ATACADO HORIZONTE",
+      "tipo": "J",
+      "cnpj": "11.111.111/0001-11",
+      "cpf": null,
+      "contato": "BRUNO EXEMPLO",
+      "telefone": null,
+      "celular": "(00) 00000-0000",
+      "email": "bruno@example.test",
+      "consultoria": "S",
+      "deletado": "N"
+    }
+  ],
+  "total_220": 2
+}
