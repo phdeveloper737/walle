@@ -4,10 +4,10 @@
     "origem":  "PLAN 12.2",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0039-paridade-dos-relatorios",
-    "pr":  0,
+    "pr":  56,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-30 10:31:19",
                         "tipo":  "commit",
                         "detalhe":  "Testa paridade dos relatórios"
+                    },
+                    {
+                        "quando":  "2026-10-30 10:31:35",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #56 aberto"
                     }
                 ]
 }
