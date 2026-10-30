@@ -34,6 +34,36 @@
       "email": "bruno@example.test",
       "consultoria": "S",
       "deletado": "N"
+    },
+    {
+      "id": 39003,
+      "loja": "",
+      "razao_social": "COMERCIO SEM CONSULTORIA LTDA",
+      "nome_fantasia": "LOJA SEM CONSULTORIA",
+      "tipo": "J",
+      "cnpj": "22.222.222/0001-22",
+      "cpf": null,
+      "contato": "CARLA EXEMPLO",
+      "telefone": null,
+      "celular": null,
+      "email": "carla@example.test",
+      "consultoria": "N",
+      "deletado": "N"
+    },
+    {
+      "id": 39004,
+      "loja": "",
+      "razao_social": "COMERCIO ENCERRADO LTDA",
+      "nome_fantasia": "LOJA EXCLUIDA",
+      "tipo": "J",
+      "cnpj": "33.333.333/0001-33",
+      "cpf": null,
+      "contato": "DANIEL EXEMPLO",
+      "telefone": null,
+      "celular": null,
+      "email": "daniel@example.test",
+      "consultoria": "S",
+      "deletado": "S"
     }
   ],
   "total_220": 2
