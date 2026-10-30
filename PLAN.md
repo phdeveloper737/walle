@@ -336,8 +336,8 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: comandos que o 220 enviou aos clientes (reenviar ao PDV, alíquotas, queries agendadas) capturados no `testes220`
 - Output: `tests/Feature/Paridade/AcoesParidadeTest.php` e amostras em `tests/Fixtures/legado/acoes/`
 - Testes críticos:
-  - [ ] para cada ação, o conector falso do walle recebe exatamente o mesmo SQL ou comando que o 220 enviou
-  - [ ] ação recusada no walle (sem senha, sem admin) não envia nada ao cliente
+  - [x] para cada ação, o conector falso do walle recebe exatamente o mesmo SQL ou comando que o 220 enviou
+  - [x] ação recusada no walle (sem senha, sem admin) não envia nada ao cliente
 
 ## Segurança — o Help Desk é só consultado, ao vivo (`docker exec walle-app ./vendor/bin/pest tests/Feature/HelpDesk` passa)
 

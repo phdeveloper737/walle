@@ -1,0 +1,6 @@
+{
+    "origem": "suporte.task_scheduler_querys.id=7, data_registro 2025-05-06 15:11:31; captura somente leitura em 2026-10-30",
+    "descricao": "VENC SPED MES 04-2025",
+    "query_base64": "SU5TRVJUIElOVE8gc3BlZF9FMTE2IChkYXRhX2luaSwgZGF0YV9maW0sIGRhdGFfdmVuY2ltZW50bykKU0VMRUNUICcyMDI1LTA0LTAxJywgJzIwMjUtMDQtMzAnLCAnMjAyNS0wNS0yMCcKRlJPTSBEVUFMCldIRVJFIE5PVCBFWElTVFMgKAogICAgU0VMRUNUIDEgRlJPTSBzcGVkX0UxMTYgCiAgICBXSEVSRSBkYXRhX2luaSA9ICcyMDI1LTA0LTAxJyAKICAgIEFORCBkYXRhX2ZpbSA9ICcyMDI1LTA0LTMwJwopOw==",
+    "sql_enviado": "INSERT INTO sped_E116 (data_ini, data_fim, data_vencimento)\nSELECT '2025-04-01', '2025-04-30', '2025-05-20'\nFROM DUAL\nWHERE NOT EXISTS (\n    SELECT 1 FROM sped_E116 \n    WHERE data_ini = '2025-04-01' \n    AND data_fim = '2025-04-30'\n)"
+}

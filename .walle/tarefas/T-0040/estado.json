@@ -15,6 +15,11 @@
                         "quando":  "2026-10-30 11:30:47",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-30 15:35:22",
+                        "tipo":  "commit",
+                        "detalhe":  "Testa paridade das ações de contingência e ferramentas"
                     }
                 ]
 }
