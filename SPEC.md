@@ -100,6 +100,21 @@ O OPcache revalida arquivos a cada 2 s — uma edição pode levar até esse tem
 | `/landing/fiscal` | `LandingFiscalController` | Landing page fiscal |
 | `POST /sair` | `SairController` | Logout |
 
+### 5.0 Configuração comum dos robôs
+
+Todo robô do walle possui, no próprio painel, configuração dos parâmetros operacionais, uma chave
+geral de execução e histórico consultável de edições. A execução exige simultaneamente a permissão
+de implantação `WALLE_*_ATIVO` e a chave local persistida no banco `walle`; assim, o `.env` continua
+sendo um corte de segurança e o painel controla a operação cotidiana. Uma mudança vale somente para
+o próximo despacho ou ciclo.
+
+Somente admin com senha confirmada pode salvar, ativar ou desativar. Cada alteração gera
+`Auditoria::registrar()` e uma entrada append-only no histórico local com robô, parâmetro/ação,
+valores anterior e novo sanitizados, ator, data/hora e IP. O mesmo painel exibe esse histórico com
+filtros e paginação. Senhas, tokens, certificados e outros segredos não aparecem no formulário nem
+no histórico e continuam no mecanismo seguro já definido. Nenhum dado de configuração é gravado no
+Help Desk.
+
 ### 5.1 Autorizadas (`app/Autorizadas`)
 
 Robô (`RoboAutorizadas`) que substitui `tools/services/autorizadas.php` do sistema antigo. Por ciclo:

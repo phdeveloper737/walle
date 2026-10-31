@@ -160,6 +160,27 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - [x] com o robô desligado (padrão), o evento não dispara o Job
 - Decisões do usuário de 27/10/2026: frequências iguais ao intervalo entre ciclos dos daemons do 220 (contingências 10 s, Sentinela 10 min, CleanTax 30 s) e Task Scheduler a cada minuto (o crontab real do 220 não é versionado); sem quarentena nem limite de falhas, porque o 220 não os tem; token do CleanTax só do `.env`. O `schedule:work` precisa estar rodando para os intervalos de segundos.
 
+#### Task 5.2 — Configuração e histórico de todos os robôs
+- Agent: Backend Laravel — infraestrutura, seguido de Frontend Livewire (walle-ui)
+- Input: todos os robôs existentes e futuros do walle, seus blocos de configuração, telas de acompanhamento e componentes `<x-ui.*>`; a Classificação Mercadológica só recebe este painel quando sua implementação manual for explicitamente autorizada pelo usuário.
+- Output: configuração operacional persistida exclusivamente no banco `walle`, com tabelas próprias de configuração e histórico imutável; serviço único que resolve os valores efetivos; e, no painel de cada robô, abas `configuracao` e `historico` para editar parâmetros, ativar/desativar capacidades configuráveis e ativar/desativar a execução total.
+- Contrato:
+  - todo robô tem chave geral `ativo` no painel; ele só executa quando a permissão de implantação `WALLE_*_ATIVO` e a chave local estiverem ativas, de modo que o `.env` continue funcionando como corte de segurança;
+  - todos os parâmetros operacionais do robô aparecem com nome, unidade, ajuda, valor efetivo e validação de fronteira. Senhas, tokens, certificados e demais segredos continuam apenas no `.env` ou no mecanismo seguro já definido, nunca são exibidos, persistidos no histórico nem devolvidos ao navegador;
+  - somente admin altera configuração; cada ação confere `Gate::allows('admin')`, passa por `ConfirmaSenha`, fica em `ACOES_COM_SENHA` e chama `Auditoria::registrar()` sem dados sensíveis;
+  - cada salvamento, ativação ou desativação grava histórico append-only no banco `walle`, com robô, parâmetro/ação, valor anterior e novo sanitizados, ator, data/hora e IP. O histórico não pode ser editado nem apagado pela tela;
+  - a aba `historico` fica no mesmo painel, com filtros por período, parâmetro, ação e ator, paginação e estados de erro/vazio; a tela usa somente componentes walle-ui e depende de `<x-ui.tabela>`;
+  - alterações afetam o próximo despacho/ciclo e não mudam um ciclo já iniciado. O painel mostra valor persistido, valor efetivo e motivo quando a permissão do `.env` impede a execução;
+  - nenhuma configuração ou histórico é gravado no Help Desk. Configuração ausente usa o padrão versionado atual, permitindo migração gradual sem ligar robôs por acidente.
+- Testes críticos:
+  - [ ] cada robô nasce com execução local desligada e não despacha quando a permissão do `.env` ou a chave geral estiver desligada;
+  - [ ] admin com senha confirmada altera parâmetros e ativa/desativa o robô; não admin recebe 403 e nenhuma mudança é persistida;
+  - [ ] cada mudança gera uma entrada de histórico e uma Auditoria, com valores anterior/novo sanitizados e sem senha, token ou certificado;
+  - [ ] a aba de histórico lista e filtra as edições; estado vazio e filtro inválido não quebram a tela;
+  - [ ] parâmetros inválidos e valores fora da fronteira são recusados; uma mudança feita durante um ciclo só vale no ciclo seguinte;
+  - [ ] testes parametrizados cobrem Autorizadas, Contingências, Sentinela, CleanTax, Task Scheduler e Sactus, além de exigirem o mesmo contrato para qualquer novo robô.
+- Decisão do usuário de 30/10/2026: todo robô deve ter esse painel e o histórico de edições consultável na própria tela. Nesta rodada, `WALLE_CONTINGENCIAS_ATIVO=true` foi informado como ativo para validação; isso não deve ser copiado para arquivo versionado.
+
 ## Sprint 3 — Todas as telas do newsuporte que faltam abrem no walle, no padrão walle-ui, com os dados do banco `walle` (`docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php tests/Feature/Relatorios` passa)
 
 ### Fase 6 — Telas · conclui com `docker exec walle-app ./vendor/bin/pest tests/Feature/Relatorios tests/Feature/Contingencias/PainelRoboContingenciasTest.php tests/Feature/Sentinela/PainelSentinelaTest.php tests/Feature/CleanTax/PainelCleanTaxTest.php tests/Feature/Ferramentas/PainelFerramentasTest.php tests/Feature/CrontabTest.php`

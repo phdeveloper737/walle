@@ -16,6 +16,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$utf8 = New-Object Text.UTF8Encoding($false)
+[Console]::OutputEncoding = $utf8
+$OutputEncoding = $utf8
 $conhecidas = @('pint', 'phpstan', 'pest', 'politicas', 'gate', 'tarefa', 'plugin', 'rag')
 
 if (-not $Banco) { $Banco = if ($env:WALLE_HOOK_TEST_DATABASE) { $env:WALLE_HOOK_TEST_DATABASE } else { 'walle_testes' } }
@@ -51,6 +54,7 @@ $comandos = [ordered]@{
     # Fontes atuais do RAG sobre as dependencias da imagem walle-rag:local (a imagem fica igual; dependencia nova pede rebuild)
     rag       = @('docker', 'run', '--rm', '-v', "${raizDocker}/.claude/scripts:/src:ro", 'walle-rag:local', 'sh', '-c', 'mkdir /tmp/rag && cp -r /src/. /tmp/rag/ && ln -s /app/node_modules /tmp/rag/node_modules && cd /tmp/rag && node --test tests/rag.test.ts')
 }
+$comandoPreflightBanco = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", 'walle-app', 'php', '.claude/hooks/preparar-banco-testes.php')
 
 # Hash da arvore de trabalho como seria commitada; '' se qualquer comando do git falhar (falha fechada:
 # um "git add" abortado deixaria o indice igual ao HEAD e a arvore pareceria a do commit).
@@ -99,6 +103,36 @@ function Rodar([string[]]$Comando) {
     } finally { $ErrorActionPreference = $preferencia }
 }
 
+# Cada worker executa um comando de forma isolada. O pool limita a tres processos simultaneos para evitar que
+# Pest, PHPStan e os testes dos hooks saturem a maquina, sem voltar a serializar as etapas independentes.
+$executorParalelo = {
+    param([string[]]$Comando)
+
+    $ErrorActionPreference = 'Continue'
+    $utf8Worker = New-Object Text.UTF8Encoding($false)
+    [Console]::OutputEncoding = $utf8Worker
+    $OutputEncoding = $utf8Worker
+    $relogio = [Diagnostics.Stopwatch]::StartNew()
+
+    if (-not (Get-Command $Comando[0] -ErrorAction SilentlyContinue)) {
+        $relogio.Stop()
+        return [pscustomobject]@{ codigo = 127; saida = @("comando nao encontrado: $($Comando[0])"); duracao_s = $relogio.Elapsed.TotalSeconds }
+    }
+
+    try {
+        $global:LASTEXITCODE = -1
+        $saida = @(& $Comando[0] @($Comando | Select-Object -Skip 1) 2>&1 | ForEach-Object { [string]$_ })
+        $codigo = [int]$LASTEXITCODE
+    } catch {
+        $codigo = 1
+        $saida = @("falha ao executar: $($_.Exception.Message)")
+    } finally {
+        $relogio.Stop()
+    }
+
+    return [pscustomobject]@{ codigo = $codigo; saida = $saida; duracao_s = $relogio.Elapsed.TotalSeconds }
+}
+
 function Resumo([string[]]$Linhas) {
     $limpas = @($Linhas | ForEach-Object { ($_ -replace "\x1b\[[0-9;]*m", '').Trim() } | Where-Object { $_ -and $_ -notmatch '^[.\s]+$' })
     # Prefere as linhas de contagem (Pest, Pint, PHPStan, testes PowerShell e node --test); senao, as ultimas.
@@ -109,7 +143,6 @@ function Resumo([string[]]$Linhas) {
     return $ultimas
 }
 
-$utf8 = New-Object Text.UTF8Encoding($false)
 function Gravar($Evidencia, [switch]$Historico) {
     [IO.Directory]::CreateDirectory((Split-Path -Parent $Saida)) | Out-Null
     [IO.File]::WriteAllText($Saida, ($Evidencia | ConvertTo-Json -Depth 5), $utf8)
@@ -150,42 +183,118 @@ Gravar $evidencia
 
 $arvoreInicial = Arvore
 $resultados = @()
-foreach ($etapa in $listaEtapas) {
-    $comando = $comandos[$etapa]
-    Write-Output "[gate] $etapa ..."
-    $relogio = [Diagnostics.Stopwatch]::StartNew()
-    if ($etapa -ceq 'pest') {
-        $travaBanco = $null
+$execucoes = @{}
+$handles = @{}
+$travaBanco = $null
+$pool = $null
+$duracaoPreflight = 0.0
+
+try {
+    if ($listaEtapas -ccontains 'pest') {
         try {
             $travaBanco = AbrirTravaWalle "docker:walle-app:banco:$Banco"
-            $execucao = Rodar $comando
+            Write-Output "[gate] preflight do banco $Banco ..."
+            $relogioPreflight = [Diagnostics.Stopwatch]::StartNew()
+            $preflight = Rodar $comandoPreflightBanco
+            $relogioPreflight.Stop()
+            $duracaoPreflight = $relogioPreflight.Elapsed.TotalSeconds
+            if ($preflight.codigo -ne 0) {
+                $execucoes['pest'] = [pscustomobject]@{
+                    codigo     = 1
+                    saida      = @("Preflight do banco $Banco falhou; o Pest nao foi iniciado.") + @($preflight.saida)
+                    duracao_s  = $duracaoPreflight
+                }
+                FecharTravaWalle $travaBanco
+                $travaBanco = $null
+            }
         } catch {
-            $execucao = @{ codigo = 1; saida = @('Banco de testes ocupado ou trava indisponivel; validacao nao executada. Aguarde terminar e rode o gate novamente.') }
-        } finally { FecharTravaWalle $travaBanco }
-        try {
-            $pastaSaida = [IO.Path]::GetFullPath((Split-Path -Parent $Saida))
-            $pastaPest = Join-Path $pastaSaida "pest/$Banco"
-            [IO.Directory]::CreateDirectory($pastaPest) | Out-Null
-            $arquivoPest = Join-Path $pastaPest ((Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffffffZ') + '-' + [guid]::NewGuid().ToString('N') + '.txt')
-            $textoPest = ($execucao.saida -join [Environment]::NewLine) + [Environment]::NewLine
-            [IO.File]::WriteAllText($arquivoPest, $textoPest, $utf8)
-            $nomeUltimo = if ($Banco -ceq 'walle_testes') { 'pest-ultimo.txt' } else { "pest-ultimo-$Banco.txt" }
-            [IO.File]::WriteAllText((Join-Path $pastaSaida $nomeUltimo), $textoPest, $utf8)
-            $evidencia.saida_pest = $arquivoPest
-        } catch {
-            $execucao.codigo = 1
-            $execucao.saida = @($execucao.saida) + @('Falha ao preservar a saida completa do Pest; gate invalido.')
+            $execucoes['pest'] = [pscustomobject]@{
+                codigo    = 1
+                saida     = @('Banco de testes ocupado ou trava indisponivel; validacao nao executada. Aguarde terminar e rode o gate novamente.')
+                duracao_s = 0.0
+            }
+            FecharTravaWalle $travaBanco
+            $travaBanco = $null
         }
-    } else { $execucao = Rodar $comando }
-    $relogio.Stop()
-    $resultados += [ordered]@{
-        nome      = $etapa
-        comando   = ($comando -join ' ')
-        codigo    = $execucao.codigo
-        duracao_s = [Math]::Round($relogio.Elapsed.TotalSeconds, 1)
-        resumo    = Resumo $execucao.saida
     }
-    Write-Output ("[gate] {0}: {1} ({2} s) {3}" -f $etapa, $(if ($execucao.codigo -eq 0) { 'PASSOU' } else { "FALHOU, codigo $($execucao.codigo)" }), $resultados[-1].duracao_s, $resultados[-1].resumo)
+
+    $quantidadeWorkers = [Math]::Max(1, [Math]::Min(3, $listaEtapas.Count))
+    $pool = [RunspaceFactory]::CreateRunspacePool(1, $quantidadeWorkers)
+    $pool.Open()
+
+    foreach ($etapa in $listaEtapas) {
+        Write-Output "[gate] $etapa ..."
+        if ($execucoes.ContainsKey($etapa)) { continue }
+
+        $powershell = [PowerShell]::Create()
+        $powershell.RunspacePool = $pool
+        [void]$powershell.AddScript($executorParalelo.ToString()).AddArgument([string[]]$comandos[$etapa])
+        $handles[$etapa] = @{
+            powershell = $powershell
+            async      = $powershell.BeginInvoke()
+        }
+    }
+
+    # Coleta na ordem solicitada, mesmo que os workers terminem em outra ordem. A evidencia continua deterministica.
+    foreach ($etapa in $listaEtapas) {
+        if (-not $execucoes.ContainsKey($etapa)) {
+            $handle = $handles[$etapa]
+            try {
+                $retornos = @($handle.powershell.EndInvoke($handle.async))
+                $execucao = $retornos | Select-Object -Last 1
+                if ($null -eq $execucao) {
+                    $execucao = [pscustomobject]@{ codigo = 1; saida = @('Worker terminou sem devolver resultado.'); duracao_s = 0.0 }
+                }
+                if ($handle.powershell.Streams.Error.Count) {
+                    $execucao.codigo = 1
+                    $execucao.saida = @($execucao.saida) + @($handle.powershell.Streams.Error | ForEach-Object { [string]$_ })
+                }
+                if ($etapa -ceq 'pest') { $execucao.duracao_s += $duracaoPreflight }
+                $execucoes[$etapa] = $execucao
+            } catch {
+                $execucoes[$etapa] = [pscustomobject]@{ codigo = 1; saida = @("Falha no worker: $($_.Exception.Message)"); duracao_s = 0.0 }
+            } finally {
+                $handle.powershell.Dispose()
+                if ($etapa -ceq 'pest') {
+                    FecharTravaWalle $travaBanco
+                    $travaBanco = $null
+                }
+            }
+        }
+
+        $comando = $comandos[$etapa]
+        $execucao = $execucoes[$etapa]
+        if ($etapa -ceq 'pest') {
+            try {
+                $pastaSaida = [IO.Path]::GetFullPath((Split-Path -Parent $Saida))
+                $pastaPest = Join-Path $pastaSaida "pest/$Banco"
+                [IO.Directory]::CreateDirectory($pastaPest) | Out-Null
+                $arquivoPest = Join-Path $pastaPest ((Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffffffZ') + '-' + [guid]::NewGuid().ToString('N') + '.txt')
+                $textoPest = ($execucao.saida -join [Environment]::NewLine) + [Environment]::NewLine
+                [IO.File]::WriteAllText($arquivoPest, $textoPest, $utf8)
+                $nomeUltimo = if ($Banco -ceq 'walle_testes') { 'pest-ultimo.txt' } else { "pest-ultimo-$Banco.txt" }
+                [IO.File]::WriteAllText((Join-Path $pastaSaida $nomeUltimo), $textoPest, $utf8)
+                $evidencia.saida_pest = $arquivoPest
+            } catch {
+                $execucao.codigo = 1
+                $execucao.saida = @($execucao.saida) + @('Falha ao preservar a saida completa do Pest; gate invalido.')
+            }
+        }
+        $resultados += [ordered]@{
+            nome      = $etapa
+            comando   = ($comando -join ' ')
+            codigo    = $execucao.codigo
+            duracao_s = [Math]::Round([double]$execucao.duracao_s, 1)
+            resumo    = Resumo $execucao.saida
+        }
+        Write-Output ("[gate] {0}: {1} ({2} s) {3}" -f $etapa, $(if ($execucao.codigo -eq 0) { 'PASSOU' } else { "FALHOU, codigo $($execucao.codigo)" }), $resultados[-1].duracao_s, $resultados[-1].resumo)
+    }
+} finally {
+    FecharTravaWalle $travaBanco
+    if ($null -ne $pool) {
+        $pool.Close()
+        $pool.Dispose()
+    }
 }
 $arvoreFinal = Arvore
 

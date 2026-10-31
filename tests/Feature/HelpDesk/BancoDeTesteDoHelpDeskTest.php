@@ -2,6 +2,7 @@
 
 use App\Support\HelpDesk\TravaHelpDeskProducao;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\PreparadorDeBancosDeTeste;
 
 /*
  * Nos testes a conexão "help" aponta para `<banco de testes>_help`, nunca para o banco principal nem para o
@@ -14,6 +15,36 @@ test('nos testes, a conexão help usa o banco <banco de testes>_help', function 
 
     expect($principal)->toMatch('/^walle_testes(_t[0-9]+)?\z/')
         ->and(DB::connection('help')->getDatabaseName())->toBe($principal.'_help');
+});
+
+test('o preparador cria uma sessão paralela inexistente sem depender de conexão com esse banco', function () {
+    $bancoAtual = (string) config('database.connections.mysql.database');
+    $numeroDaSessao = preg_match('/_t([0-9]+)\z/', $bancoAtual, $correspondencia) === 1
+        ? $correspondencia[1].'99941'
+        : '99941';
+    $banco = 'walle_testes_t'.$numeroDaSessao;
+    $configuracao = array_merge(config('database.connections.mysql'), ['database' => $banco]);
+    $servidor = DB::build(array_merge($configuracao, ['database' => null, 'url' => null]));
+
+    try {
+        $servidor->statement("DROP DATABASE IF EXISTS `{$banco}_help`");
+        $servidor->statement("DROP DATABASE IF EXISTS `{$banco}`");
+
+        (new PreparadorDeBancosDeTeste(app('db')))->preparar($configuracao);
+
+        $bancos = $servidor->table('information_schema.SCHEMATA')
+            ->whereIn('SCHEMA_NAME', [$banco, $banco.'_help'])
+            ->pluck('SCHEMA_NAME')
+            ->sort()
+            ->values()
+            ->all();
+
+        expect($bancos)->toBe([$banco, $banco.'_help']);
+    } finally {
+        $servidor->statement("DROP DATABASE IF EXISTS `{$banco}_help`");
+        $servidor->statement("DROP DATABASE IF EXISTS `{$banco}`");
+        $servidor->disconnect();
+    }
 });
 
 test('nos testes, a conexão help não aponta para nenhum host do Help Desk de produção', function () {

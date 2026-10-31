@@ -5,7 +5,7 @@ namespace Tests;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Tests\Support\PreparadorDeBancosDeTeste;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -57,11 +57,15 @@ abstract class TestCase extends BaseTestCase
      */
     protected function migrateDatabases(): void
     {
-        $banco = (string) config('database.connections.mysql.database');
+        $configuracao = config('database.connections.mysql');
 
-        $this->exigirBancoDeTeste($banco);
+        if (! is_array($configuracao)) {
+            throw new \RuntimeException('A conexão mysql não está configurada.');
+        }
 
-        DB::connection('mysql')->statement("CREATE DATABASE IF NOT EXISTS `{$banco}_help` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+        (new PreparadorDeBancosDeTeste(app('db')))->preparar($configuracao);
+
+        DB::purge('mysql');
         DB::purge('help');
 
         $this->artisan('migrate:fresh', $this->migrateFreshUsing());
@@ -76,9 +80,7 @@ abstract class TestCase extends BaseTestCase
     /** Recusa qualquer banco que não seja walle_testes ou walle_testes_tNN, antes de qualquer SQL. */
     protected function exigirBancoDeTeste(string $banco): void
     {
-        if (preg_match('/^walle_testes(_t[0-9]+)?\z/', $banco) !== 1) {
-            throw new RuntimeException("Banco de testes inválido: \"{$banco}\". Use walle_testes ou walle_testes_tNN.");
-        }
+        PreparadorDeBancosDeTeste::exigirNomeSeguro($banco);
     }
 
     /** Além das migrations do walle, cria as imitações de teste do walle (tests/Migrations, sem a subpasta HelpDesk). */

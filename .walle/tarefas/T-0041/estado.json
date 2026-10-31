@@ -15,6 +15,11 @@
                         "quando":  "2026-10-30 15:26:24",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0041-otimizar-confiabilidade-e-desempenho-do a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:26:14",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: torna o gate paralelo e falha fechado"
                     }
                 ]
 }

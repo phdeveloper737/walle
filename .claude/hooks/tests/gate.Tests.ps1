@@ -16,7 +16,7 @@ $saida = Join-Path $temporario 'evidencia.json'
 $copia = Join-Path $temporario 'copia-durante.json'
 $arquivoNovo = Join-Path $raiz ('.walle-gate-teste-' + [guid]::NewGuid().ToString('N') + '.txt')
 $pathAnterior = $env:PATH
-$variaveis = @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_DOCKER_TOCA', 'WALLE_TEST_GATE_SAIDA', 'WALLE_TEST_GATE_COPIA', 'WALLE_HOOK_TEST_DATABASE', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0')
+$variaveis = @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_DOCKER_TOCA', 'WALLE_TEST_GATE_SAIDA', 'WALLE_TEST_GATE_COPIA', 'WALLE_TEST_PARALLEL_LOG', 'WALLE_HOOK_TEST_DATABASE', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0')
 $bancoAnterior = $env:WALLE_HOOK_TEST_DATABASE
 
 function RodarGate([string[]]$Argumentos) {
@@ -36,19 +36,31 @@ function Limpar {
     foreach ($nome in $variaveis) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     $env:WALLE_TEST_POWERSHELL_EXIT = '0'
+    $env:WALLE_TEST_PREFLIGHT_EXIT = '0'
     foreach ($arquivo in @($saida, $copia, $arquivoNovo)) { Remove-Item -LiteralPath $arquivo -Force -ErrorAction SilentlyContinue }
 }
 
 try {
     [IO.File]::WriteAllText((Join-Path $temporario 'docker.cmd'), (@(
         '@echo off'
+        'if defined WALLE_TEST_PARALLEL_LOG echo start docker %*>> "%WALLE_TEST_PARALLEL_LOG%"'
+        'if defined WALLE_TEST_PARALLEL_LOG "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -Command "Start-Sleep -Milliseconds 250"'
         'echo Detalhe completo do Pest falso'
         'echo Tests: falso %*'
         'if defined WALLE_TEST_DOCKER_TOCA echo mudou> "%WALLE_TEST_DOCKER_TOCA%"'
         'if defined WALLE_TEST_GATE_COPIA copy /y "%WALLE_TEST_GATE_SAIDA%" "%WALLE_TEST_GATE_COPIA%" >nul'
+        'echo %* | findstr /c:".claude/hooks/preparar-banco-testes.php" >nul && exit /b %WALLE_TEST_PREFLIGHT_EXIT%'
+        'if defined WALLE_TEST_PARALLEL_LOG echo end docker %*>> "%WALLE_TEST_PARALLEL_LOG%"'
         'exit /b %WALLE_TEST_DOCKER_EXIT%'
     ) -join "`r`n") + "`r`n")
-    [IO.File]::WriteAllText((Join-Path $temporario 'powershell.cmd'), "@echo off`r`necho 1 casos falsos passaram.`r`nexit /b %WALLE_TEST_POWERSHELL_EXIT%`r`n")
+    [IO.File]::WriteAllText((Join-Path $temporario 'powershell.cmd'), (@(
+        '@echo off'
+        'if defined WALLE_TEST_PARALLEL_LOG echo start powershell %*>> "%WALLE_TEST_PARALLEL_LOG%"'
+        'if defined WALLE_TEST_PARALLEL_LOG "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -Command "Start-Sleep -Milliseconds 250"'
+        'echo 1 casos falsos passaram.'
+        'if defined WALLE_TEST_PARALLEL_LOG echo end powershell %*>> "%WALLE_TEST_PARALLEL_LOG%"'
+        'exit /b %WALLE_TEST_POWERSHELL_EXIT%'
+    ) -join "`r`n") + "`r`n")
     $env:PATH = $temporario + ';' + $pathAnterior
     $pendente = "$(& $gitReal -C $raiz status --porcelain)".Trim()
     $arvoreDoCommit = "$(& $gitReal -C $raiz rev-parse 'HEAD^{tree}')".Trim()
@@ -109,6 +121,29 @@ try {
     $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida, '-Banco', 'walle_testes_t9')
     Garantir ((Evidencia).banco -eq 'walle_testes_t9') '-Banco explicito vence'
     Garantir (Test-Path -LiteralPath (Join-Path $temporario 'pest-ultimo-walle_testes_t9.txt')) 'ultimo Pest separado por banco'
+
+    # O preflight cria/valida o banco antes do Pest e falha fechado sem iniciar a suite.
+    Limpar
+    $env:WALLE_TEST_PREFLIGHT_EXIT = '9'
+    $logPreflight = Join-Path $temporario 'preflight.log'
+    $env:WALLE_TEST_PARALLEL_LOG = $logPreflight
+    $r = RodarGate @('-Etapas', 'pest', '-Banco', 'walle_testes_t41', '-Saida', $saida)
+    $e = Evidencia
+    $chamadas = [IO.File]::ReadAllText($logPreflight)
+    $saidaPreflight = [IO.File]::ReadAllText($e.saida_pest)
+    Garantir ($r.codigo -eq 1 -and $saidaPreflight -match 'Preflight do banco walle_testes_t41 falhou') 'preflight falhando invalida a etapa Pest'
+    Garantir ($chamadas -match 'preparar-banco-testes.php' -and $chamadas -notmatch 'vendor/bin/pest') 'Pest nao inicia depois de preflight falho'
+
+    # Etapas independentes sobrepoem execucao, mas a evidencia conserva a ordem pedida.
+    Limpar
+    $logParalelo = Join-Path $temporario 'paralelo.log'
+    $env:WALLE_TEST_PARALLEL_LOG = $logParalelo
+    $r = RodarGate @('-Etapas', 'pint,phpstan,politicas', '-Saida', $saida)
+    $linhasParalelas = @([IO.File]::ReadAllLines($logParalelo))
+    $primeiroFim = 0..($linhasParalelas.Count - 1) | Where-Object { $linhasParalelas[$_] -match '^end ' } | Select-Object -First 1
+    $iniciosAntesDoPrimeiroFim = @($linhasParalelas[0..($primeiroFim - 1)] | Where-Object { $_ -match '^start ' }).Count
+    Garantir ($r.codigo -eq 0 -and $iniciosAntesDoPrimeiroFim -ge 2) 'pool inicia mais de uma etapa antes da primeira terminar'
+    Garantir ((@((Evidencia).etapas | ForEach-Object { $_.nome }) -join ',') -eq 'pint,phpstan,politicas') 'execucao paralela preserva ordem da evidencia'
 
     # 5. Banco fora de walle_testes(_tNN), inclusive por variavel ou com maiusculas, e etapa desconhecida:
     #    recusados com saida 2, antes de rodar ou gravar qualquer coisa.
@@ -196,7 +231,7 @@ try {
 } finally {
     $env:PATH = $pathAnterior
     Limpar
-    foreach ($nome in @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT')) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
+    foreach ($nome in @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_PARALLEL_LOG')) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
     if ($bancoAnterior) { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
     Remove-Item -LiteralPath $temporario -Recurse -Force -ErrorAction SilentlyContinue
 }

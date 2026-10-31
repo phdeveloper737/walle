@@ -365,6 +365,12 @@ function ConferirProteger([string]$Comando, [int]$Esperado) {
     if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
     $script:casos++
 }
+function ConferirPayloadProteger([string]$Payload, [int]$Esperado) {
+    $resultado = Rodar 'proteger-comandos.ps1' '' $Payload
+    if ($resultado.codigo -ne $Esperado) { throw "proteger-comandos payload: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
+    if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
+    $script:casos++
+}
 # Merge: so com o CI do PR todo verde, conferido por "gh pr checks" (aqui um duplo que devolve o codigo pedido).
 $duploGh = Join-Path ([IO.Path]::GetTempPath()) ('walle-gh-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($duploGh) | Out-Null
@@ -391,11 +397,27 @@ try {
 foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -banco walle_testes', 'POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco WALLE_TESTES')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
 }
-foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'docker exec -e DB_DATABASE=walle_testes walle-app php artisan db:wipe --force', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
     ConferirProteger $comando 0
 }
-foreach ($comando in @('gh pr merge 9 --squash --admin', 'gh pr merge --admin 9', 'cat .env', 'docker exec walle-app php artisan migrate:fresh', 'docker exec walle-app php artisan config:show database', 'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"')) {
+foreach ($comando in @(
+    'gh pr merge 9 --squash --admin',
+    'gh pr merge --admin 9',
+    'cat .env',
+    'docker exec walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_producao walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_t3x walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=WALLE_TESTES walle-app php artisan migrate:fresh',
+    'docker exec walle-app php artisan migrate:fresh # DB_DATABASE=walle_testes',
+    'echo DB_DATABASE=walle_testes; docker exec walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh; echo passou',
+    'docker exec walle-app php artisan config:show database',
+    'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"'
+)) {
     ConferirProteger $comando 2
+}
+foreach ($payload in @('{', 'null', '{}', '{"tool_input":{}}', '{"tool_input":{"command":null}}', '{"tool_input":{"command":""}}', '{"tool_input":{"command":123}}')) {
+    ConferirPayloadProteger $payload 2
 }
 
 Write-Output "$script:casos casos de politica passaram."
