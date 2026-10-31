@@ -5,7 +5,9 @@ use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Ferramentas\ExecucaoDeQuery;
 use App\Ferramentas\RoboTarefas;
+use App\Livewire\Contingencias\DoCliente;
 use App\Models\Usuario;
+use App\Sactus\Ssh\ConectorSsh;
 use App\Sactus\Ssh\ResultadoComando;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Carbon;
@@ -65,6 +67,29 @@ test('reenvio entrega o XML 858 do contrato do 220 ao SSH falso', function () {
     expect($comandos)->toHaveCount(1);
     preg_match('/<\?xml.*?<\/comando>/', $comandos[0], $xml);
     expect($xml[0] ?? null)->toBe($amostra['xml'], 'XML esperado (220) versus recebido (walle); transporte SSH alterado conforme 8.1');
+});
+
+/**
+ * 220: system/consultorias/contingencias/contingencias.js:1164-1166, conferido em 2026-10-30.
+ * A função vazia não foi portada, conforme o recorte aprovado da task 8.1.
+ */
+test('alíquotas fora do escopo rejeita a ação sem SQL, comando ou conexão mesmo para admin confirmado', function () {
+    $amostra = json_decode(file_get_contents(base_path('tests/Fixtures/legado/acoes/aliquotas-funcao-vazia.json')), true, flags: JSON_THROW_ON_ERROR);
+    $usuario = Usuario::findOrFail(criarUsuarioHelpDesk());
+    $this->actingAs($usuario);
+    config(['walle.admins' => [$usuario->id], 'walle.contingencias.ativo' => true]);
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+    $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
+    $this->mock(ConectorSsh::class)->shouldNotReceive('conectar');
+    $componente = app(DoCliente::class);
+    $componente->clienteId = criarClienteHelpDesk();
+    $acao = $amostra['acao'];
+
+    expect(fn () => $componente->{$acao}())
+        ->toThrow(BadMethodCallException::class, "Method App\\Livewire\\Contingencias\\DoCliente::{$acao} does not exist.");
+
+    expect(method_exists(AcoesContingencias::class, $acao))->toBeFalse('8.1: ação vazia do 220 não deve ser portada');
+    expect($amostra['comandos_enviados'])->toBe([], '220: nenhum comando; walle: ação inexistente, conectores não chamados');
 });
 
 test('SQL manual recusado não abre conexão com cliente', function (bool $admin, bool $senha, string $sql) {
