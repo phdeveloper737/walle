@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario",
     "tipo":  "bug",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0042-corrigir-env-example-e-telastest-para-ro",
-    "pr":  0,
+    "pr":  58,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-10-31 00:30:15",
                         "tipo":  "commit",
                         "detalhe":  "Corrige TelasTest.php para esperar texto correto da Saúde"
+                    },
+                    {
+                        "quando":  "2026-10-31 00:30:53",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #58 aberto"
                     }
                 ]
 }
