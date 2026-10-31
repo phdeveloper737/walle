@@ -1,4 +1,4 @@
-# Revisao obrigatoria do Codex sobre o diff do branch da tarefa (decisao do usuario de 27/10/2026): roda o Codex CLI
+﻿# Revisao obrigatoria do Codex sobre o diff do branch da tarefa (decisao do usuario de 27/10/2026): roda o Codex CLI
 # em sandbox somente leitura, com resposta em JSON por esquema, e grava .walle/local/T-NNNN/revisao-codex.md (ignorado
 # pelo git) com o commit revisado e a contagem de achados P0/P1. O integrar exige esse parecer do HEAD e so aceita
 # P0/P1 que o walle-arquiteto descartou no revisao.md ("Codex descartado: <P0|P1> <arquivo:linha> - <motivo>", um por achado).
@@ -43,6 +43,18 @@ $estado = [IO.File]::ReadAllText($arquivoEstado, $utf8) | ConvertFrom-Json
 $branchAtual = (Repo @('rev-parse', '--abbrev-ref', 'HEAD')).texto
 if ($branchAtual -cne [string]$estado.branch) { Recusar "o branch atual ($branchAtual) nao e o da tarefa ($($estado.branch))." }
 
+
+# PRE-CHECK: parecer preexistente valido
+$pastaLocal = Join-Path $Raiz '.walle/local/$Tarefa'
+$destino = Join-Path $pastaLocal 'revisao-codex.md'
+$shaHead = (Repo @('rev-parse','HEAD')).texto
+if (Test-Path -LiteralPath $d) {
+    $e = [IO.File]::ReadAllText($d, $utf8)
+    if ($e -match 'Commit revisado: $h' -and $e -match 'Bloqueantes do Codex: 0') {
+        Write-Output '[revisao-codex] Parecer preexistente valido para $h, pulando Codex.'
+        exit 0
+    }
+}
 $codex = $env:WALLE_CODEX
 if (-not $codex) {
     $comando = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -140,3 +152,8 @@ foreach ($achado in ($achados | Sort-Object { [string]$_.prioridade })) {
 [IO.File]::WriteAllText($destino, (($linhas -join "`n") + "`n"), $utf8)
 Write-Output "[revisao-codex] Parecer de $Tarefa gravado em .walle/local/$Tarefa/revisao-codex.md (commit $shaHead, P0/P1: $bloqueantes)."
 exit 0
+
+
+
+
+
