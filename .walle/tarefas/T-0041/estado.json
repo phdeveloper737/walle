@@ -20,6 +20,11 @@
                         "quando":  "2026-10-30 22:26:14",
                         "tipo":  "commit",
                         "detalhe":  "T-0041: torna o gate paralelo e falha fechado"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:27:12",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: isola o contêiner do gate por worktree"
                     }
                 ]
 }

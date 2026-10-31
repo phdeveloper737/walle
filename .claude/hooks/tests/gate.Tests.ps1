@@ -16,8 +16,9 @@ $saida = Join-Path $temporario 'evidencia.json'
 $copia = Join-Path $temporario 'copia-durante.json'
 $arquivoNovo = Join-Path $raiz ('.walle-gate-teste-' + [guid]::NewGuid().ToString('N') + '.txt')
 $pathAnterior = $env:PATH
-$variaveis = @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_DOCKER_TOCA', 'WALLE_TEST_GATE_SAIDA', 'WALLE_TEST_GATE_COPIA', 'WALLE_TEST_PARALLEL_LOG', 'WALLE_HOOK_TEST_DATABASE', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0')
+$variaveis = @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_DOCKER_TOCA', 'WALLE_TEST_GATE_SAIDA', 'WALLE_TEST_GATE_COPIA', 'WALLE_TEST_PARALLEL_LOG', 'WALLE_HOOK_TEST_DATABASE', 'WALLE_HOOK_APP_CONTAINER', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0')
 $bancoAnterior = $env:WALLE_HOOK_TEST_DATABASE
+$containerAnterior = $env:WALLE_HOOK_APP_CONTAINER
 
 function RodarGate([string[]]$Argumentos) {
     $preferencia = $ErrorActionPreference
@@ -121,6 +122,18 @@ try {
     $r = RodarGate @('-Etapas', 'pest', '-Saida', $saida, '-Banco', 'walle_testes_t9')
     Garantir ((Evidencia).banco -eq 'walle_testes_t9') '-Banco explicito vence'
     Garantir (Test-Path -LiteralPath (Join-Path $temporario 'pest-ultimo-walle_testes_t9.txt')) 'ultimo Pest separado por banco'
+
+    # Worktrees podem apontar o gate para um container isolado; o nome vira argumento, nunca comando.
+    Limpar
+    $env:WALLE_HOOK_APP_CONTAINER = 'walle-app-t41'
+    $r = RodarGate @('-Etapas', 'pint,pest', '-Saida', $saida)
+    $e = Evidencia
+    Garantir ($r.codigo -eq 0 -and $e.etapas[0].comando -match 'docker exec walle-app-t41 ') 'container isolado no Pint'
+    Garantir ($e.etapas[1].comando -match 'DB_DATABASE=walle_testes walle-app-t41 ') 'container isolado no Pest'
+    Limpar
+    $env:WALLE_HOOK_APP_CONTAINER = 'walle-app;rm'
+    $r = RodarGate @('-Etapas', 'pint', '-Saida', $saida)
+    Garantir ($r.codigo -eq 2 -and -not (Test-Path -LiteralPath $saida)) 'nome de container inseguro e recusado antes da evidencia'
 
     # O preflight cria/valida o banco antes do Pest e falha fechado sem iniciar a suite.
     Limpar
@@ -233,6 +246,7 @@ try {
     Limpar
     foreach ($nome in @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_PARALLEL_LOG')) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
     if ($bancoAnterior) { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
+    if ($containerAnterior) { $env:WALLE_HOOK_APP_CONTAINER = $containerAnterior }
     Remove-Item -LiteralPath $temporario -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Output "$script:casos casos do gate passaram."

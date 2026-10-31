@@ -26,6 +26,11 @@ if ($Banco -cnotmatch '^walle_testes(_t[0-9]+)?\z') {
     [Console]::Error.WriteLine("[gate] Banco invalido: $Banco. Use walle_testes ou walle_testes_tNN.")
     exit 2
 }
+$containerApp = if ($env:WALLE_HOOK_APP_CONTAINER) { $env:WALLE_HOOK_APP_CONTAINER } else { 'walle-app' }
+if ($containerApp -cnotmatch '^[A-Za-z0-9][A-Za-z0-9_.-]*$') {
+    [Console]::Error.WriteLine('[gate] WALLE_HOOK_APP_CONTAINER invalido: use somente nome simples de container Docker.')
+    exit 2
+}
 # Virgula ou espaco: chamado de outro PowerShell, "pint,pest" chega como lista e vira "pint pest" no [string].
 $listaEtapas = @($Etapas.Split(@(",", " "), [StringSplitOptions]::RemoveEmptyEntries))
 $desconhecidas = @($listaEtapas | Where-Object { $conhecidas -cnotcontains $_ })
@@ -44,9 +49,9 @@ if (-not $Saida) {
 }
 
 $comandos = [ordered]@{
-    pint      = @('docker', 'exec', 'walle-app', './vendor/bin/pint', '--test')
-    phpstan   = @('docker', 'exec', 'walle-app', './vendor/bin/phpstan', 'analyse', '--no-progress', '--memory-limit=1G')
-    pest      = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", 'walle-app', './vendor/bin/pest', '--compact')
+    pint      = @('docker', 'exec', $containerApp, './vendor/bin/pint', '--test')
+    phpstan   = @('docker', 'exec', $containerApp, './vendor/bin/phpstan', 'analyse', '--no-progress', '--memory-limit=1G')
+    pest      = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", $containerApp, './vendor/bin/pest', '--compact')
     politicas = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/agent-policy.Tests.ps1'))
     gate      = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/gate.Tests.ps1'))
     tarefa    = @('powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $raiz '.claude/hooks/tests/tarefa.Tests.ps1'))
@@ -54,7 +59,7 @@ $comandos = [ordered]@{
     # Fontes atuais do RAG sobre as dependencias da imagem walle-rag:local (a imagem fica igual; dependencia nova pede rebuild)
     rag       = @('docker', 'run', '--rm', '-v', "${raizDocker}/.claude/scripts:/src:ro", 'walle-rag:local', 'sh', '-c', 'mkdir /tmp/rag && cp -r /src/. /tmp/rag/ && ln -s /app/node_modules /tmp/rag/node_modules && cd /tmp/rag && node --test tests/rag.test.ts')
 }
-$comandoPreflightBanco = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", 'walle-app', 'php', '.claude/hooks/preparar-banco-testes.php')
+$comandoPreflightBanco = @('docker', 'exec', '-e', "DB_DATABASE=$Banco", $containerApp, 'php', '.claude/hooks/preparar-banco-testes.php')
 
 # Hash da arvore de trabalho como seria commitada; '' se qualquer comando do git falhar (falha fechada:
 # um "git add" abortado deixaria o indice igual ao HEAD e a arvore pareceria a do commit).
@@ -192,7 +197,7 @@ $duracaoPreflight = 0.0
 try {
     if ($listaEtapas -ccontains 'pest') {
         try {
-            $travaBanco = AbrirTravaWalle "docker:walle-app:banco:$Banco"
+            $travaBanco = AbrirTravaWalle "docker:${containerApp}:banco:$Banco"
             Write-Output "[gate] preflight do banco $Banco ..."
             $relogioPreflight = [Diagnostics.Stopwatch]::StartNew()
             $preflight = Rodar $comandoPreflightBanco
