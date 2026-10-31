@@ -1,0 +1,7 @@
+{
+    "titulo":  "Adicionar fallback a revisao-codex.ps1 para arquivo preexistente valido",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Modificar .claude/hooks/revisao-codex.ps1 para: se .walle/local/T-NNNN/revisao-codex.md ja existir, contiver \u0027Commit revisado: \u003csha\u003e\u0027 correspondente ao HEAD atual e \u0027Bloqueantes do Codex: 0\u0027, usar o arquivo existente e sair com 0, sem chamar o Codex CLI."
+}

@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0043",
+    "titulo":  "Adicionar fallback a revisao-codex.ps1 para arquivo preexistente valido",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0043-adicionar-fallback-a-revisao-codex-ps1-p",
+    "pr":  0,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-31 15:18:27",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0043-adicionar-fallback-a-revisao-codex-ps1-p a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    }
+                ]
+}
