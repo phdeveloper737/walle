@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.1",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "bloqueada",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
@@ -89,6 +89,11 @@
                         "quando":  "2026-10-29 23:03:03",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueada: CI obrigatório do PR #55 continua vermelho no commit f9ddb46913520f56d9cb9263919106826853abae após nova publicação e duas tentativas de integração. Os checks harness, qualidade e rag encerram em 1 a 3 segundos, e o GitHub retorna log not found. Gate local válido está verde, Codex tem 0 P0/P1, arquiteto aprovou e não existe falha de código diagnosticável. Necessária normalização ou reexecução externa do GitHub Actions para o mesmo commit; merge permanece barrado até CI verde."
+                    },
+                    {
+                        "quando":  "2026-10-31 13:34:22",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisão do usuário: opção 1. Repositório foi tornado público para tentar normalizar o GitHub Actions. Retomar T-0038 e tentar novamente publicar/integrar; sem alterar código. Se CI passar, gate e revisões existentes do mesmo HEAD continuam válidos."
                     }
                 ],
     "notas_bloqueio":  "75a823e1d1053ef3780f67940779cd2621bfd37c57a494e27108beace4f1b25e"
