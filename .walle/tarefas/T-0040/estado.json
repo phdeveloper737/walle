@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.4",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "bloqueada",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
@@ -29,6 +29,11 @@
                         "quando":  "2026-10-30 15:55:52",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueada: revisao do Codex indisponivel: ERROR: Youve hit your usage limit. Upgrade to Pro or try again at 8:24 PM. Duas tentativas com o mesmo erro de cota. Gate completo da T-0040 esta verde e valido para o commit 80ad488340df99163a7751c618305c7137487734 (Pint 235 arquivos, PHPStan 0 erros, Pest 615 testes e 2717 assercoes, politicas 437, gate 48, tarefa 179, plugin e rag ok), PR #57 publicado; o integrar recusaria o merge sem o parecer do Codex do HEAD. Decisao necessaria: aguardar a janela de cota do Codex ou autorizar alternativa de revisao independente."
+                    },
+                    {
+                        "quando":  "2026-10-30 21:41:25",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisão do usuário: opção 1. Tentar novamente a revisão do Codex para T-0040 (PR #57) após reabertura da janela de cota."
                     }
                 ],
     "notas_bloqueio":  "e590dc71713ccc40b6f2044a826b5d04151604a9b5757a7b8cb8ab73eded4f34"
