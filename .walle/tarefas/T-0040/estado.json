@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -39,6 +39,11 @@
                         "quando":  "2026-10-30 22:08:05",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: Adiciona teste executável para alíquotas da T-0040"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:20:51",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: Ativa contingências por padrão e alinha testes e exibições"
                     }
                 ],
     "notas_bloqueio":  "e590dc71713ccc40b6f2044a826b5d04151604a9b5757a7b8cb8ab73eded4f34"
