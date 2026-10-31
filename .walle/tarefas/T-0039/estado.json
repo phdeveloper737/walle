@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.2",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "bloqueada",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0039-paridade-dos-relatorios",
     "pr":  56,
@@ -44,6 +44,11 @@
                         "quando":  "2026-10-30 16:18:55",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueada: revisao do Codex indisponivel: ERROR: Youve hit your usage limit. Upgrade to Pro or try again at 8:24 PM. Duas tentativas com o mesmo erro. Gate completo VERDE e valido para o HEAD efa027f34003befebd4fd08c96e089fbbaddccfe (Pint 235 arquivos, PHPStan 0 erros, Pest 611 testes e 2718 assercoes, politicas 437, gate 48, tarefa 179, plugin e rag ok), PR #56. Falta o parecer do Codex do HEAD, exigido pelo integrar. Decisao necessaria: aguardar a janela de cota do Codex ou autorizar alternativa de revisao independente."
+                    },
+                    {
+                        "quando":  "2026-10-30 21:21:33",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisão do usuário: opção 1. Aguardar janela de cota do Codex e tentar novamente a revisão independente do HEAD efa027f34003befebd4fd08c96e089fbbaddccfe no PR #56. Sem alterar código."
                     }
                 ],
     "notas_bloqueio":  "086c8c7bfc7e37472cb08538d7120e198a9c9bd733dbc395a7348a8687519c39"
