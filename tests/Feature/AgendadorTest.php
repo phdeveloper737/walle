@@ -57,7 +57,7 @@ test('os quatro robôs novos nascem desligados no config', function () {
         expect(array_key_exists('ativo', config("walle.{$bloco}")))->toBeTrue();
     }
     expect(file_get_contents(base_path('.env.example')))
-        ->toContain('WALLE_CONTINGENCIAS_ATIVO=false')
+        ->toContain('WALLE_CONTINGENCIAS_ATIVO=true')
         ->toContain('WALLE_SENTINELA_ATIVO=false')
         ->toContain('WALLE_CLEANTAX_ATIVO=false')
         ->toContain('WALLE_TAREFAS_ATIVO=false');

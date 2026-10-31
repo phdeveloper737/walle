@@ -1,0 +1,7 @@
+{
+    "origem": "testes220/newsuporte/system/consultorias/api/find.sale.php:230-242, capturado em 2026-10-30",
+    "hora_fixa": "2026-10-30 10:00:00",
+    "cupom": {"loja": 1, "pdv": 2, "numero": 500},
+    "chave_acesso": "52261000000000000000650010000005001123456789",
+    "xml": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><comando store=\"0001\" pdv=\"002\" funcid=\"858\" argum=\"52261000000000000000650010000005001123456789\" reqtime=\"1793365200\"></comando>"
+}

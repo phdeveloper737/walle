@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-3">
     @if (! $ligado)
         <x-ui.aviso>
-            O robô de contingências está <strong>desligado</strong> (WALLE_CONTINGENCIAS_ATIVO=false): os números abaixo são
+            O robô de contingências está <strong>desligado</strong> (WALLE_CONTINGENCIAS_ATIVO=true): os números abaixo são
             da última coleta e nada daqui encosta nos servidores dos clientes.
         </x-ui.aviso>
     @endif
