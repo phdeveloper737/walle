@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.2",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0039-paridade-dos-relatorios",
     "pr":  56,
@@ -49,7 +49,12 @@
                         "quando":  "2026-10-30 21:21:33",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisão do usuário: opção 1. Aguardar janela de cota do Codex e tentar novamente a revisão independente do HEAD efa027f34003befebd4fd08c96e089fbbaddccfe no PR #56. Sem alterar código."
+                    },
+                    {
+                        "quando":  "2026-10-30 21:40:15",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada: CI obrigatório do PR #56 continua vermelho no commit eefa6a173d4195c4da1b72b6d74797ebbd675b19 após nova publicação e integração. Os checks harness, qualidade e rag encerram em 2 a 3 segundos, e o GitHub retorna log not found. Gate local válido está verde, Codex tem 0 P0/P1, arquiteto aprovou e não existe falha de código diagnosticável. Necessária normalização ou reexecução externa do GitHub Actions para o mesmo commit; merge permanece barrado até CI verde. Aguardando CI estabilizar (mesmo padrão do PR #55 / T-0038)."
                     }
                 ],
-    "notas_bloqueio":  "086c8c7bfc7e37472cb08538d7120e198a9c9bd733dbc395a7348a8687519c39"
+    "notas_bloqueio":  "07902c3105737d1715fe1e485df763cf326724c3bbac7db492f66ac9065a9e75"
 }
