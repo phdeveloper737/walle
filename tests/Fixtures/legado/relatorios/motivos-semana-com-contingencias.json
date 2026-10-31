@@ -1,0 +1,18 @@
+{
+  "_origem": "suporte.history_contingencia + informacao_tecnica_painel_contingencias, captura somente leitura em 2026-10-30; amostra reduzida",
+  "periodo": {"de":"2026-10-19","ate":"2026-10-25"},
+  "tipo": "N",
+  "clientes": [{"id":39001,"emissao_cupons":"N"}],
+  "linhas": [
+    {"fk_c_cliente":39001,"chave":"CHAVE-FICTICIA-01","motivo":"Rejeição: CST não corresponde ao tipo de código de benefício fiscal [nItem: %s]","data_clique":"2026-10-21 07:27:41","data_fiscal_xml":"2026-10-03 15:13:41"},
+    {"fk_c_cliente":39001,"chave":"CHAVE-FICTICIA-02","motivo":"Rejeição: CST não corresponde ao tipo de código de benefício fiscal [nItem: %s]","data_clique":"2026-10-21 07:27:41","data_fiscal_xml":"2026-10-03 11:28:19"},
+    {"fk_c_cliente":39001,"chave":"CHAVE-FICTICIA-03","motivo":"SEM COMUNICACAO COM SEFAZ","data_clique":"2026-10-21 07:27:41","data_fiscal_xml":"2026-08-29 12:34:40"},
+    {"fk_c_cliente":39001,"chave":"CHAVE-FICTICIA-FORA","motivo":"Duplicidade","data_clique":"2026-10-26 00:00:00","data_fiscal_xml":"2026-10-26 00:00:00"}
+  ],
+  "normalizacao_220": "strtoupper do PHP mantém minúsculas acentuadas; collation utf8mb4_general_ci não altera texto retornado",
+  "totais_220_no_recorte_com_desvio_aprovado": [
+    {"motivo":"REJEIçãO: CST NãO CORRESPONDE AO TIPO DE CóDIGO DE BENEFíCIO FISCAL","total":2},
+    {"motivo":"SEM COMUNICACAO COM A SEFAZ","total":1}
+  ],
+  "total_220_no_recorte_com_desvio_aprovado": 3
+}
