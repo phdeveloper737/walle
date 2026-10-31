@@ -33,7 +33,7 @@ test('a saúde mostra os robôs novos desligados neste servidor', function () {
 
     $this->get(route('saude'))->assertOk()
         ->assertSee(['Robô das Contingências', 'Robô do Sentinela', 'Robô do CleanTax', 'Robô das Tarefas agendadas'])
-        ->assertSee(['WALLE_CONTINGENCIAS_ATIVO=false', 'WALLE_SENTINELA_ATIVO=false', 'WALLE_CLEANTAX_ATIVO=false', 'WALLE_TAREFAS_ATIVO=false']);
+        ->assertSee(['Desligado neste servidor (WALLE_CONTINGENCIAS_ATIVO=false)', 'Desligado neste servidor (WALLE_SENTINELA_ATIVO=false)', 'Desligado neste servidor (WALLE_CLEANTAX_ATIVO=false)', 'Desligado neste servidor (WALLE_TAREFAS_ATIVO=false)']);
 });
 
 test('o visitante é levado para a tela de entrar nas rotas novas', function (string $rota) {

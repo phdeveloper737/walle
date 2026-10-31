@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0042",
+    "titulo":  "Corrigir .env.example e TelasTest para robo de contingencias desligado por padrao",
+    "origem":  "pedido do usuario",
+    "tipo":  "bug",
+    "dono":  "walle-infra",
+    "estado":  "bloqueada",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0042-corrigir-env-example-e-telastest-para-ro",
+    "pr":  58,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-31 00:20:47",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0042-corrigir-env-example-e-telastest-para-ro a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-31 00:30:15",
+                        "tipo":  "commit",
+                        "detalhe":  "Corrige TelasTest.php para esperar texto correto da Saúde"
+                    },
+                    {
+                        "quando":  "2026-10-31 00:30:53",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #58 aberto"
+                    },
+                    {
+                        "quando":  "2026-10-31 00:44:24",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Bloqueada: revisao do Codex indisponivel (cota esgotada, tentar novamente as 2:21 AM). Gate completo VERDE e valido para HEAD cd90b77feff2482b8d01dc8730b027b3f5adac51 (Pint 234, PHPStan 0, Pest 607/2698, politicas 437, gate 48, tarefa 179). Aguardar cota do Codex ou alternativa."
+                    }
+                ],
+    "notas_bloqueio":  "ae8244f5b49fb1997539d6a7844af6861d25493f3e42017c75e9ff0834e66acd"
+}
