@@ -4,7 +4,7 @@
     "origem":  "PLAN 12.4",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  2,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
@@ -44,7 +44,12 @@
                         "quando":  "2026-10-30 22:20:51",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 2 de 2: Ativa contingências por padrão e alinha testes e exibições"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:42:32",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Decisão do usuário: opção 1. Tentar novamente a revisão do Codex para T-0040 (PR #57) após reabertura da janela de cota."
                     }
                 ],
-    "notas_bloqueio":  "e590dc71713ccc40b6f2044a826b5d04151604a9b5757a7b8cb8ab73eded4f34"
+    "notas_bloqueio":  "d6283f2e7b5be6f145f894ff30c199270b3144362a9535259d1d76ae820b9078"
 }
