@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0049",
+    "titulo":  "Destrutivos so com opcoes conhecidas",
+    "origem":  "sugestao do arquiteto na T-0041",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0049-destrutivos-so-com-opcoes-conhecidas",
+    "pr":  65,
+    "base":  "217f6b11b49a11291d14eff8e5dfa0b58228bc8c",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-03 15:05:45",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0049-destrutivos-so-com-opcoes-conhecidas a partir de 217f6b11b49a11291d14eff8e5dfa0b58228bc8c"
+                    },
+                    {
+                        "quando":  "2026-11-03 15:07:33",
+                        "tipo":  "commit",
+                        "detalhe":  "Destrutivos so com opcoes conhecidas"
+                    },
+                    {
+                        "quando":  "2026-11-03 15:07:51",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #65 aberto"
+                    }
+                ]
+}

@@ -55,7 +55,8 @@ $destrutivo = '\b(migrate:(fresh|reset|rollback|refresh)|db:wipe|walle:importar-
 if ($comando -match $destrutivo) {
     # Falha fechada: destrutivos so passam na forma simples abaixo. Isso impede que um comentario, outro comando,
     # uma variavel irrelevante ou um nome apenas prefixado por walle_testes simule a protecao do banco.
-    $destrutivoSeguro = '^\s*docker(?:\.exe)?\s+exec\s+-e\s+DB_DATABASE=walle_testes(?:_t[0-9]+)?\s+walle-app\s+php\s+artisan\s+(?:migrate:(?:fresh|reset|rollback|refresh)|db:wipe|walle:importar-suporte)(?:\s+--[A-Za-z0-9][A-Za-z0-9_-]*(?:=[A-Za-z0-9_./:-]+)?)*\s*$'
+    # So opcoes conhecidas: --database, --env, --path e afins trocariam o banco ou o ambiente por fora do DB_DATABASE.
+    $destrutivoSeguro = '^\s*docker(?:\.exe)?\s+exec\s+-e\s+DB_DATABASE=walle_testes(?:_t[0-9]+)?\s+walle-app\s+php\s+artisan\s+(?:migrate:(?:fresh|reset|rollback|refresh)|db:wipe|walle:importar-suporte)(?:\s+--(?:force|seed|no-interaction|quiet|step(?:=[0-9]+)?|lote=[0-9]+))*\s*$'
     if ($comando -cnotmatch $destrutivoSeguro) {
         [Console]::Error.WriteLine('Bloqueado pelo hook do walle: este comando apaga dados e so pode ser um comando simples e exato contra walle_testes ou walle_testes_tNN (docker exec -e DB_DATABASE=walle_testes_tNN walle-app php artisan ...). Nunca contra o banco walle de desenvolvimento.')
         exit 2

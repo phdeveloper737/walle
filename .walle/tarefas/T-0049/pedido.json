@@ -1,0 +1,7 @@
+{
+    "titulo":  "Destrutivos so com opcoes conhecidas",
+    "origem":  "sugestao do arquiteto na T-0041",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "A forma exata dos comandos que apagam dados aceitava qualquer --opcao=valor (inclusive --database e --env); agora so --force, --seed, --step[=N], --no-interaction, --quiet e --lote=N."
+}

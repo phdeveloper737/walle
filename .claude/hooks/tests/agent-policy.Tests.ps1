@@ -404,7 +404,7 @@ try {
 foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -banco walle_testes', 'POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco WALLE_TESTES')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
 }
-foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'docker exec -e DB_DATABASE=walle_testes walle-app php artisan db:wipe --force', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'docker exec -e DB_DATABASE=walle_testes walle-app php artisan db:wipe --force', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:rollback --step=2', 'docker exec -e DB_DATABASE=walle_testes walle-app php artisan walle:importar-suporte --lote=500', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
     ConferirProteger $comando 0
 }
 foreach ($comando in @(
@@ -418,6 +418,10 @@ foreach ($comando in @(
     'docker exec walle-app php artisan migrate:fresh # DB_DATABASE=walle_testes',
     'echo DB_DATABASE=walle_testes; docker exec walle-app php artisan migrate:fresh',
     'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh; echo passou',
+    'docker exec -e DB_DATABASE=walle_testes walle-app php artisan migrate:fresh --database=help',
+    'docker exec -e DB_DATABASE=walle_testes walle-app php artisan db:wipe --env=production',
+    'docker exec -e DB_DATABASE=walle_testes walle-app php artisan migrate:fresh --path=database/x',
+    'docker exec -e DB_DATABASE=walle_testes walle-app php artisan walle:importar-suporte --lote=abc',
     'docker exec walle-app php artisan config:show database',
     'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"'
 )) {
