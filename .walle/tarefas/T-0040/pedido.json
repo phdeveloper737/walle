@@ -1,0 +1,7 @@
+{
+    "titulo":  "Paridade das acoes de contingencia e ferramentas",
+    "origem":  "PLAN 12.4",
+    "tipo":  "plano",
+    "dono":  "walle-paridade",
+    "resumo":  "Provar que o conector falso do walle recebe o mesmo SQL ou comando que o 220 enviou para reenviar ao PDV, aliquotas e queries agendadas, e que acao recusada nao envia nada. Usuario autorizou seguir o plano e deixar para decidir depois o que nao der."
+}

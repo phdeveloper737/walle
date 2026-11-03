@@ -1,0 +1,7 @@
+{
+    "titulo":  "Paridade do estado de erro de Contingencia e Task Scheduler",
+    "origem":  "P2 da revisao da T-0038",
+    "tipo":  "plano",
+    "dono":  "walle-paridade",
+    "resumo":  "Fechar os dois P2 da revisao da T-0038: tests/Feature/Paridade/RobosColetaTest.php so cobre sucesso em Contingencia e em Task Scheduler. Capturar amostras sanitizadas do 220 para cliente com erro (servidor inacessivel, chave invalida ou query com falha) e testar que o walle grava o mesmo painel, historico e log de erro, sem gravar sucesso."
+}
