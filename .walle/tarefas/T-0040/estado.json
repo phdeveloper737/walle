@@ -4,8 +4,8 @@
     "origem":  "PLAN 12.4",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "bloqueada",
-    "ciclos":  1,
+    "estado":  "em_revisao",
+    "ciclos":  0,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -69,6 +69,11 @@
                         "quando":  "2026-11-03 12:18:34",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueio (03/11/2026): o branch da T-0040 nao incorpora o main. O tarefa.ps1 atualizar recusa com \"origin/main tem conflitos com a tarefa\".\n\nCausa: depois do gate vermelho do HEAD atualizado (TelasTest e AgendadorTest esperavam WALLE_CONTINGENCIAS_ATIVO=true, que a T-0042 mudou para false no main), a T-0040 tinha commits proprios em .env.example, tests/Feature/TelasTest.php e tests/Feature/AgendadorTest.php, arquivos fora do escopo do walle-paridade (tests/Feature/Paridade e tests/Fixtures/legado). O walle-infra alinhou os tres arquivos ao main (ciclo 1 de 2, commit 9fa1516), mas nenhum agente consegue ler o origin/main (hooks bloqueiam git show, git diff com ref, git fetch e gh api), entao a igualdade textual nao foi provada e o merge continua com conflito.\n\nOpcoes:\n1. Resolver o conflito fora do ledger: com o branch da T-0040 checado, rodar git merge origin/main, resolver adotando a versao do main nos tres arquivos (git checkout origin/main -- .env.example tests/Feature/TelasTest.php tests/Feature/AgendadorTest.php), commitar e dar push; depois retomar a tarefa e refazer gate, revisao do Codex e revisao do arquiteto no novo HEAD. Menor custo.\n2. Fechar o PR #57 e reabrir a paridade 12.4 numa tarefa nova a partir do main, copiando so tests/Feature/Paridade/AcoesParidadeTest.php e as fixtures de tests/Fixtures/legado. Branch limpo, sem os tres arquivos alheios.\n3. Ampliar a politica do walle-paridade ou do walle-infra para permitir Git de leitura contra origin/main (decisao do usuario, edita agent-policies.json, que nenhum agente pode editar).\n\nRecomendacao: opcao 2 se nao quiser mexer em Git na mao; opcao 1 se preferir manter o PR #57. O teste de paridade AcoesParidadeTest passa (9 testes, 25 asserções); o problema e so a mistura de escopo."
+                    },
+                    {
+                        "quando":  "2026-11-03 12:49:02",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (03/11/2026): opcao 1. O unico conflito com o main e tests/Feature/TelasTest.php (linha do assertSee da Saude); adotar a versao do main, commitar pelo ledger e rodar atualizar, depois gate, revisao do Codex e revisao do arquiteto do novo HEAD."
                     }
                 ],
     "notas_bloqueio":  "f1ae57a4790c540d9c9853aea5d2fa1a90f92768c1a316bae4a5da861cf11f5d"
