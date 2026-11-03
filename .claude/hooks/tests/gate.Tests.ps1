@@ -19,6 +19,7 @@ $pathAnterior = $env:PATH
 $variaveis = @('WALLE_TEST_DOCKER_EXIT', 'WALLE_TEST_POWERSHELL_EXIT', 'WALLE_TEST_PREFLIGHT_EXIT', 'WALLE_TEST_DOCKER_TOCA', 'WALLE_TEST_GATE_SAIDA', 'WALLE_TEST_GATE_COPIA', 'WALLE_TEST_PARALLEL_LOG', 'WALLE_HOOK_TEST_DATABASE', 'WALLE_HOOK_APP_CONTAINER', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0')
 $bancoAnterior = $env:WALLE_HOOK_TEST_DATABASE
 $containerAnterior = $env:WALLE_HOOK_APP_CONTAINER
+$containerTeste = 'walle-app-teste-gate'
 
 function RodarGate([string[]]$Argumentos) {
     $preferencia = $ErrorActionPreference
@@ -35,6 +36,8 @@ function Garantir([bool]$Condicao, [string]$Mensagem) {
 }
 function Limpar {
     foreach ($nome in $variaveis) { Remove-Item "Env:$nome" -ErrorAction SilentlyContinue }
+    # Container proprio do teste: a trava de banco do gate real (walle-app) pode estar presa pelo Pest em paralelo.
+    $env:WALLE_HOOK_APP_CONTAINER = $containerTeste
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     $env:WALLE_TEST_POWERSHELL_EXIT = '0'
     $env:WALLE_TEST_PREFLIGHT_EXIT = '0'
@@ -221,7 +224,7 @@ try {
 
     # A mesma trava de banco e usada pelo Stop. Bancos diferentes continuam independentes.
     Limpar
-    $trava = AbrirTravaWalle 'docker:walle-app:banco:walle_testes_t98765'
+    $trava = AbrirTravaWalle "docker:${containerTeste}:banco:walle_testes_t98765"
     try {
         $r = RodarGate @('-Etapas', 'pest', '-Banco', 'walle_testes_t98765', '-Saida', $saida)
         Garantir ($r.codigo -eq 1 -and (Evidencia).valida_para_commit -eq $false) 'banco ocupado nao gera validacao'

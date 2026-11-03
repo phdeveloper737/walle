@@ -203,7 +203,10 @@ try {
 $temporario = Join-Path ([IO.Path]::GetTempPath()) ('walle-hooks-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($temporario) | Out-Null
 $pathAnterior = $env:PATH
+$bancoAnterior = $env:WALLE_HOOK_TEST_DATABASE
 try {
+    # Banco proprio do teste: a trava real (walle_testes) pode estar com o Pest do gate em paralelo.
+    $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t98764'
     # Duplo do Docker: comprova propagacao de falhas sem executar suite por caso.
     [IO.File]::WriteAllText((Join-Path $temporario 'docker.cmd'), "@echo off`r`necho %*`r`nexit /b %WALLE_TEST_DOCKER_EXIT%`r`n")
     $env:PATH = $temporario + ';' + $env:PATH
@@ -240,12 +243,13 @@ try {
     } finally { FecharTravaWalle $travaBanco }
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     Conferir 'walle-robos' '' @{} 0 'Stop'
-    Remove-Item Env:WALLE_HOOK_TEST_DATABASE
+    $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t98764'
     # walle-migracao: restauracao so em volume vazio (o Docker falso sempre devolve conteudo).
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     Conferir 'walle-migracao' 'PowerShell' @{command='docker run --rm -v walle_mysql:/destino -v C:/walle-migracao:/backup:ro ubuntu tar --numeric-owner -xzpf /backup/volume-walle_mysql.tar.gz -C /destino'} 2
 } finally {
     $env:PATH = $pathAnterior
+    if ($null -eq $bancoAnterior) { Remove-Item Env:WALLE_HOOK_TEST_DATABASE -ErrorAction SilentlyContinue } else { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
     Remove-Item Env:WALLE_TEST_DOCKER_EXIT -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath (Join-Path $temporario 'docker.cmd')
     Remove-Item -LiteralPath $temporario

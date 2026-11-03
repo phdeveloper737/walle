@@ -35,6 +35,11 @@
                         "quando":  "2026-11-03 13:56:38",
                         "tipo":  "atualizada",
                         "detalhe":  "origin/main 09fd5cdf49bdc0db8d198cb14ba075bb13a500ae incorporado; ciclos preservados em 0."
+                    },
+                    {
+                        "quando":  "2026-11-03 14:34:23",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: testes do harness usam trava propria"
                     }
                 ]
 }
