@@ -4,12 +4,11 @@
     "origem":  "correção de gate bloqueando T-0038",
     "tipo":  "harness",
     "dono":  "walle-hooks",
-    "estado":  "em_revisao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0045-corrigir-limpeza-de-parecer-no-agent-pol",
     "pr":  59,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-11-03 08:22:00",
@@ -25,6 +24,12 @@
                         "quando":  "2026-11-03 08:31:04",
                         "tipo":  "pr",
                         "detalhe":  "PR #59 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-03 08:40:13",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "revisão do Codex indisponível: ERROR: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 4th, 2026 9:47 AM.\n\nGate completo VERDE e valido_para_commit true para o HEAD f701c82342f6bf39cf56d58f84075c021a36776d (607 testes, 2698 asserçoes, 437 casos de politicas). O integrar recusa o merge sem o parecer do Codex do HEAD, entao a tarefa fica bloqueada ate o limite do Codex resetar. Duas tentativas do revisao-codex.ps1 falharam com o mesmo erro."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "685f89476b06efea7b466de216aa9d0dc4a206c3f5e62a2b6818fd4daa09540e"
 }
