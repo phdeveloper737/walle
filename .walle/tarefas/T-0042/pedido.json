@@ -1,0 +1,7 @@
+{
+    "titulo":  "Corrigir .env.example e TelasTest para robo de contingencias desligado por padrao",
+    "origem":  "pedido do usuario",
+    "tipo":  "bug",
+    "dono":  "walle-infra",
+    "resumo":  "Ajustar .env.example para WALLE_CONTINGENCIAS_ATIVO=false e corrigir TelasTest.php para esperar o texto correto da Saude."
+}
