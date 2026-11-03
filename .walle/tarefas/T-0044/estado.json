@@ -4,10 +4,10 @@
     "origem":  "chat",
     "tipo":  "harness",
     "dono":  "sessao principal",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0044-revisao-do-codex-pelo-9router-my-combo",
-    "pr":  0,
+    "pr":  60,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-03 09:30:22",
                         "tipo":  "commit",
                         "detalhe":  "Revisao do Codex pelo 9router my-combo"
+                    },
+                    {
+                        "quando":  "2026-11-03 09:38:51",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #60 aberto"
                     }
                 ]
 }
