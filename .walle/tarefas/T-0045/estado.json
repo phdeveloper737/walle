@@ -34,6 +34,11 @@
                         "quando":  "2026-11-03 09:48:44",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario (03/11/2026): a revisao do Codex nao pode parar no limite da conta ChatGPT. A T-0044 (PR #60, no main) passa o revisao-codex.ps1 pelo 9router/my-combo. Retomar, atualizar o branch com o main (para usar o script novo) e refazer gate, revisao do Codex e revisao do arquiteto do novo HEAD."
+                    },
+                    {
+                        "quando":  "2026-11-03 09:48:47",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 85a6e545c4171210d37736580fac8731a71505cf incorporado; ciclos preservados em 0."
                     }
                 ],
     "notas_bloqueio":  "685f89476b06efea7b466de216aa9d0dc4a206c3f5e62a2b6818fd4daa09540e"
