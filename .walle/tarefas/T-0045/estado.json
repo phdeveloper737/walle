@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0045",
+    "titulo":  "Corrigir limpeza de parecer no agent-policy.Tests.ps1",
+    "origem":  "correção de gate bloqueando T-0038",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0045-corrigir-limpeza-de-parecer-no-agent-pol",
+    "pr":  0,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-03 08:22:00",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0045-corrigir-limpeza-de-parecer-no-agent-pol a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    }
+                ]
+}
