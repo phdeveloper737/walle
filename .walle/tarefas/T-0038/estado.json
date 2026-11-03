@@ -94,6 +94,11 @@
                         "quando":  "2026-10-31 13:34:22",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisão do usuário: opção 1. Repositório foi tornado público para tentar normalizar o GitHub Actions. Retomar T-0038 e tentar novamente publicar/integrar; sem alterar código. Se CI passar, gate e revisões existentes do mesmo HEAD continuam válidos."
+                    },
+                    {
+                        "quando":  "2026-11-03 10:02:54",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main e0cc0261495fcf687291fea68b417a68fbdfe757 incorporado; ciclos preservados em 0."
                     }
                 ],
     "notas_bloqueio":  "75a823e1d1053ef3780f67940779cd2621bfd37c57a494e27108beace4f1b25e"

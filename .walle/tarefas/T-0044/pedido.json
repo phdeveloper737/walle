@@ -1,0 +1,7 @@
+{
+    "titulo":  "Revisao do Codex pelo 9router my-combo",
+    "origem":  "chat",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "revisao-codex.ps1 passa o codex exec pelo 9router (my-combo: gratuitos, Codex, Claude) quando ele esta no ar, para o limite da conta ChatGPT nao parar a revisao; pede JSON explicito, aceita JSON embrulhado em markdown e grava a linha Revisor no parecer. Decisao do usuario de 03/11/2026."
+}

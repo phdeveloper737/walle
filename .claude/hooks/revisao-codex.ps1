@@ -62,6 +62,15 @@ if (-not $codex) {
 }
 if (-not $codex -or -not (Test-Path -LiteralPath $codex)) { Recusar 'Codex indisponivel: instale com npm i -g @openai/codex e rode codex login.' }
 
+# Pelo 9router (my-combo: gratuitos, depois Codex, depois Claude) quando ele esta no ar, para o limite da conta ChatGPT
+# nao parar a revisao (decisao do usuario de 03/11/2026); fora do ar, o Codex usa a conta direto. Somente leitura nos dois.
+$roteador = ''
+$revisor = 'Codex (conta ChatGPT)'
+try {
+    $modelos = Invoke-RestMethod 'http://localhost:20128/v1/models' -TimeoutSec 5
+    if ($modelos.data | Where-Object { $_.id -eq 'my-combo' }) { $roteador = '-c model_provider=9router -c model=my-combo '; $revisor = 'Codex pelo 9router/my-combo' }
+} catch { }
+
 $base = 'main'
 if (@((Repo @('remote')).texto -split "`n") -contains 'origin') {
     Repo @('fetch', '-q', 'origin') | Out-Null
@@ -85,11 +94,12 @@ $pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de g
     'P1 = deve ser corrigido antes do merge; P2 e P3 = melhorias opcionais. Use o caminho relativo do arquivo e a linha no codigo novo. ' +
     'Nao abra, nao leia nem cite arquivos de ambiente (o arquivo de variaveis da raiz do projeto e as variantes dele), chaves, certificados, credenciais nem segredos, ' +
     'e nao copie valores sensiveis no parecer, porque o parecer vira comentario publico no PR. ' +
-    'Sem achados, devolva a lista vazia. Escreva titulo e detalhe em portugues do Brasil.'
+    'Escreva titulo e detalhe em portugues do Brasil. A resposta final deve ser SOMENTE um objeto JSON, sem texto antes ou depois e sem markdown, ' +
+    'no formato {"achados":[{"prioridade":"P0|P1|P2|P3","arquivo":"caminho","linha":1,"titulo":"...","detalhe":"..."}]}; sem achados, {"achados":[]}.'
 
 # O pedido vai pelo stdin (-): sem aspas na linha de comando. .cmd do npm passa pelo cmd; o .exe vai direto.
 # Nunca sandbox de escrita nem --dangerously-*.
-$argumentos = "exec -s read-only --ephemeral --output-schema `"$esquema`" -o `"$temporario`" -"
+$argumentos = "exec $roteador-s read-only --ephemeral --output-schema `"$esquema`" -o `"$temporario`" -"
 $inicio = New-Object Diagnostics.ProcessStartInfo
 if ($codex -match '\.(cmd|bat)$') {
     $inicio.FileName = $env:ComSpec
@@ -127,6 +137,10 @@ if (-not (Test-Path -LiteralPath $temporario)) { Limpar; Falhar 'o Codex nao gra
 $resposta = [IO.File]::ReadAllText($temporario, $utf8).Trim()
 Limpar
 
+# Modelos do combo as vezes embrulham o JSON em markdown: vale so o trecho da primeira { a ultima }, validado igual.
+$inicioJson = $resposta.IndexOf('{')
+$fimJson = $resposta.LastIndexOf('}')
+if ($inicioJson -ge 0 -and $fimJson -gt $inicioJson) { $resposta = $resposta.Substring($inicioJson, $fimJson - $inicioJson + 1) }
 # Fora do esquema e erro, nunca aprovacao: sem lista de achados valida, nao ha parecer.
 try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
 if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }
@@ -138,7 +152,7 @@ foreach ($achado in $achados) {
 $bloqueantes = @($achados | Where-Object { [string]$_.prioridade -cmatch '^P[01]\z' }).Count
 $veredito = if ($bloqueantes -eq 0) { 'APROVADO' } else { 'MUDANCAS NECESSARIAS' }
 
-$linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
+$linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Revisor: $revisor", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
 if ($achados.Count -eq 0) { $linhas += 'Sem achados.' }
 # Um achado por linha: quebras do texto do Codex viram espaco, para nenhum texto forjar outra linha de achado,
 # e o arquivo perde crases e espacos, porque o integrar le prioridade e arquivo:linha dessa linha.
