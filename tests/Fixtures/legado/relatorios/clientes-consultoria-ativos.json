@@ -1,0 +1,70 @@
+{
+  "_origem": "suporte.c_cliente, captura somente leitura em 2026-10-30; nomes e documentos substituídos por dados fictícios",
+  "filtro": {
+    "consultoria": "S",
+    "deletado": "N"
+  },
+  "clientes": [
+    {
+      "id": 39001,
+      "loja": "",
+      "razao_social": "COMERCIO ALVORADA LTDA",
+      "nome_fantasia": "MERCADO ALVORADA",
+      "tipo": "J",
+      "cnpj": "00.000.000/0001-00",
+      "cpf": null,
+      "contato": "ANA EXEMPLO",
+      "telefone": "(00) 0000-0000",
+      "celular": null,
+      "email": "ana@example.test",
+      "consultoria": "S",
+      "deletado": "N"
+    },
+    {
+      "id": 39002,
+      "loja": "",
+      "razao_social": "DISTRIBUIDORA HORIZONTE LTDA",
+      "nome_fantasia": "ATACADO HORIZONTE",
+      "tipo": "J",
+      "cnpj": "11.111.111/0001-11",
+      "cpf": null,
+      "contato": "BRUNO EXEMPLO",
+      "telefone": null,
+      "celular": "(00) 00000-0000",
+      "email": "bruno@example.test",
+      "consultoria": "S",
+      "deletado": "N"
+    },
+    {
+      "id": 39003,
+      "loja": "",
+      "razao_social": "COMERCIO SEM CONSULTORIA LTDA",
+      "nome_fantasia": "LOJA SEM CONSULTORIA",
+      "tipo": "J",
+      "cnpj": "22.222.222/0001-22",
+      "cpf": null,
+      "contato": "CARLA EXEMPLO",
+      "telefone": null,
+      "celular": null,
+      "email": "carla@example.test",
+      "consultoria": "N",
+      "deletado": "N"
+    },
+    {
+      "id": 39004,
+      "loja": "",
+      "razao_social": "COMERCIO ENCERRADO LTDA",
+      "nome_fantasia": "LOJA EXCLUIDA",
+      "tipo": "J",
+      "cnpj": "33.333.333/0001-33",
+      "cpf": null,
+      "contato": "DANIEL EXEMPLO",
+      "telefone": null,
+      "celular": null,
+      "email": "daniel@example.test",
+      "consultoria": "S",
+      "deletado": "S"
+    }
+  ],
+  "total_220": 2
+}
