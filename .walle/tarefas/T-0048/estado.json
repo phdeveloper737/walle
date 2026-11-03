@@ -4,10 +4,10 @@
     "origem":  "P2 da revisao da T-0038",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0048-paridade-do-estado-de-erro-de-contingenc",
-    "pr":  0,
+    "pr":  63,
     "base":  "6150b2d43fcd3385929452b27043f35128167528",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-03 13:40:50",
                         "tipo":  "commit",
                         "detalhe":  "Paridade do estado de erro de Contingência e Task Scheduler (P2 da T-0038)"
+                    },
+                    {
+                        "quando":  "2026-11-03 13:41:11",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #63 aberto"
                     }
                 ]
 }
