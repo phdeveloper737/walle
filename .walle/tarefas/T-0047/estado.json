@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0047",
+    "titulo":  "Revisao do Codex recusa achado nulo",
+    "origem":  "sugestao do arquiteto na T-0046",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0047-revisao-do-codex-recusa-achado-nulo",
+    "pr":  0,
+    "base":  "92fe5a7c9382cf032a53f0795260da02abe19e7b",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-03 10:44:34",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0047-revisao-do-codex-recusa-achado-nulo a partir de 92fe5a7c9382cf032a53f0795260da02abe19e7b"
+                    }
+                ]
+}
