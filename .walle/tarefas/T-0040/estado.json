@@ -4,8 +4,8 @@
     "origem":  "PLAN 12.4",
     "tipo":  "plano",
     "dono":  "walle-paridade",
-    "estado":  "bloqueada",
-    "ciclos":  2,
+    "estado":  "em_revisao",
+    "ciclos":  0,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -49,6 +49,11 @@
                         "quando":  "2026-10-30 22:42:32",
                         "tipo":  "bloqueada",
                         "detalhe":  "Decisão do usuário: opção 1. Tentar novamente a revisão do Codex para T-0040 (PR #57) após reabertura da janela de cota."
+                    },
+                    {
+                        "quando":  "2026-11-03 10:58:06",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (03/11/2026): a revisao do Codex nao depende mais da cota da conta ChatGPT; desde a T-0044 (PR #60) o revisao-codex.ps1 roda pelo 9router/my-combo. Retomar, atualizar o branch com o main e refazer gate, revisao do Codex e revisao do arquiteto do novo HEAD; integrar com CI verde."
                     }
                 ],
     "notas_bloqueio":  "d6283f2e7b5be6f145f894ff30c199270b3144362a9535259d1d76ae820b9078"
