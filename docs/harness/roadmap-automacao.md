@@ -40,7 +40,12 @@ Premissas: servidor de 2 a 4 vCPU, 4 a 8 GB de RAM, SSD, sem GPU; dezenas de mil
 ## Fase 6 — Harness portátil
 
 - Hooks, gate e `tarefa.ps1` em PowerShell 7 (`pwsh`) ou Node; caminhos relativos ao projeto (sem `C:/...`); duplos de teste sem `.cmd`; CI só em Linux.
+- Um único ponto de entrada versionado e executado em Docker deve oferecer `status`, testes focados e gate completo. O núcleo não pode depender de Claude, Codex, OpenCode, do histórico de uma conversa nem de arquivos privados de uma sessão; integrações de cada provedor são apenas adaptadores finos para o mesmo comando.
+- Toda execução grava resultado estruturado, comando reproduzível, commit, árvore, banco de teste, início, fim e motivo de falha em `.walle/`. Se uma IA atingir limite ou encerrar, outra retoma pelo ledger e pela evidência, sem repetir trabalho verde nem depender de explicação fora do repositório.
+- A política deve validar as capacidades necessárias, e não o nome do fornecedor. Qualquer IA autorizada pode executar a mesma bateria em `walle_testes_tNN`; a trava por banco e todas as barreiras de segurança continuam valendo.
+- Testes de contrato devem executar o ponto de entrada a partir de pelo menos dois adaptadores e comprovar saída e códigos idênticos. A portabilidade da execução não remove gate, revisão obrigatória nem CI.
 - Aceite: o ciclo completo de uma tarefa roda num contêiner Linux, sem Windows.
+- Aceite adicional (decisão do usuário de 30/10/2026): uma segunda IA, iniciada sem o contexto da primeira, lê o ledger, executa a validação pendente e produz evidência válida para o mesmo commit.
 
 ## Diagnóstico e concorrência das validações
 

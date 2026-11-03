@@ -1,0 +1,55 @@
+{
+    "tarefa":  "T-0041",
+    "titulo":  "Otimizar confiabilidade e desempenho do harness",
+    "origem":  "pedido do usuario",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0041-otimizar-confiabilidade-e-desempenho-do",
+    "pr":  64,
+    "base":  "534f559b23f052be158133e65d50337cc8b2678f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-10-30 15:26:24",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0041-otimizar-confiabilidade-e-desempenho-do a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:26:14",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: torna o gate paralelo e falha fechado"
+                    },
+                    {
+                        "quando":  "2026-10-30 22:27:12",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: isola o contêiner do gate por worktree"
+                    },
+                    {
+                        "quando":  "2026-11-03 12:34:29",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 6150b2d43fcd3385929452b27043f35128167528 incorporado; ciclos preservados em 0."
+                    },
+                    {
+                        "quando":  "2026-11-03 13:56:38",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 09fd5cdf49bdc0db8d198cb14ba075bb13a500ae incorporado; ciclos preservados em 0."
+                    },
+                    {
+                        "quando":  "2026-11-03 14:34:23",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0041: testes do harness usam trava propria"
+                    },
+                    {
+                        "quando":  "2026-11-03 14:38:21",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #64 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-03 14:54:48",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0041: gate preliminar fora do walle-app e excecao da Mercadologica"
+                    }
+                ]
+}

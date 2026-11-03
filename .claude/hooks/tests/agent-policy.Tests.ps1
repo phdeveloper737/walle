@@ -203,7 +203,10 @@ try {
 $temporario = Join-Path ([IO.Path]::GetTempPath()) ('walle-hooks-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($temporario) | Out-Null
 $pathAnterior = $env:PATH
+$bancoAnterior = $env:WALLE_HOOK_TEST_DATABASE
 try {
+    # Banco proprio do teste: a trava real (walle_testes) pode estar com o Pest do gate em paralelo.
+    $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t98764'
     # Duplo do Docker: comprova propagacao de falhas sem executar suite por caso.
     [IO.File]::WriteAllText((Join-Path $temporario 'docker.cmd'), "@echo off`r`necho %*`r`nexit /b %WALLE_TEST_DOCKER_EXIT%`r`n")
     $env:PATH = $temporario + ';' + $env:PATH
@@ -240,12 +243,13 @@ try {
     } finally { FecharTravaWalle $travaBanco }
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     Conferir 'walle-robos' '' @{} 0 'Stop'
-    Remove-Item Env:WALLE_HOOK_TEST_DATABASE
+    $env:WALLE_HOOK_TEST_DATABASE = 'walle_testes_t98764'
     # walle-migracao: restauracao so em volume vazio (o Docker falso sempre devolve conteudo).
     $env:WALLE_TEST_DOCKER_EXIT = '0'
     Conferir 'walle-migracao' 'PowerShell' @{command='docker run --rm -v walle_mysql:/destino -v C:/walle-migracao:/backup:ro ubuntu tar --numeric-owner -xzpf /backup/volume-walle_mysql.tar.gz -C /destino'} 2
 } finally {
     $env:PATH = $pathAnterior
+    if ($null -eq $bancoAnterior) { Remove-Item Env:WALLE_HOOK_TEST_DATABASE -ErrorAction SilentlyContinue } else { $env:WALLE_HOOK_TEST_DATABASE = $bancoAnterior }
     Remove-Item Env:WALLE_TEST_DOCKER_EXIT -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath (Join-Path $temporario 'docker.cmd')
     Remove-Item -LiteralPath $temporario
@@ -368,6 +372,12 @@ function ConferirProteger([string]$Comando, [int]$Esperado) {
     if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
     $script:casos++
 }
+function ConferirPayloadProteger([string]$Payload, [int]$Esperado) {
+    $resultado = Rodar 'proteger-comandos.ps1' '' $Payload
+    if ($resultado.codigo -ne $Esperado) { throw "proteger-comandos payload: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
+    if ($Esperado -eq 2 -and $resultado.saida -notmatch 'Bloqueado pelo hook') { throw 'Bloqueio sem mensagem clara.' }
+    $script:casos++
+}
 # Merge: so com o CI do PR todo verde, conferido por "gh pr checks" (aqui um duplo que devolve o codigo pedido).
 $duploGh = Join-Path ([IO.Path]::GetTempPath()) ('walle-gh-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($duploGh) | Out-Null
@@ -394,11 +404,27 @@ try {
 foreach ($comando in @('powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -banco walle_testes', 'POWERSHELL -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1 -Banco WALLE_TESTES')) {
     Conferir 'walle-verificador' 'Bash' @{command=$comando} 2
 }
-foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
+foreach ($comando in @('git status', 'cat .env.example', 'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh', 'docker exec -e DB_DATABASE=walle_testes walle-app php artisan db:wipe --force', 'powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/gate.ps1')) {
     ConferirProteger $comando 0
 }
-foreach ($comando in @('gh pr merge 9 --squash --admin', 'gh pr merge --admin 9', 'cat .env', 'docker exec walle-app php artisan migrate:fresh', 'docker exec walle-app php artisan config:show database', 'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"')) {
+foreach ($comando in @(
+    'gh pr merge 9 --squash --admin',
+    'gh pr merge --admin 9',
+    'cat .env',
+    'docker exec walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_producao walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_t3x walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=WALLE_TESTES walle-app php artisan migrate:fresh',
+    'docker exec walle-app php artisan migrate:fresh # DB_DATABASE=walle_testes',
+    'echo DB_DATABASE=walle_testes; docker exec walle-app php artisan migrate:fresh',
+    'docker exec -e DB_DATABASE=walle_testes_t3 walle-app php artisan migrate:fresh; echo passou',
+    'docker exec walle-app php artisan config:show database',
+    'mysql -h 192.168.10.254 -e "UPDATE a_user SET x=1"'
+)) {
     ConferirProteger $comando 2
+}
+foreach ($payload in @('{', 'null', '{}', '{"tool_input":{}}', '{"tool_input":{"command":null}}', '{"tool_input":{"command":""}}', '{"tool_input":{"command":123}}')) {
+    ConferirPayloadProteger $payload 2
 }
 
 Write-Output "$script:casos casos de politica passaram."

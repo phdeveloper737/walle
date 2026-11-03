@@ -5,13 +5,22 @@ $ErrorActionPreference = 'Stop'
 try {
     $entrada = [Console]::In.ReadToEnd() | ConvertFrom-Json
 } catch {
-    exit 0
+    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: o payload recebido nao e um JSON valido; por seguranca, nenhum comando foi liberado.')
+    exit 2
 }
 
-$comando = [string]$entrada.tool_input.command
-if ([string]::IsNullOrWhiteSpace($comando)) {
-    exit 0
+$valorComando = if ($null -ne $entrada -and $null -ne $entrada.tool_input) { $entrada.tool_input.command } else { $null }
+$payloadValido = $null -ne $entrada -and
+    $null -ne $entrada.tool_input -and
+    $entrada.tool_input.PSObject.Properties.Name -contains 'command' -and
+    $valorComando -is [string] -and
+    -not [string]::IsNullOrWhiteSpace($valorComando)
+if (-not $payloadValido) {
+    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: o payload nao contem um tool_input.command textual e nao vazio; por seguranca, nenhum comando foi liberado.')
+    exit 2
 }
+
+$comando = [string]$valorComando
 
 $segredos = @(
     @{ padrao = '(?<![\w.-])\.env(?!\.example)(\.[\w-]+)*(?![\w.-])'; motivo = 'le ou altera um arquivo .env (use o .env.example)' },
@@ -43,9 +52,14 @@ if ($comando -match '192\.168\.10\.254') {
 }
 
 $destrutivo = '\b(migrate:(fresh|reset|rollback|refresh)|db:wipe|walle:importar-suporte)\b'
-if ($comando -match $destrutivo -and $comando -notmatch 'DB_DATABASE=walle_testes') {
-    [Console]::Error.WriteLine('Bloqueado pelo hook do walle: este comando apaga dados e so pode rodar contra um banco de testes (docker exec -e DB_DATABASE=walle_testes_tNN ...). Nunca contra o banco walle de desenvolvimento.')
-    exit 2
+if ($comando -match $destrutivo) {
+    # Falha fechada: destrutivos so passam na forma simples abaixo. Isso impede que um comentario, outro comando,
+    # uma variavel irrelevante ou um nome apenas prefixado por walle_testes simule a protecao do banco.
+    $destrutivoSeguro = '^\s*docker(?:\.exe)?\s+exec\s+-e\s+DB_DATABASE=walle_testes(?:_t[0-9]+)?\s+walle-app\s+php\s+artisan\s+(?:migrate:(?:fresh|reset|rollback|refresh)|db:wipe|walle:importar-suporte)(?:\s+--[A-Za-z0-9][A-Za-z0-9_-]*(?:=[A-Za-z0-9_./:-]+)?)*\s*$'
+    if ($comando -cnotmatch $destrutivoSeguro) {
+        [Console]::Error.WriteLine('Bloqueado pelo hook do walle: este comando apaga dados e so pode ser um comando simples e exato contra walle_testes ou walle_testes_tNN (docker exec -e DB_DATABASE=walle_testes_tNN walle-app php artisan ...). Nunca contra o banco walle de desenvolvimento.')
+        exit 2
+    }
 }
 
 # Merge automatico so com o CI verde: o plano do GitHub nao protege branch, entao a barreira e este hook.
