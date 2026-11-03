@@ -4,7 +4,7 @@
     "origem":  "pedido do usuario",
     "tipo":  "bug",
     "dono":  "walle-infra",
-    "estado":  "bloqueada",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0042-corrigir-env-example-e-telastest-para-ro",
     "pr":  58,
@@ -29,6 +29,11 @@
                         "quando":  "2026-10-31 00:44:24",
                         "tipo":  "bloqueada",
                         "detalhe":  "Bloqueada: revisao do Codex indisponivel (cota esgotada, tentar novamente as 2:21 AM). Gate completo VERDE e valido para HEAD cd90b77feff2482b8d01dc8730b027b3f5adac51 (Pint 234, PHPStan 0, Pest 607/2698, politicas 437, gate 48, tarefa 179). Aguardar cota do Codex ou alternativa."
+                    },
+                    {
+                        "quando":  "2026-11-03 11:08:59",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (03/11/2026): a revisao do Codex nao depende mais da cota da conta ChatGPT; desde a T-0044 (PR #60) o revisao-codex.ps1 roda pelo 9router/my-combo. Retomar, atualizar o branch com o main e refazer gate, revisao do Codex e revisao do arquiteto do novo HEAD; integrar com CI verde."
                     }
                 ],
     "notas_bloqueio":  "ae8244f5b49fb1997539d6a7844af6861d25493f3e42017c75e9ff0834e66acd"
