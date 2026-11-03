@@ -3,6 +3,7 @@
 use App\CleanTax\RoboCleanTax;
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
+use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Contingencias\RoboContingencias;
 use App\Ferramentas\RoboTarefas;
 use App\Sentinela\RoboSentinela;
@@ -103,6 +104,112 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
 });
 
 test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
+    config(['walle.tarefas.ativo' => true]);
+    $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
+    $cliente = criarClienteHelpDesk();
+    $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);
+    $this->mock(ConectorDeCliente::class)->shouldReceive('conectar')->once()
+        ->andReturn(new ConexaoComCliente(DB::connection(), DB::getDatabaseName(), false));
+
+    app(RoboTarefas::class)->rodarPendentes();
+
+    $logs = DB::table('task_scheduler_querys_log')->get();
+    expect($logs)->toHaveCount(1);
+    $log = (array) $logs->sole();
+    expect($log['fk_task_scheduler_querys'])->toBe($tarefa)
+        ->and($log['fk_c_cliente'])->toBe($cliente)
+        ->and($log['log_query'])->toBe($amostra['log_ok'])
+        ->and(Carbon::parse($log['data_time']))->toBeInstanceOf(Carbon::class);
+});
+
+test('Contingência falha de conexão preserva métrica e histórico válidos e registra falha (desvio aprovado)', function (): void {
+    // 220: contingency.crawler.php:365 (!connect()) + set.history.cont.php:566 DELETE + 568-570 REPLACE zerado.
+    // Walle: SPEC.md 5.2 "falhas mantêm a última métrica válida", PLAN.md task 3.1, relatorio-tecnico.md.
+    // Na falha NÃO zera nem apaga; preserva painel/histórico prévios e registra coleta falha em contingencias_coletas.
+    config(['walle.contingencias.ativo' => true]);
+    $amostra = require base_path('tests/Fixtures/legado/robos/contingencia.php');
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
+    // Insere métrica e histórico prévios válidos (como se ciclo anterior tivesse ido bem)
+    DB::table('painel_contingency_crawler')->insert(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['painel_previo']]);
+    DB::table('history_contingencia')->insert(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['historico_previo']]);
+    $this->mock(ConectorDeCliente::class)
+        ->shouldReceive('conectar')
+        ->once()
+        ->andThrow(FalhaConexaoCliente::servidorNaoResponde('teste'));
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    // Painel preservado (não zerado, não apagado)
+    $paineis = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $cliente)->get();
+    expect($paineis)->toHaveCount(1)
+        ->and((array) $paineis->sole())->toEqual(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['painel_previo']]);
+
+    // Histórico preservado (não apagado) — data_clique e data_consulta_sefaz_bot são colunas do banco, ignoradas na comparação.
+    $historico = DB::table('history_contingencia')->where('fk_c_cliente', $cliente)->get();
+    expect($historico)->toHaveCount(1);
+    $h = collect((array) $historico->sole())->except(['data_clique', 'data_consulta_sefaz_bot'])->toArray();
+    expect($h)->toEqual(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['historico_previo']]);
+
+    // Coleta de falha registrada localmente (auditoria separada)
+    $coleta = DB::table('contingencias_coletas')->where('fk_c_cliente', $cliente)->sole();
+    expect($coleta->status)->toBe('falha')->and($coleta->erro)->not->toBeEmpty();
+});
+
+test('Task Scheduler falha de conexão grava prefixo FALHA sem segredo (desvio por segurança aprovado)', function (): void {
+    // 220: task.scheduler.bot.php:183/202/241 grava "FALHA AO CONECTAR NO CLIENTE: host | user | db | pass | porta" (senha em claro).
+    // Walle: RoboTarefas.php docblock "Diferenças: ... não leva usuário nem senha", RoboTarefasTest.php linha 147.
+    // O retry tipo_bot=2 do 220 filtra SUBSTRING(log_query,1,5)='FALHA' (linha 22) — prefixo mantido.
+    config(['walle.tarefas.ativo' => true]);
+    $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
+    $cliente = criarClienteHelpDesk([], $amostra['cadastro_servidor']);
+    $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);
+    $this->mock(ConectorDeCliente::class)
+        ->shouldReceive('conectar')
+        ->once()
+        ->andThrow(FalhaConexaoCliente::servidorNaoResponde('teste'));
+
+    app(RoboTarefas::class)->rodarPendentes();
+
+    $logs = DB::table('task_scheduler_querys_log')->get();
+    expect($logs)->toHaveCount(1);
+    $log = (array) $logs->sole();
+    expect($log['fk_task_scheduler_querys'])->toBe($tarefa)
+        ->and($log['fk_c_cliente'])->toBe($cliente)
+        ->and($log['log_query'])->toStartWith($amostra['prefixo_falha_conexao'])
+        ->and($log['log_query'])->not->toContain('SenhaFicticia-123') // senha NÃO vazou
+        ->and($log['log_query'])->not->toContain('usuario_ficticio') // usuário NÃO vazou
+        ->and($log['log_query'])->not->toContain('banco_ficticio') // banco NÃO vazou
+        ->and(Carbon::parse($log['data_time']))->toBeInstanceOf(Carbon::class);
+});
+
+test('Task Scheduler erro de SQL grava base64 de "Erro: <msg MySQL>" (formato, não texto literal)', function (): void {
+    // 220: task.scheduler.bot.php:213-227 log = base64("Erro: " . $mysqli->error). Texto depende do MySQL/banco.
+    // Compara formato (base64 + prefixo "Erro: ") e prefixo da mensagem, não o texto exato.
+    config(['walle.tarefas.ativo' => true]);
+    $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
+    $cliente = criarClienteHelpDesk();
+    $tarefa = DB::table('task_scheduler_querys')->insertGetId(array_merge($amostra['tarefa'], ['query_execute' => base64_encode($amostra['query_com_erro_sql'])]));
+    $conexaoFalsa = new ConexaoComCliente(DB::connection(), DB::getDatabaseName(), false);
+    $this->mock(ConectorDeCliente::class)
+        ->shouldReceive('conectar')
+        ->once()
+        ->andReturn($conexaoFalsa);
+
+    app(RoboTarefas::class)->rodarPendentes();
+
+    $logs = DB::table('task_scheduler_querys_log')->get();
+    expect($logs)->toHaveCount(1);
+    $log = (array) $logs->sole();
+    $decoded = base64_decode($log['log_query']);
+    expect($decoded)->toStartWith($amostra['log_erro_query_prefixo'])
+        ->and($decoded)->toMatch($amostra['log_erro_query_padrao'])
+        ->and($log['fk_task_scheduler_querys'])->toBe($tarefa)
+        ->and($log['fk_c_cliente'])->toBe($cliente)
+        ->and(Carbon::parse($log['data_time']))->toBeInstanceOf(Carbon::class);
+});
+
+test('Task Scheduler sucesso grava "T0s=" igual ao 220', function (): void {
     config(['walle.tarefas.ativo' => true]);
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
     $cliente = criarClienteHelpDesk();
