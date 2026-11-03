@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0051",
+    "titulo":  "Backend da configuracao e historico dos robos (PLAN 5.2)",
+    "origem":  "PLAN 5.2",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0051-backend-da-configuracao-e-historico-dos",
+    "pr":  0,
+    "base":  "de40bbd29bdc910aaf4936941ffc25375c6524ca",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-03 17:06:44",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0051-backend-da-configuracao-e-historico-dos a partir de de40bbd29bdc910aaf4936941ffc25375c6524ca"
+                    }
+                ]
+}
