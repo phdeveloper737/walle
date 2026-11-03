@@ -15,6 +15,11 @@
                         "quando":  "2026-11-03 08:22:00",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0045-corrigir-limpeza-de-parecer-no-agent-pol a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-11-03 08:30:43",
+                        "tipo":  "commit",
+                        "detalhe":  "Corrigir limpeza de parecer no agent-policy.Tests.ps1"
                     }
                 ]
 }

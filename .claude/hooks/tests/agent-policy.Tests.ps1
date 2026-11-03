@@ -300,6 +300,9 @@ try {
     $argumentos = " -Raiz `"$repoCodex`""
     $parecer = Join-Path $repoCodex '.walle/local/T-0001/revisao-codex.md'
     function RevisaoCodex([int]$Esperado, [string]$Caso, [string]$Id = 'T-0001') {
+        # Cada caso comecam limpo: um parecer de caso anterior nuncaStuff satisfaz um pre-check de "ja aprovado"
+        # (o teste precisa exercitar o Codex em todos os casos dele, ate em duas execucoes seguidas).
+        Remove-Item -LiteralPath $parecer -ErrorAction SilentlyContinue
         $resultado = Rodar 'revisao-codex.ps1' (" -Tarefa $Id" + $argumentos) ''
         if ($resultado.codigo -ne $Esperado) { throw "revisao-codex ${Caso}: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
         $script:casos++
