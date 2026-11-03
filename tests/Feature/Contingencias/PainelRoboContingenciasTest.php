@@ -49,7 +49,7 @@ test('cliente com erro mostra a etiqueta de erro e o robô desligado mostra o av
         ->assertSee('MERCADO GAMA')
         ->assertSee('O servidor do cliente não respondeu.')
         ->assertSeeHtml('Falhou')
-        ->assertSee('WALLE_CONTINGENCIAS_ATIVO=true');
+        ->assertSee('WALLE_CONTINGENCIAS_ATIVO=false');
 });
 
 test('sem coletas mostra o estado vazio e aba inválida volta para clientes', function () {

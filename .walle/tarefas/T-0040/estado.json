@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -84,6 +84,11 @@
                         "quando":  "2026-11-03 12:49:15",
                         "tipo":  "atualizada",
                         "detalhe":  "origin/main 6150b2d43fcd3385929452b27043f35128167528 incorporado; ciclos preservados em 1."
+                    },
+                    {
+                        "quando":  "2026-11-03 12:58:22",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0040: devolve o aviso do robo desligado ao main"
                     }
                 ],
     "notas_bloqueio":  "f1ae57a4790c540d9c9853aea5d2fa1a90f92768c1a316bae4a5da861cf11f5d"
