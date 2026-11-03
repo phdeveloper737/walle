@@ -4,7 +4,7 @@
     "origem":  "correção de gate bloqueando T-0038",
     "tipo":  "harness",
     "dono":  "walle-hooks",
-    "estado":  "bloqueada",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0045-corrigir-limpeza-de-parecer-no-agent-pol",
     "pr":  59,
@@ -29,6 +29,11 @@
                         "quando":  "2026-11-03 08:40:13",
                         "tipo":  "bloqueada",
                         "detalhe":  "revisão do Codex indisponível: ERROR: You’ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/settings/usage to purchase more credits or try again at Nov 4th, 2026 9:47 AM.\n\nGate completo VERDE e valido_para_commit true para o HEAD f701c82342f6bf39cf56d58f84075c021a36776d (607 testes, 2698 asserçoes, 437 casos de politicas). O integrar recusa o merge sem o parecer do Codex do HEAD, entao a tarefa fica bloqueada ate o limite do Codex resetar. Duas tentativas do revisao-codex.ps1 falharam com o mesmo erro."
+                    },
+                    {
+                        "quando":  "2026-11-03 09:48:44",
+                        "tipo":  "desbloqueada",
+                        "detalhe":  "Decisao do usuario (03/11/2026): a revisao do Codex nao pode parar no limite da conta ChatGPT. A T-0044 (PR #60, no main) passa o revisao-codex.ps1 pelo 9router/my-combo. Retomar, atualizar o branch com o main (para usar o script novo) e refazer gate, revisao do Codex e revisao do arquiteto do novo HEAD."
                     }
                 ],
     "notas_bloqueio":  "685f89476b06efea7b466de216aa9d0dc4a206c3f5e62a2b6818fd4daa09540e"
