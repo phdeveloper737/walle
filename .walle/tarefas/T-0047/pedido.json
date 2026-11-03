@@ -1,0 +1,7 @@
+{
+    "titulo":  "Revisao do Codex recusa achado nulo",
+    "origem":  "sugestao do arquiteto na T-0046",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "achados com item null era filtrado e virava Sem achados (aprovacao); agora item que nao e objeto falha fechado."
+}
