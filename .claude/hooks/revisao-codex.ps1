@@ -43,12 +43,33 @@ $estado = [IO.File]::ReadAllText($arquivoEstado, $utf8) | ConvertFrom-Json
 $branchAtual = (Repo @('rev-parse', '--abbrev-ref', 'HEAD')).texto
 if ($branchAtual -cne [string]$estado.branch) { Recusar "o branch atual ($branchAtual) nao e o da tarefa ($($estado.branch))." }
 
+# PRE-CHECK: parecer preexistente valido
+$pastaLocal = Join-Path $Raiz ".walle/local/$Tarefa"
+$destino = Join-Path $pastaLocal 'revisao-codex.md'
+$shaHead = (Repo @('rev-parse', 'HEAD')).texto
+if (Test-Path -LiteralPath $destino) {
+    $existente = [IO.File]::ReadAllText($destino, $utf8)
+    if ($existente -match "Commit revisado: $shaHead" -and $existente -match 'Bloqueantes do Codex: 0') {
+        Write-Output "[revisao-codex] Parecer preexistente valido para $shaHead, pulando Codex."
+        exit 0
+    }
+}
+
 $codex = $env:WALLE_CODEX
 if (-not $codex) {
     $comando = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($comando) { $codex = $comando.Source }
 }
 if (-not $codex -or -not (Test-Path -LiteralPath $codex)) { Recusar 'Codex indisponivel: instale com npm i -g @openai/codex e rode codex login.' }
+
+# Pelo 9router (my-combo: gratuitos, depois Codex, depois Claude) quando ele esta no ar, para o limite da conta ChatGPT
+# nao parar a revisao (decisao do usuario de 03/11/2026); fora do ar, o Codex usa a conta direto. Somente leitura nos dois.
+$roteador = ''
+$revisor = 'Codex (conta ChatGPT)'
+try {
+    $modelos = Invoke-RestMethod 'http://localhost:20128/v1/models' -TimeoutSec 5
+    if ($modelos.data | Where-Object { $_.id -eq 'my-combo' }) { $roteador = '-c model_provider=9router -c model=my-combo '; $revisor = 'Codex pelo 9router/my-combo' }
+} catch { }
 
 $base = 'main'
 if (@((Repo @('remote')).texto -split "`n") -contains 'origin') {
@@ -73,11 +94,12 @@ $pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de g
     'P1 = deve ser corrigido antes do merge; P2 e P3 = melhorias opcionais. Use o caminho relativo do arquivo e a linha no codigo novo. ' +
     'Nao abra, nao leia nem cite arquivos de ambiente (o arquivo de variaveis da raiz do projeto e as variantes dele), chaves, certificados, credenciais nem segredos, ' +
     'e nao copie valores sensiveis no parecer, porque o parecer vira comentario publico no PR. ' +
-    'Sem achados, devolva a lista vazia. Escreva titulo e detalhe em portugues do Brasil.'
+    'Escreva titulo e detalhe em portugues do Brasil. A resposta final deve ser SOMENTE um objeto JSON, sem texto antes ou depois e sem markdown, ' +
+    'no formato {"achados":[{"prioridade":"P0|P1|P2|P3","arquivo":"caminho","linha":1,"titulo":"...","detalhe":"..."}]}; sem achados, {"achados":[]}.'
 
 # O pedido vai pelo stdin (-): sem aspas na linha de comando. .cmd do npm passa pelo cmd; o .exe vai direto.
 # Nunca sandbox de escrita nem --dangerously-*.
-$argumentos = "exec -s read-only --ephemeral --output-schema `"$esquema`" -o `"$temporario`" -"
+$argumentos = "exec $roteador-s read-only --ephemeral --output-schema `"$esquema`" -o `"$temporario`" -"
 $inicio = New-Object Diagnostics.ProcessStartInfo
 if ($codex -match '\.(cmd|bat)$') {
     $inicio.FileName = $env:ComSpec
@@ -115,18 +137,23 @@ if (-not (Test-Path -LiteralPath $temporario)) { Limpar; Falhar 'o Codex nao gra
 $resposta = [IO.File]::ReadAllText($temporario, $utf8).Trim()
 Limpar
 
+# Modelos do combo as vezes embrulham o JSON numa cerca de markdown: so a resposta inteira cercada e aceita. Prosa com
+# um JSON no meio (ex.: citando {"achados":[]}) nao vira parecer: cai no JSON invalido abaixo.
+if ($resposta -match '\A```(?:json)?[ \t]*\r?\n(?<json>[\s\S]*?)\r?\n[ \t]*```\z') { $resposta = $Matches['json'].Trim() }
 # Fora do esquema e erro, nunca aprovacao: sem lista de achados valida, nao ha parecer.
 try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
 if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }
 if ($json.achados -isnot [array]) { Falhar 'o Codex respondeu fora do esquema (achados nao e uma lista).' }
-$achados = @($json.achados | Where-Object { $null -ne $_ })
+# Item nulo ou que nao e objeto e fora do esquema: filtrar transformaria [null] em "Sem achados".
+if (@($json.achados | Where-Object { $_ -isnot [Management.Automation.PSCustomObject] }).Count) { Falhar 'o Codex respondeu fora do esquema (achado que nao e objeto).' }
+$achados = @($json.achados)
 foreach ($achado in $achados) {
     if ([string]$achado.prioridade -cnotmatch '^P[0-3]\z' -or -not [string]$achado.arquivo -or -not [string]$achado.titulo) { Falhar 'o Codex respondeu fora do esquema (achado incompleto).' }
 }
 $bloqueantes = @($achados | Where-Object { [string]$_.prioridade -cmatch '^P[01]\z' }).Count
 $veredito = if ($bloqueantes -eq 0) { 'APROVADO' } else { 'MUDANCAS NECESSARIAS' }
 
-$linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
+$linhas = @("Commit revisado: $shaHead", "Base: $base @ $shaBase", "Revisor: $revisor", "Bloqueantes do Codex: $bloqueantes", "Veredito do Codex: $veredito", '', '## Achados do Codex', '')
 if ($achados.Count -eq 0) { $linhas += 'Sem achados.' }
 # Um achado por linha: quebras do texto do Codex viram espaco, para nenhum texto forjar outra linha de achado,
 # e o arquivo perde crases e espacos, porque o integrar le prioridade e arquivo:linha dessa linha.

@@ -34,6 +34,11 @@
                         "quando":  "2026-11-03 11:08:59",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario (03/11/2026): a revisao do Codex nao depende mais da cota da conta ChatGPT; desde a T-0044 (PR #60) o revisao-codex.ps1 roda pelo 9router/my-combo. Retomar, atualizar o branch com o main e refazer gate, revisao do Codex e revisao do arquiteto do novo HEAD; integrar com CI verde."
+                    },
+                    {
+                        "quando":  "2026-11-03 11:09:12",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 32e2f9ad4e977773d3b9cbdb2ed11eecb177b978 incorporado; ciclos preservados em 0."
                     }
                 ],
     "notas_bloqueio":  "ae8244f5b49fb1997539d6a7844af6861d25493f3e42017c75e9ff0834e66acd"
