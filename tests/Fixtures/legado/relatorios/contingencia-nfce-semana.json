@@ -1,0 +1,12 @@
+{
+  "_origem": "suporte.history_contingencia, captura somente leitura em 2026-10-30; cliente e chave mascarados",
+  "_semantica_220": "api/get.history.contingencias.php:35 filtra só por fk_c_cliente, sem período, e a tela de contingência não tem campos de data: as 3 linhas voltam mesmo com datas fora de 'periodo'. Só a aba Motivos aplica data_clique (desvio aprovado da 6.1).",
+  "cliente": 39001,
+  "periodo": {"de": "2026-10-19", "ate": "2026-10-25"},
+  "historico_220": [
+    {"cliente":39001,"serie":"10","numero":"22351","chave":"CHAVE-FICTICIA-01","motivo":"Rejeição: CST não corresponde ao tipo de código de benefício fiscal  %s","software":"SACTUS","data":"2026-10-03 15:13:41"},
+    {"cliente":39001,"serie":"10","numero":"22333","chave":"CHAVE-FICTICIA-02","motivo":"Rejeição: CST não corresponde ao tipo de código de benefício fiscal  %s","software":"SACTUS","data":"2026-10-03 11:28:19"},
+    {"cliente":39001,"serie":"11","numero":"5430","chave":"CHAVE-FICTICIA-03","motivo":"SEM COMUNICACAO COM SEFAZ","software":"SACTUS","data":"2026-08-29 12:34:40"}
+  ],
+  "total_220": 3
+}

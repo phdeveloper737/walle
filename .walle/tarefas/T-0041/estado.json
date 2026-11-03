@@ -25,6 +25,11 @@
                         "quando":  "2026-10-30 22:27:12",
                         "tipo":  "commit",
                         "detalhe":  "T-0041: isola o contêiner do gate por worktree"
+                    },
+                    {
+                        "quando":  "2026-11-03 12:34:29",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 6150b2d43fcd3385929452b27043f35128167528 incorporado; ciclos preservados em 0."
                     }
                 ]
 }

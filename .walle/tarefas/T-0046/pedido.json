@@ -1,0 +1,7 @@
+{
+    "titulo":  "Revisao do Codex so aceita JSON inteiro ou cercado",
+    "origem":  "sugestao 1 do arquiteto na T-0044",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "O recorte da primeira { a ultima } aprovava prosa que citasse {\"achados\":[]}; agora so vale a resposta inteira em JSON ou inteira numa cerca de markdown, o resto e JSON invalido."
+}

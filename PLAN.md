@@ -341,16 +341,16 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: respostas reais de clientes capturadas no `testes220` (JSON do sentinela, contingências, retorno do CleanTax) e as linhas que o 220 gravou para elas
 - Output: `tests/Feature/Paridade/RobosDeColetaParidadeTest.php` e amostras em `tests/Fixtures/legado/robos/`
 - Testes críticos:
-  - [ ] para cada amostra, o robô do walle grava nas tabelas exatamente as mesmas linhas que o 220 gravou
-  - [ ] amostra de cliente com erro produz o mesmo estado de erro nos dois sistemas
+  - [x] para cada amostra, o robô do walle grava nas tabelas exatamente as mesmas linhas que o 220 gravou
+  - [x] amostra de cliente com erro produz o mesmo estado de erro nos dois sistemas
 
 #### Task 12.2 — Paridade dos relatórios
 - Agent: QA — paridade com o newsuporte
 - Input: um recorte de `history_contingencia` e `c_cliente` exportado do `testes220` e os números que as telas de relatório do 220 mostram para ele
 - Output: `tests/Feature/Paridade/RelatoriosParidadeTest.php` e amostras em `tests/Fixtures/legado/relatorios/`
 - Testes críticos:
-  - [ ] Clientes, Contingência NFC-e e Motivos mostram os mesmos totais do 220 para o mesmo período
-  - [ ] semana sem contingências mostra zero nos dois
+  - [x] Clientes, Contingência NFC-e e Motivos mostram os mesmos totais do 220 para o mesmo período
+  - [x] semana sem contingências mostra zero nos dois
 
 #### Task 12.4 — Paridade das ações de contingência e ferramentas
 - Agent: QA — paridade com o newsuporte

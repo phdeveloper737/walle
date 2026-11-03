@@ -1,0 +1,7 @@
+{
+    "titulo":  "Corrigir limpeza de parecer no agent-policy.Tests.ps1",
+    "origem":  "correção de gate bloqueando T-0038",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "resumo":  "Limpar o arquivo de parecer entre os casos do teste de revisão do Codex em agent-policy.Tests.ps1 para evitar falso positivo do pré-check."
+}
