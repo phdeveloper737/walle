@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0050",
+    "titulo":  "Limpeza das sugestoes da T-0040 e da T-0045",
+    "origem":  "sugestoes do arquiteto nas T-0040 e T-0045",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0050-limpeza-das-sugestoes-da-t-0040-e-da-t-0",
+    "pr":  66,
+    "base":  "9f2fa58b3079de31be5721709734141f7f8e5e6f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-03 15:19:21",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0050-limpeza-das-sugestoes-da-t-0040-e-da-t-0 a partir de 9f2fa58b3079de31be5721709734141f7f8e5e6f"
+                    },
+                    {
+                        "quando":  "2026-11-03 15:20:10",
+                        "tipo":  "commit",
+                        "detalhe":  "Limpeza das sugestoes da T-0040 e da T-0045"
+                    },
+                    {
+                        "quando":  "2026-11-03 15:20:28",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #66 aberto"
+                    }
+                ]
+}

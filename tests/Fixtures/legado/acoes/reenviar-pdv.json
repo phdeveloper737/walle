@@ -1,5 +1,5 @@
 {
-    "origem": "testes220/newsuporte/system/consultorias/api/find.sale.php:230-242, capturado em 2026-10-30",
+    "origem": "testes220/newsuporte/system/consultorias/api/find.sale.php:230-242, derivado do codigo em 2026-10-30 (nao e captura de um envio real)",
     "hora_fixa": "2026-10-30 10:00:00",
     "cupom": {"loja": 1, "pdv": 2, "numero": 500},
     "chave_acesso": "52261000000000000000650010000005001123456789",

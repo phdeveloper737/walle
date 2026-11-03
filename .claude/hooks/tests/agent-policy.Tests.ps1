@@ -303,10 +303,15 @@ try {
     ) -join "`r`n") + "`r`n")
     $argumentos = " -Raiz `"$repoCodex`""
     $parecer = Join-Path $repoCodex '.walle/local/T-0001/revisao-codex.md'
-    function RevisaoCodex([int]$Esperado, [string]$Caso, [string]$Id = 'T-0001') {
-        # Cada caso comecam limpo: um parecer de caso anterior nuncaStuff satisfaz um pre-check de "ja aprovado"
+    function RevisaoCodex([int]$Esperado, [string]$Caso, [string]$Id = 'T-0001', [switch]$ComParecerAntigo) {
+        # Cada caso comeca limpo: um parecer de caso anterior nunca satisfaz o pre-check de "ja aprovado"
         # (o teste precisa exercitar o Codex em todos os casos dele, ate em duas execucoes seguidas).
         Remove-Item -LiteralPath $parecer -ErrorAction SilentlyContinue
+        # Parecer antigo de outro commit (nao vale no pre-check): prova que uma revisao que falha o apaga.
+        if ($ComParecerAntigo) {
+            [IO.Directory]::CreateDirectory((Split-Path $parecer)) | Out-Null
+            [IO.File]::WriteAllText($parecer, "Commit revisado: $('0' * 40)`nBloqueantes do Codex: 0`n")
+        }
         $resultado = Rodar 'revisao-codex.ps1' (" -Tarefa $Id" + $argumentos) ''
         if ($resultado.codigo -ne $Esperado) { throw "revisao-codex ${Caso}: esperado $Esperado, recebido $($resultado.codigo): $($resultado.saida)" }
         $script:casos++
@@ -332,15 +337,15 @@ try {
     if ($texto -notmatch '(?m)^Bloqueantes do Codex: 1$' -or $texto -notmatch '(?m)^Veredito do Codex: MUDANCAS NECESSARIAS$' -or $texto -notmatch '\*\*P1\*\* `app/X\.php:3` - Erro falso' -or $texto -notmatch '\*\*P2\*\* `app/Y\.php:9`' -or $texto -match '(?m)^- \*\*P0\*\*') { throw "revisao-codex.md com P1 inesperado (ou com linha de achado forjada pelo texto do Codex): $texto" }
 
     $env:WALLE_TEST_CODEX_MODO = 'invalido'
-    RevisaoCodex 1 'resposta fora do esquema' | Out-Null
+    RevisaoCodex 1 'resposta fora do esquema' -ComParecerAntigo | Out-Null
     if (Test-Path $parecer) { throw 'revisao-codex manteve o parecer antigo depois de uma resposta invalida.' }
 
     $env:WALLE_TEST_CODEX_MODO = 'nulo'
-    RevisaoCodex 1 'achados nulo' | Out-Null
+    RevisaoCodex 1 'achados nulo' -ComParecerAntigo | Out-Null
     if (Test-Path $parecer) { throw 'revisao-codex gravou parecer com achados nulo.' }
 
     $env:WALLE_TEST_CODEX_MODO = 'falha'
-    RevisaoCodex 1 'Codex falhando' | Out-Null
+    RevisaoCodex 1 'Codex falhando' -ComParecerAntigo | Out-Null
     if (Test-Path $parecer) { throw 'revisao-codex gravou parecer com o Codex falhando.' }
 
     Remove-Item Env:WALLE_TEST_CODEX_MODO
