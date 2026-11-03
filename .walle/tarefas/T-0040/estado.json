@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0040-paridade-das-acoes-de-contingencia-e-fer",
     "pr":  57,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -74,6 +74,11 @@
                         "quando":  "2026-11-03 12:49:02",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao do usuario (03/11/2026): opcao 1. O unico conflito com o main e tests/Feature/TelasTest.php (linha do assertSee da Saude); adotar a versao do main, commitar pelo ledger e rodar atualizar, depois gate, revisao do Codex e revisao do arquiteto do novo HEAD."
+                    },
+                    {
+                        "quando":  "2026-11-03 12:49:13",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0040: TelasTest igual ao main"
                     }
                 ],
     "notas_bloqueio":  "f1ae57a4790c540d9c9853aea5d2fa1a90f92768c1a316bae4a5da861cf11f5d"
