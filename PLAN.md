@@ -320,8 +320,8 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
 - Input: respostas reais de clientes capturadas no `testes220` (JSON do sentinela, contingências, retorno do CleanTax) e as linhas que o 220 gravou para elas
 - Output: `tests/Feature/Paridade/RobosDeColetaParidadeTest.php` e amostras em `tests/Fixtures/legado/robos/`
 - Testes críticos:
-  - [ ] para cada amostra, o robô do walle grava nas tabelas exatamente as mesmas linhas que o 220 gravou
-  - [ ] amostra de cliente com erro produz o mesmo estado de erro nos dois sistemas
+  - [x] para cada amostra, o robô do walle grava nas tabelas exatamente as mesmas linhas que o 220 gravou
+  - [x] amostra de cliente com erro produz o mesmo estado de erro nos dois sistemas
 
 #### Task 12.2 — Paridade dos relatórios
 - Agent: QA — paridade com o newsuporte
