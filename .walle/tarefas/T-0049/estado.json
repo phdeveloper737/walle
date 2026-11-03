@@ -4,10 +4,10 @@
     "origem":  "sugestao do arquiteto na T-0041",
     "tipo":  "harness",
     "dono":  "sessao principal",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0049-destrutivos-so-com-opcoes-conhecidas",
-    "pr":  0,
+    "pr":  65,
     "base":  "217f6b11b49a11291d14eff8e5dfa0b58228bc8c",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-03 15:07:33",
                         "tipo":  "commit",
                         "detalhe":  "Destrutivos so com opcoes conhecidas"
+                    },
+                    {
+                        "quando":  "2026-11-03 15:07:51",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #65 aberto"
                     }
                 ]
 }
