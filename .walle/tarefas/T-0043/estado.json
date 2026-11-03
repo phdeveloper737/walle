@@ -4,17 +4,22 @@
     "origem":  "pedido do usuario",
     "tipo":  "harness",
     "dono":  "walle-hooks",
-    "estado":  "em_execucao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0043-adicionar-fallback-a-revisao-codex-ps1-p",
     "pr":  0,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-10-31 15:18:27",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0043-adicionar-fallback-a-revisao-codex-ps1-p a partir de 534f559b23f052be158133e65d50337cc8b2678f"
+                    },
+                    {
+                        "quando":  "2026-11-03 10:55:21",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "Redundante: o atalho de parecer preexistente do revisao-codex.ps1 entrou no main junto com a T-0038 (PR #55, commit 1ecd2d5 levado por engano para aquele branch). Nada a integrar; nao retomar."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "e102401e45e9ef36e369d39075973bd85569ee5f2f2b7ae4796b0c9ceaa8e5e6"
 }
