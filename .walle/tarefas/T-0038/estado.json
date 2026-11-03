@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-paridade",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0038-paridade-dos-robos-de-coleta",
     "pr":  55,
     "base":  "534f559b23f052be158133e65d50337cc8b2678f",
@@ -99,6 +99,11 @@
                         "quando":  "2026-11-03 10:02:54",
                         "tipo":  "atualizada",
                         "detalhe":  "origin/main e0cc0261495fcf687291fea68b417a68fbdfe757 incorporado; ciclos preservados em 0."
+                    },
+                    {
+                        "quando":  "2026-11-03 10:22:35",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: Corrige janela de data_clique no teste de paridade da Contingência"
                     }
                 ],
     "notas_bloqueio":  "75a823e1d1053ef3780f67940779cd2621bfd37c57a494e27108beace4f1b25e"

@@ -82,9 +82,9 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
     criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
     servidorDoClienteNoBancoDeTestes();
 
-    $inicioDoCiclo = Carbon::createFromTimestamp(time());
+    $agoraDoBancoAntes = DB::selectOne('select now() as agora')->agora;
     app(RoboContingencias::class)->rodarCiclo();
-    $fimDoCiclo = Carbon::createFromTimestamp(time());
+    $agoraDoBancoDepois = DB::selectOne('select now() as agora')->agora;
 
     $painelEsperado = ['fk_c_cliente' => $cliente, ...$amostra['painel']];
     $paineis = DB::table('painel_contingency_crawler')->get();
@@ -99,7 +99,7 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
     $historicoEsperado['data_clique'] = $dataClique;
     expect($historico[0])->toEqual($historicoEsperado)
         ->and($dataClique)->toBeString()->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/')
-        ->and(Carbon::createFromFormat('Y-m-d H:i:s', $dataClique)->betweenIncluded($inicioDoCiclo, $fimDoCiclo))->toBeTrue();
+        ->and(Carbon::createFromFormat('Y-m-d H:i:s', $dataClique)->betweenIncluded(Carbon::parse($agoraDoBancoAntes), Carbon::parse($agoraDoBancoDepois)))->toBeTrue();
 });
 
 test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
