@@ -137,10 +137,9 @@ if (-not (Test-Path -LiteralPath $temporario)) { Limpar; Falhar 'o Codex nao gra
 $resposta = [IO.File]::ReadAllText($temporario, $utf8).Trim()
 Limpar
 
-# Modelos do combo as vezes embrulham o JSON em markdown: vale so o trecho da primeira { a ultima }, validado igual.
-$inicioJson = $resposta.IndexOf('{')
-$fimJson = $resposta.LastIndexOf('}')
-if ($inicioJson -ge 0 -and $fimJson -gt $inicioJson) { $resposta = $resposta.Substring($inicioJson, $fimJson - $inicioJson + 1) }
+# Modelos do combo as vezes embrulham o JSON numa cerca de markdown: so a resposta inteira cercada e aceita. Prosa com
+# um JSON no meio (ex.: citando {"achados":[]}) nao vira parecer: cai no JSON invalido abaixo.
+if ($resposta -match '\A```(?:json)?[ \t]*\r?\n(?<json>[\s\S]*?)\r?\n[ \t]*```\z') { $resposta = $Matches['json'].Trim() }
 # Fora do esquema e erro, nunca aprovacao: sem lista de achados valida, nao ha parecer.
 try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
 if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }

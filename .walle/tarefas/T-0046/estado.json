@@ -15,6 +15,11 @@
                         "quando":  "2026-11-03 10:32:56",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0046-revisao-do-codex-so-aceita-json-inteiro a partir de b3f944f0f3ed65e122e6dfb7bb8ff8630867f1eb"
+                    },
+                    {
+                        "quando":  "2026-11-03 10:34:42",
+                        "tipo":  "commit",
+                        "detalhe":  "Revisao do Codex so aceita JSON inteiro ou cercado"
                     }
                 ]
 }
