@@ -1,0 +1,7 @@
+{
+    "titulo":  "Limpeza das sugestoes da T-0040 e da T-0045",
+    "origem":  "sugestoes do arquiteto nas T-0040 e T-0045",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "Corrige o comentario corrompido do agent-policy.Tests.ps1, devolve a prova de que a revisao do Codex apaga o parecer antigo quando falha e troca capturado por derivado do codigo na fixture do reenvio ao PDV."
+}
