@@ -74,7 +74,8 @@ try {
     $r = RodarGate @('-Saida', $saida)
     Garantir ($r.codigo -eq 0) "completo verde deveria sair com 0: $($r.saida)"
     $e = Evidencia
-    Garantir ($e.verde -eq $true -and $e.completo -eq $true -and $e.preliminar -eq $false) 'completo, verde e definitivo'
+    # O teste usa container proprio (ver Limpar), entao a evidencia e preliminar; o padrao walle-app e provado abaixo.
+    Garantir ($e.verde -eq $true -and $e.completo -eq $true -and $e.preliminar -eq $true -and $e.container -eq $containerTeste) 'completo, verde, preliminar por container proprio'
     Garantir ((@($e.etapas | ForEach-Object { $_.nome }) -join ',') -eq 'pint,phpstan,pest,politicas,gate,tarefa,plugin,rag') 'oito etapas na ordem'
     Garantir ($e.arvore -match '^[0-9a-f]{40}$' -and $e.commit -match '^[0-9a-f]{40}$') 'arvore e commit com 40 hex'
     Garantir ($e.banco -eq 'walle_testes' -and $e.etapas[2].comando -match 'DB_DATABASE=walle_testes ') 'banco padrao no pest'
@@ -126,13 +127,22 @@ try {
     Garantir ((Evidencia).banco -eq 'walle_testes_t9') '-Banco explicito vence'
     Garantir (Test-Path -LiteralPath (Join-Path $temporario 'pest-ultimo-walle_testes_t9.txt')) 'ultimo Pest separado por banco'
 
+    # Container padrao (walle-app) com banco padrao: definitivo. So pint, para nao disputar a trava de banco do Pest real.
+    Limpar
+    Remove-Item Env:WALLE_HOOK_APP_CONTAINER -ErrorAction SilentlyContinue
+    $r = RodarGate @('-Etapas', 'pint', '-Saida', $saida)
+    $e = Evidencia
+    Garantir ($r.codigo -eq 0 -and $e.container -eq 'walle-app' -and $e.preliminar -eq $false) 'container padrao walle-app nao e preliminar'
+
     # Worktrees podem apontar o gate para um container isolado; o nome vira argumento, nunca comando.
     Limpar
     $env:WALLE_HOOK_APP_CONTAINER = 'walle-app-t41'
-    $r = RodarGate @('-Etapas', 'pint,pest', '-Saida', $saida)
+    $r = RodarGate @('-Saida', $saida)
     $e = Evidencia
     Garantir ($r.codigo -eq 0 -and $e.etapas[0].comando -match 'docker exec walle-app-t41 ') 'container isolado no Pint'
-    Garantir ($e.etapas[1].comando -match 'DB_DATABASE=walle_testes walle-app-t41 ') 'container isolado no Pest'
+    Garantir ($e.etapas[2].comando -match 'DB_DATABASE=walle_testes walle-app-t41 ') 'container isolado no Pest'
+    Garantir ($e.container -eq 'walle-app-t41' -and $e.completo -eq $true -and $e.preliminar -eq $true) 'container nao padrao e preliminar e registrado no topo'
+    Garantir (-not ($e.valida_para_commit -eq $true -and $e.completo -eq $true -and $e.preliminar -eq $false)) 'evidencia de container nao padrao nao serve ao integrar'
     Limpar
     $env:WALLE_HOOK_APP_CONTAINER = 'walle-app;rm'
     $r = RodarGate @('-Etapas', 'pint', '-Saida', $saida)

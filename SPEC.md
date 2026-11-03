@@ -102,8 +102,10 @@ O OPcache revalida arquivos a cada 2 s — uma edição pode levar até esse tem
 
 ### 5.0 Configuração comum dos robôs
 
-Todo robô do walle possui, no próprio painel, configuração dos parâmetros operacionais, uma chave
-geral de execução e histórico consultável de edições. A execução exige simultaneamente a permissão
+Decisão do usuário de 30/10/2026: todo robô do walle possui, no próprio painel, configuração dos
+parâmetros operacionais, uma chave geral de execução e histórico consultável de edições. Exceção: a
+Classificação Mercadológica, que grava nos bancos dos clientes e fica fora de toda automação; o painel
+dela só entra com pedido explícito do usuário (seção manual do `PLAN.md`). A execução exige simultaneamente a permissão
 de implantação `WALLE_*_ATIVO` e a chave local persistida no banco `walle`; assim, o `.env` continua
 sendo um corte de segurança e o painel controla a operação cotidiana. Uma mudança vale somente para
 o próximo despacho ou ciclo.

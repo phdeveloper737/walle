@@ -170,8 +170,10 @@ $evidencia = [ordered]@{
     verde                  = $false
     valida_para_commit     = $false
     completo               = $completo
-    # Sessao paralela (walle_testes_tNN): gate preliminar; o definitivo roda sozinho, no walle_testes.
-    preliminar             = ($Banco -cne 'walle_testes')
+    # Sessao paralela (walle_testes_tNN) ou container diferente de walle-app (pode nao montar este diretorio):
+    # gate preliminar; o definitivo roda sozinho, no walle_testes e no walle-app. O integrar exige preliminar false.
+    preliminar             = (($Banco -cne 'walle_testes') -or ($containerApp -cne 'walle-app'))
+    container              = $containerApp
     motivos                = @('em andamento')
     commit                 = $commit
     branch                 = ConsultarGit @('branch', '--show-current')
