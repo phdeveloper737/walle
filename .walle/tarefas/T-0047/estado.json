@@ -15,6 +15,11 @@
                         "quando":  "2026-11-03 10:44:34",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0047-revisao-do-codex-recusa-achado-nulo a partir de 92fe5a7c9382cf032a53f0795260da02abe19e7b"
+                    },
+                    {
+                        "quando":  "2026-11-03 10:45:26",
+                        "tipo":  "commit",
+                        "detalhe":  "Revisao do Codex recusa achado nulo"
                     }
                 ]
 }

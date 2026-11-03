@@ -144,7 +144,9 @@ if ($resposta -match '\A```(?:json)?[ \t]*\r?\n(?<json>[\s\S]*?)\r?\n[ \t]*```\z
 try { $json = $resposta | ConvertFrom-Json } catch { Falhar 'o Codex respondeu fora do esquema (JSON invalido).' }
 if (-not $json -or $null -eq $json.PSObject.Properties['achados']) { Falhar 'o Codex respondeu fora do esquema (sem achados).' }
 if ($json.achados -isnot [array]) { Falhar 'o Codex respondeu fora do esquema (achados nao e uma lista).' }
-$achados = @($json.achados | Where-Object { $null -ne $_ })
+# Item nulo ou que nao e objeto e fora do esquema: filtrar transformaria [null] em "Sem achados".
+if (@($json.achados | Where-Object { $_ -isnot [Management.Automation.PSCustomObject] }).Count) { Falhar 'o Codex respondeu fora do esquema (achado que nao e objeto).' }
+$achados = @($json.achados)
 foreach ($achado in $achados) {
     if ([string]$achado.prioridade -cnotmatch '^P[0-3]\z' -or -not [string]$achado.arquivo -or -not [string]$achado.titulo) { Falhar 'o Codex respondeu fora do esquema (achado incompleto).' }
 }
