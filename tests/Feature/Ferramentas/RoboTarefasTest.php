@@ -5,6 +5,7 @@ use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Ferramentas\RoboTarefas;
 use App\Jobs\RodarTarefasAgendadas;
 use App\Models\Auditoria;
+use App\Models\RoboConfig;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\DB;
 
@@ -42,7 +43,10 @@ function logDaTarefa(int $tarefa, int $cliente): array
 beforeEach(function () {
     $this->travelTo(now()->setDate(2026, 10, 27)->setTime(10, 0));
     config(['walle.tarefas.ativo' => true]);
-    DB::table('robo_config')->updateOrInsert(['robo' => 'tarefas', 'parametro' => 'ativo'], ['valor' => 'true', 'valor_sanitizado' => 'true']);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
 });
 
 test('uma query agendada para agora roda no cliente uma vez e gera um log OK como o 220', function () {

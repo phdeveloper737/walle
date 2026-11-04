@@ -6,6 +6,7 @@ use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Ferramentas\ExecucaoDeQuery;
 use App\Ferramentas\RoboTarefas;
 use App\Livewire\Contingencias\DoCliente;
+use App\Models\RoboConfig;
 use App\Models\Usuario;
 use App\Sactus\Ssh\ConectorSsh;
 use App\Sactus\Ssh\ResultadoComando;
@@ -20,6 +21,10 @@ beforeEach(function () {
 test('query agendada real do 220 chega inteira ao conector falso e grava OK', function () {
     $amostra = json_decode(file_get_contents(base_path('tests/Fixtures/legado/acoes/query-agendada.json')), true, flags: JSON_THROW_ON_ERROR);
     config(['walle.tarefas.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $cliente = criarClienteHelpDesk();
     $tarefa = DB::table('task_scheduler_querys')->insertGetId([
         'descricao' => $amostra['descricao'],
@@ -48,6 +53,10 @@ test('query agendada real do 220 chega inteira ao conector falso e grava OK', fu
 test('reenvio entrega o XML 858 do contrato do 220 ao SSH falso', function () {
     $amostra = json_decode(file_get_contents(base_path('tests/Fixtures/legado/acoes/reenviar-pdv.json')), true, flags: JSON_THROW_ON_ERROR);
     config(['walle.contingencias.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'contingencias', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $cliente = criarClienteHelpDesk([], [
         'pasta_multiempresa' => 'S',
         'servidor_docker' => '192.0.2.10',
@@ -78,6 +87,10 @@ test('alíquotas fora do escopo rejeita a ação sem SQL, comando ou conexão me
     $usuario = Usuario::findOrFail(criarUsuarioHelpDesk());
     $this->actingAs($usuario);
     config(['walle.admins' => [$usuario->id], 'walle.contingencias.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'contingencias', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
     $this->mock(ConectorSsh::class)->shouldNotReceive('conectar');

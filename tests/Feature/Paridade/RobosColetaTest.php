@@ -6,6 +6,7 @@ use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Contingencias\RoboContingencias;
 use App\Ferramentas\RoboTarefas;
+use App\Models\RoboConfig;
 use App\Sentinela\RoboSentinela;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,10 @@ beforeEach(function (): void {
 
 test('Sentinela grava linha completa de sucesso e erro igual ao 220', function (): void {
     config(['walle.sentinela.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'sentinela', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/sentinela-ok.php');
     $clienteOk = criarClienteHelpDesk([], ['ip_externo_servidor' => $amostra['host_sucesso']]);
     $clienteErro = criarClienteHelpDesk([], ['ip_externo_servidor' => $amostra['host_erro']]);
@@ -52,6 +57,10 @@ test('Sentinela grava linha completa de sucesso e erro igual ao 220', function (
 
 test('CleanTax grava linhas completas de sucesso e erro igual ao 220', function (): void {
     config(['walle.cleantax.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'cleantax', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/cleantax.php');
     Http::fake([
         RoboCleanTax::API_ENDPOINT => Http::response(['status' => true, 'message' => [$amostra['cliente_sucesso'], $amostra['cliente_erro']]], 200),
@@ -78,6 +87,10 @@ test('CleanTax grava linhas completas de sucesso e erro igual ao 220', function 
 
 test('Contingência grava painel e histórico completos iguais ao 220', function (): void {
     config(['walle.contingencias.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'contingencias', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/contingencia.php');
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
@@ -105,6 +118,10 @@ test('Contingência grava painel e histórico completos iguais ao 220', function
 
 test('Task Scheduler grava log de sucesso igual ao 220', function (): void {
     config(['walle.tarefas.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
     $cliente = criarClienteHelpDesk();
     $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);
@@ -127,6 +144,10 @@ test('Contingência falha de conexão preserva métrica e histórico válidos e 
     // Walle: SPEC.md 5.2 "falhas mantêm a última métrica válida", PLAN.md task 3.1, relatorio-tecnico.md.
     // Na falha NÃO zera nem apaga; preserva painel/histórico prévios e registra coleta falha em contingencias_coletas.
     config(['walle.contingencias.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'contingencias', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/contingencia.php');
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
@@ -161,6 +182,10 @@ test('Task Scheduler falha de conexão grava prefixo FALHA sem segredo (desvio p
     // Walle: RoboTarefas.php docblock "Diferenças: ... não leva usuário nem senha", RoboTarefasTest.php linha 147.
     // O retry tipo_bot=2 do 220 filtra SUBSTRING(log_query,1,5)='FALHA' (linha 22) — prefixo mantido.
     config(['walle.tarefas.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
     $cliente = criarClienteHelpDesk([], $amostra['cadastro_servidor']);
     $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);
@@ -187,6 +212,10 @@ test('Task Scheduler erro de SQL grava base64 de "Erro: <msg MySQL>" (formato, n
     // 220: task.scheduler.bot.php:213-227 log = base64("Erro: " . $mysqli->error). Texto depende do MySQL/banco.
     // Compara formato (base64 + prefixo "Erro: ") e prefixo da mensagem, não o texto exato.
     config(['walle.tarefas.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
     $cliente = criarClienteHelpDesk();
     $tarefa = DB::table('task_scheduler_querys')->insertGetId(array_merge($amostra['tarefa'], ['query_execute' => base64_encode($amostra['query_com_erro_sql'])]));
@@ -211,6 +240,10 @@ test('Task Scheduler erro de SQL grava base64 de "Erro: <msg MySQL>" (formato, n
 
 test('Task Scheduler sucesso grava "T0s=" igual ao 220', function (): void {
     config(['walle.tarefas.ativo' => true]);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'tarefas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $amostra = require base_path('tests/Fixtures/legado/robos/task-scheduler.php');
     $cliente = criarClienteHelpDesk();
     $tarefa = DB::table('task_scheduler_querys')->insertGetId($amostra['tarefa']);

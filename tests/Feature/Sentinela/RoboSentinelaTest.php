@@ -3,6 +3,7 @@
 use App\Jobs\RodarCicloSentinela;
 use App\Models\Auditoria;
 use App\Models\PainelSentinela;
+use App\Models\RoboConfig;
 use App\Sentinela\RoboSentinela;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Http\Client\ConnectionException;
@@ -35,7 +36,10 @@ function clienteDaVpnParaSentinela(string $ip = '10.8.0.5', array $cliente = [],
 beforeEach(function () {
     $this->travelTo(now()->setDate(2026, 10, 27)->setTime(10, 0));
     config(['walle.sentinela.ativo' => true]);
-    DB::table('robo_config')->updateOrInsert(['robo' => 'sentinela', 'parametro' => 'ativo'], ['valor' => 'true', 'valor_sanitizado' => 'true']);
+    RoboConfig::updateOrCreate(
+        ['robo' => 'sentinela', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     Http::preventStrayRequests();
 });
 
