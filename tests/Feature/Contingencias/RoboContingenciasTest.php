@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 
+beforeEach(function () {
+    DB::table('robo_config')->updateOrInsert(['robo' => 'contingencias', 'parametro' => 'ativo'], ['valor' => 'true', 'valor_sanitizado' => 'true']);
+});
+
 test('coleta três contingências integrais e registra métricas, ciclo e ator automático', function () {
     $this->travelTo(now()->setDate(2026, 10, 24)->setTime(10, 0));
     config(['walle.contingencias.ativo' => true]);

@@ -35,6 +35,7 @@ function clienteDaVpnParaSentinela(string $ip = '10.8.0.5', array $cliente = [],
 beforeEach(function () {
     $this->travelTo(now()->setDate(2026, 10, 27)->setTime(10, 0));
     config(['walle.sentinela.ativo' => true]);
+    DB::table('robo_config')->updateOrInsert(['robo' => 'sentinela', 'parametro' => 'ativo'], ['valor' => 'true', 'valor_sanitizado' => 'true']);
     Http::preventStrayRequests();
 });
 

@@ -11,12 +11,14 @@ use App\Models\PainelSactusCfg;
 use App\Models\SactusCfgEdicao;
 use App\Models\Usuario;
 use App\Sactus\ArquivoCfg;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 beforeEach(function () {
     config(['walle.admins' => []]);
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'teste');
     $this->usuario = Usuario::find(criarUsuarioHelpDesk());
     $this->actingAs($this->usuario);
 });

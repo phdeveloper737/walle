@@ -4,6 +4,7 @@ use App\Autorizadas\RoboAutorizadas;
 use App\Jobs\RodarCicloAutorizadas;
 use App\Models\CicloAutorizadas;
 use App\Sefaz\ConsultaSituacao;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -132,6 +133,7 @@ test('o job só roda o ciclo com o robô ligado e sem pausa', function () {
     expect(CicloAutorizadas::count())->toBe(0);
 
     config(['walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     $robo->pausar(now()->addMinutes(10));
     (new RodarCicloAutorizadas)->handle($robo);
     expect(CicloAutorizadas::count())->toBe(0);

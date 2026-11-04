@@ -9,6 +9,7 @@ use App\Livewire\Autorizadas\Robo;
 use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Sefaz\ChaveDeAcesso;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -18,6 +19,7 @@ use Livewire\Livewire;
 beforeEach(function () {
     $this->travelTo(Carbon::parse('2026-10-21 10:00:00'));
     config(['walle.admins' => []]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     $this->usuario = Usuario::find(criarUsuarioHelpDesk());
     $this->actingAs($this->usuario);
 });
@@ -48,6 +50,7 @@ test('a análise mostra os números do período e o nome do cliente', function (
 
 test('pausar e retomar pelo painel, guardando quem pausou', function () {
     config(['walle.autorizadas.ativo' => true, 'walle.admins' => [$this->usuario->id]]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     session()->put('walle.senha_confirmada_em', now()->getTimestamp());
     $robo = app(RoboAutorizadas::class);
 
@@ -72,6 +75,7 @@ test('rodar agora só com o robô ligado e sem pausa', function () {
     Queue::assertNothingPushed();
 
     config(['walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     app(RoboAutorizadas::class)->pausar(now()->addHour());
     Livewire::test(Robo::class)->call('rodarAgora')->assertSee('retome antes');
     Queue::assertNothingPushed();
@@ -84,6 +88,7 @@ test('rodar agora só com o robô ligado e sem pausa', function () {
 test('quem não é admin recebe 403 nas três ações do robô, sem fila e sem auditoria', function (string $acao, array $argumentos) {
     Queue::fake();
     config(['walle.admins' => [], 'walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     session()->put('walle.senha_confirmada_em', now()->getTimestamp());
 
     Livewire::test(Robo::class)->call($acao, ...$argumentos)->assertForbidden();
@@ -100,6 +105,7 @@ test('quem não é admin recebe 403 nas três ações do robô, sem fila e sem a
 test('admin sem a senha confirmada só recebe o pedido de senha nas três ações', function (string $acao, array $argumentos) {
     Queue::fake();
     config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     session()->forget('walle.senha_confirmada_em');
 
     Livewire::test(Robo::class)->call($acao, ...$argumentos)
@@ -133,6 +139,7 @@ test('admin pausa o robô depois de confirmar a senha e fica na auditoria', func
 
 test('admin retoma o robô depois de confirmar a senha e fica na auditoria', function () {
     config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     session()->forget('walle.senha_confirmada_em');
     app(RoboAutorizadas::class)->pausar(now()->addHour());
 
@@ -151,6 +158,7 @@ test('admin retoma o robô depois de confirmar a senha e fica na auditoria', fun
 test('admin dispara o ciclo depois de confirmar a senha e fica na auditoria', function () {
     Queue::fake();
     config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     session()->forget('walle.senha_confirmada_em');
 
     Livewire::test(Robo::class)

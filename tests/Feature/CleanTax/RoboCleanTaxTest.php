@@ -3,6 +3,7 @@
 use App\CleanTax\RoboCleanTax;
 use App\Jobs\RodarCicloCleanTax;
 use App\Models\Auditoria;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
@@ -29,6 +30,7 @@ function respostaDaListaCleanTax(array $clientes): mixed
 beforeEach(function () {
     $this->travelTo(now()->setDate(2026, 10, 27)->setTime(10, 0));
     config(['walle.cleantax.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('cleantax', true, 'teste');
     Http::preventStrayRequests();
     Sleep::fake();
 });
