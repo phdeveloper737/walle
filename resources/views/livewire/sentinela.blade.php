@@ -1,8 +1,16 @@
+@php
+    $robo = 'sentinela';
+    $motivo = \App\Support\ConfiguracaoRobo::motivoInativo($robo);
+    $msgDesligado = match ($motivo) {
+        'env' => 'O robô do Sentinela está <strong>desligado</strong> neste servidor (WALLE_SENTINELA_ATIVO=false)',
+        'local' => 'O robô do Sentinela está <strong>desligado</strong> na configuração local (chave "ativo" do robô)',
+        default => null,
+    };
+@endphp
 <div class="flex flex-col gap-3">
     @if (! $ligado)
         <x-ui.aviso>
-            O robô do Sentinela está <strong>desligado</strong> (WALLE_SENTINELA_ATIVO=false): os números abaixo são
-            da última coleta e nada daqui encosta nos servidores dos clientes.
+            {{ $msgDesligado }}: os números abaixo são da última coleta e nada daqui encosta nos servidores dos clientes.
         </x-ui.aviso>
     @endif
 

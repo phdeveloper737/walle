@@ -5,8 +5,10 @@ namespace App\Livewire;
 use App\Ferramentas\ExecucaoDeQuery;
 use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
+use App\Models\RoboConfig;
 use App\Models\TaskSchedulerQuery;
 use App\Models\TaskSchedulerQueryLog;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -260,7 +262,7 @@ class Ferramentas extends Component
     {
         return view('livewire.ferramentas', [
             'admin' => Gate::allows('admin'),
-            'ligado' => (bool) config('walle.tarefas.ativo'),
+            'ligado' => ConfiguracaoRobo::ligado('tarefas'),
         ]);
     }
 }

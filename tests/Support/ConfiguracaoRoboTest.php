@@ -198,15 +198,22 @@ test('validarFronteira valida float', function () {
     expect(ConfiguracaoRobo::efetivo('sactus', 'ssh.comando_segundos'))->toBe(60);
 });
 
-test('validarFronteira valida bool', function () {
-    ConfiguracaoRobo::gravar('autorizadas', 'ativo', true, 'admin');
-    expect(ConfiguracaoRobo::efetivo('autorizadas', 'ativo'))->toBeTrue();
+test('gravar recusa ativo e exige definirAtivo sem efeitos', function () {
+    expect(fn () => ConfiguracaoRobo::gravar('autorizadas', 'ativo', true, 'admin'))
+        ->toThrow(LogicException::class, 'Use definirAtivo() para alterar o parâmetro ativo');
 
-    ConfiguracaoRobo::gravar('autorizadas', 'ativo', false, 'admin');
-    expect(ConfiguracaoRobo::efetivo('autorizadas', 'ativo'))->toBeFalse();
+    expect(RoboConfig::count())->toBe(0)
+        ->and(RoboConfigHistorico::count())->toBe(0)
+        ->and(Auditoria::count())->toBe(0);
+});
 
-    expect(fn () => ConfiguracaoRobo::gravar('autorizadas', 'ativo', 'nao-booleano', 'admin'))
-        ->toThrow(InvalidArgumentException::class, 'Tipo inválido');
+test('definirAtivo recusa robo desconhecido sem efeitos', function () {
+    expect(fn () => ConfiguracaoRobo::definirAtivo('desconhecido', true, 'admin'))
+        ->toThrow(LogicException::class, 'Robô desconhecido');
+
+    expect(RoboConfig::count())->toBe(0)
+        ->and(RoboConfigHistorico::count())->toBe(0)
+        ->and(Auditoria::count())->toBe(0);
 });
 
 test('validarFronteira valida string', function () {
@@ -231,16 +238,20 @@ test('parametro fora do catalogo lanca excecao', function () {
 
 // ===== Historico + Auditoria sem segredo =====
 
-test('historico e auditoria nao recebem segredo', function () {
+test('historico e auditoria recebem somente valores sanitizados', function () {
     ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 300, 'admin-teste');
 
-    $historico = RoboConfigHistorico::latest('criado_em')->first();
-    $auditoria = Auditoria::latest('criado_em')->first();
+    $historico = RoboConfigHistorico::latest('criado_em')->firstOrFail();
+    $auditoria = Auditoria::latest('criado_em')->firstOrFail();
 
-    expect($historico->valor_anterior_sanitizado)->not->toContain('senha')
-        ->and($historico->valor_novo_sanitizado)->not->toContain('senha')
-        ->and($auditoria->detalhes['valor_anterior_sanitizado'])->not->toContain('senha')
-        ->and($auditoria->detalhes['valor_novo_sanitizado'])->not->toContain('senha');
+    expect(array_keys($historico->getAttributes()))
+        ->not->toContain('valor_anterior', 'valor_novo');
+    expect($historico->valor_anterior_sanitizado)->toBe('250')
+        ->and($historico->valor_novo_sanitizado)->toBe('300')
+        ->and($historico->getAttributes())->not->toContain('senha-real');
+    expect($auditoria->detalhes)->toHaveKeys(['robo', 'parametro', 'valor_anterior_sanitizado', 'valor_novo_sanitizado', 'ator'])
+        ->not->toHaveKeys(['valor_anterior', 'valor_novo'])
+        ->not->toContain('senha-real');
 });
 
 test('valor_anterior usa efetivo anterior sanitizado quando nao ha linha persistida', function () {
@@ -267,6 +278,53 @@ test('gravar envolve upsert+historico em transacao', function () {
 
     expect(RoboConfig::where('robo', 'autorizadas')->where('parametro', 'limite_ciclo')->first())->toBeNull();
     expect(RoboConfigHistorico::where('robo', 'autorizadas')->where('parametro', 'limite_ciclo')->first())->toBeNull();
+});
+
+test('definirAtivo grava historico e auditoria so com colunas sanitizadas', function () {
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'admin-teste');
+
+    $historico = RoboConfigHistorico::firstOrFail();
+    $auditoria = Auditoria::firstOrFail();
+
+    expect(array_keys($historico->getAttributes()))->not->toContain('valor_anterior', 'valor_novo')
+        ->and($historico->acao)->toBe('ativar')
+        ->and($historico->valor_anterior_sanitizado)->toBe('false')
+        ->and($historico->valor_novo_sanitizado)->toBe('true');
+    expect($auditoria->detalhes)->toHaveKeys(['robo', 'parametro', 'valor_anterior_sanitizado', 'valor_novo_sanitizado', 'ator'])
+        ->not->toHaveKeys(['valor_anterior', 'valor_novo']);
+});
+
+test('definirAtivo usa o valor persistido anterior no historico', function () {
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'admin');
+    ConfiguracaoRobo::definirAtivo('sactus', false, 'admin');
+
+    $ultimo = RoboConfigHistorico::orderByDesc('id')->firstOrFail();
+
+    expect($ultimo->acao)->toBe('desativar')
+        ->and($ultimo->valor_anterior_sanitizado)->toBe('true')
+        ->and($ultimo->valor_novo_sanitizado)->toBe('false')
+        ->and(RoboConfig::where('robo', 'sactus')->where('parametro', 'ativo')->count())->toBe(1);
+});
+
+test('definirAtivo e atomico: falha no historico desfaz o upsert', function () {
+    // Testa atomicidade: se a transacao falhar, nada persiste
+    // Simula falha usando uma validacao que lancara excecao antes da transacao
+    expect(fn () => ConfiguracaoRobo::definirAtivo('sactus', true, ''))
+        ->toThrow(InvalidArgumentException::class, 'Ator obrigat');
+
+    expect(RoboConfig::count())->toBe(0)
+        ->and(RoboConfigHistorico::count())->toBe(0)
+        ->and(Auditoria::count())->toBe(0)
+        ->and(ConfiguracaoRobo::ativoLocal('sactus'))->toBeFalse();
+});
+
+test('gravar e atomico: falha no historico desfaz o upsert', function () {
+    // Testa atomicidade: se a transacao falhar, nada persiste
+    expect(fn () => ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 300, ''))
+        ->toThrow(InvalidArgumentException::class, 'Ator obrigat');
+
+    expect(RoboConfig::count())->toBe(0)
+        ->and(Auditoria::count())->toBe(0);
 });
 
 // ===== Mudanca durante ciclo so vale no seguinte =====

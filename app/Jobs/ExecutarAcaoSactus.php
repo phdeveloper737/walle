@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\AcaoSactus;
 use App\Sactus\AcoesSactus;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -31,7 +32,7 @@ class ExecutarAcaoSactus implements ShouldQueue
         }
 
         // Desligado na hora de rodar (alguém desligou depois do pedido): não encosta no servidor
-        if (! config('walle.sactus.ativo')) {
+        if (! ConfiguracaoRobo::ligado('sactus')) {
             $pedido->forceFill(['status' => 'ERRO', 'erro' => 'O Sactus do walle está desligado.', 'processado_em' => now()])->save();
 
             return;

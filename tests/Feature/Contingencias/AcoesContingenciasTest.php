@@ -7,6 +7,7 @@ use App\Livewire\Contingencias\DoCliente;
 use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Sactus\Ssh\ResultadoComando;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,7 @@ function adminDeContingencias(bool $admin = true, bool $senha = true): Usuario
     $usuario = Usuario::find(criarUsuarioHelpDesk());
     test()->actingAs($usuario);
     config(['walle.admins' => $admin ? [$usuario->id] : [], 'walle.contingencias.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('contingencias', true, 'teste');
 
     if ($senha) {
         session()->put('walle.senha_confirmada_em', now()->getTimestamp());
@@ -136,6 +138,22 @@ test('com o robô desligado nem o conector nem o SSH são chamados', function ()
     expect($resultado->ok)->toBeFalse()
         ->and($resultado->mensagem)->toBe('O robô das contingências está desligado; a ação não foi enviada.')
         ->and($reprocessar->mensagem)->toBe($resultado->mensagem)
+        ->and($ssh->comandos)->toBe([]);
+});
+
+test('env ligado com a chave local desligada recusa a ação manual sem conector nem SSH', function () {
+    adminDeContingencias();
+    ConfiguracaoRobo::definirAtivo('contingencias', false, 'teste');
+    [$cliente, $ssh] = clienteComConteinerSsh();
+    conectorDoClienteNaoChamado();
+
+    $resultado = app(AcoesContingencias::class)->reenviarAoPdv($cliente, [['loja' => 1, 'pdv' => 2, 'cupom' => 500]]);
+    $reprocessar = app(AcoesContingencias::class)->reprocessar($cliente);
+
+    expect(config('walle.contingencias.ativo'))->toBeTrue()
+        ->and($resultado->ok)->toBeFalse()
+        ->and($resultado->mensagem)->toBe(AcoesContingencias::DESLIGADO)
+        ->and($reprocessar->mensagem)->toBe(AcoesContingencias::DESLIGADO)
         ->and($ssh->comandos)->toBe([]);
 });
 

@@ -3,19 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 
 /**
  * Histórico imutável de alterações da robo_config (tabela nova do walle).
  *
- * Os valores brutos (`valor_anterior`, `valor_novo`) podem conter segredo: telas devem exibir só os `*_sanitizado`.
+ * Apenas valores sanitizados são armazenados (colunas `valor_anterior_sanitizado`, `valor_novo_sanitizado`).
+ * Append-only na aplicação (o usuário walle não tem SUPER, então não há triggers): o builder customizado
+ * bloqueia update()/delete()/forceDelete()/increment()/decrement() e os eventos updating/deleting bloqueiam
+ * a instância, como defesa em profundidade.
  *
  * @property int $id
  * @property string $robo
  * @property string $parametro
  * @property string $acao
- * @property string|null $valor_anterior
- * @property string|null $valor_novo
  * @property string|null $valor_anterior_sanitizado
  * @property string|null $valor_novo_sanitizado
  * @property string $ator
@@ -30,16 +32,19 @@ class RoboConfigHistorico extends Model
 
     protected $guarded = ['id'];
 
-    /**
-     * @var list<string>
-     */
-    protected $hidden = ['valor_anterior', 'valor_novo'];
-
     protected function casts(): array
     {
         return [
             'criado_em' => 'datetime',
         ];
+    }
+
+    /**
+     * @param  Builder  $query
+     */
+    public function newEloquentBuilder($query): RoboConfigHistoricoBuilder
+    {
+        return new RoboConfigHistoricoBuilder($query);
     }
 
     protected static function booted(): void

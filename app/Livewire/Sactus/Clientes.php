@@ -13,6 +13,7 @@ use App\Sactus\AcoesSactus;
 use App\Sactus\ArquivoCfg;
 use App\Sactus\EdicaoNoTexto;
 use App\Sactus\PainelSactus;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -268,11 +269,15 @@ class Clientes extends Component
 
     private function sactusLigado(): bool
     {
-        if (config('walle.sactus.ativo')) {
+        if (ConfiguracaoRobo::ligado('sactus')) {
             return true;
         }
 
-        $this->avisar('O Sactus do walle está desligado: use o painel antigo até a virada.', erro: true);
+        $motivo = ConfiguracaoRobo::motivoInativo('sactus');
+        $msg = $motivo === 'env'
+            ? 'O Sactus do walle está desligado neste servidor (WALLE_SACTUS_ATIVO=false).'
+            : 'O Sactus do walle está desligado na configuração local (chave "ativo").';
+        $this->avisar($msg . ' Use o painel antigo até a virada.', erro: true);
 
         return false;
     }

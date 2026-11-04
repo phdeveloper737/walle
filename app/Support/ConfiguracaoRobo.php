@@ -129,6 +129,10 @@ class ConfiguracaoRobo
             throw new \InvalidArgumentException('Parâmetro não existe no catálogo');
         }
 
+        if ($parametro === 'ativo') {
+            throw new \LogicException('Use definirAtivo() para alterar o parâmetro ativo');
+        }
+
         // Segredos não são graváveis
         if (self::ehSegredo($parametro)) {
             throw new \LogicException('Parâmetro é segredo; use .env');
@@ -137,7 +141,10 @@ class ConfiguracaoRobo
         self::validarFronteira($robo, $parametro, $valor);
 
         DB::transaction(function () use ($robo, $parametro, $valor, $ator) {
-            $existente = RoboConfig::where('robo', $robo)->where('parametro', $parametro)->first();
+            $existente = RoboConfig::where('robo', $robo)
+                ->where('parametro', $parametro)
+                ->lockForUpdate()
+                ->first();
 
             // valor_anterior: se não há linha, usa o efetivo anterior (padrão do catálogo/config)
             $valorAnteriorEfetivo = $existente !== null
@@ -159,8 +166,6 @@ class ConfiguracaoRobo
                 'robo' => $robo,
                 'parametro' => $parametro,
                 'acao' => 'alterar',
-                'valor_anterior' => $valorAnteriorEfetivo,
-                'valor_novo' => $valorTexto,
                 'valor_anterior_sanitizado' => $valorAnteriorSanitizado,
                 'valor_novo_sanitizado' => $valorNovoSanitizado,
                 'ator' => $ator,
@@ -180,6 +185,7 @@ class ConfiguracaoRobo
     /**
      * Ativa ou desativa um robô gravando histórico com ação 'ativar' ou 'desativar'.
      * NÃO altera config() do .env (corte de segurança).
+     * Valida o robô contra o catálogo e lê a linha existente com lockForUpdate() dentro da transação.
      */
     public static function definirAtivo(string $robo, bool $ativo, string $ator): void
     {
@@ -187,16 +193,26 @@ class ConfiguracaoRobo
             throw new \InvalidArgumentException('Ator obrigatório');
         }
 
-        $existente = RoboConfig::where('robo', $robo)->where('parametro', 'ativo')->first();
-        $valorAnteriorEfetivo = $existente !== null
-            ? $existente->valor
-            : 'false';
-        $valorAnteriorSanitizado = ($existente !== null) ? $existente->valor_sanitizado : RoboConfig::sanitizar($valorAnteriorEfetivo);
+        // Valida robô contra o catálogo
+        $catalogo = self::catalogo();
+        if (! isset($catalogo[$robo])) {
+            throw new \LogicException('Robô desconhecido');
+        }
 
-        $valorTexto = $ativo ? 'true' : 'false';
-        $valorNovoSanitizado = $valorTexto;
+        DB::transaction(function () use ($robo, $ativo, $ator) {
+            $existente = RoboConfig::where('robo', $robo)
+                ->where('parametro', 'ativo')
+                ->lockForUpdate()
+                ->first();
 
-        DB::transaction(function () use ($robo, $valorTexto, $valorNovoSanitizado, $ator, $valorAnteriorEfetivo, $valorAnteriorSanitizado, $ativo) {
+            $valorAnteriorEfetivo = $existente !== null
+                ? $existente->valor
+                : 'false';
+            $valorAnteriorSanitizado = ($existente !== null) ? $existente->valor_sanitizado : RoboConfig::sanitizar($valorAnteriorEfetivo);
+
+            $valorTexto = $ativo ? 'true' : 'false';
+            $valorNovoSanitizado = $valorTexto;
+
             RoboConfig::updateOrCreate(
                 ['robo' => $robo, 'parametro' => 'ativo'],
                 ['valor' => $valorTexto, 'valor_sanitizado' => $valorNovoSanitizado]
@@ -211,8 +227,6 @@ class ConfiguracaoRobo
                 'robo' => $robo,
                 'parametro' => 'ativo',
                 'acao' => $acao,
-                'valor_anterior' => $valorAnteriorEfetivo,
-                'valor_novo' => $valorTexto,
                 'valor_anterior_sanitizado' => $valorAnteriorSanitizado,
                 'valor_novo_sanitizado' => $valorNovoSanitizado,
                 'ator' => $ator,

@@ -11,6 +11,7 @@ use App\Sactus\Ssh\AlvoSsh;
 use App\Sactus\Ssh\ConectorSsh;
 use App\Sactus\Ssh\FalhaSsh;
 use App\Sactus\Ssh\SessaoSsh;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -58,7 +59,7 @@ class AcoesContingencias
 
     public function ligado(): bool
     {
-        return (bool) config('walle.contingencias.ativo');
+        return ConfiguracaoRobo::ligado('contingencias');
     }
 
     /**

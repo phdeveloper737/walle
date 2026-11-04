@@ -20,8 +20,6 @@ return new class extends Migration
             $table->string('robo', 30);
             $table->string('parametro', 60);
             $table->string('acao', 10);
-            $table->text('valor_anterior')->nullable();
-            $table->text('valor_novo')->nullable();
             $table->text('valor_anterior_sanitizado')->nullable();
             $table->text('valor_novo_sanitizado')->nullable();
             $table->string('ator', 100);

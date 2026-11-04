@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-infra",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0051-backend-da-configuracao-e-historico-dos",
     "pr":  67,
     "base":  "de40bbd29bdc910aaf4936941ffc25375c6524ca",
@@ -35,6 +35,11 @@
                         "quando":  "2026-11-04 11:45:45",
                         "tipo":  "pr",
                         "detalhe":  "PR #67 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-04 15:22:24",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: Corrigir revisão independente da configuração dos robôs"
                     }
                 ]
 }
