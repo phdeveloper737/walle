@@ -4,10 +4,10 @@
     "origem":  "PLAN 5.2",
     "tipo":  "plano",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0051-backend-da-configuracao-e-historico-dos",
-    "pr":  0,
+    "pr":  67,
     "base":  "de40bbd29bdc910aaf4936941ffc25375c6524ca",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -30,6 +30,11 @@
                         "quando":  "2026-11-04 11:45:09",
                         "tipo":  "commit",
                         "detalhe":  "Correção de estilo Pint em CrontabTest (T-0051)"
+                    },
+                    {
+                        "quando":  "2026-11-04 11:45:45",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #67 aberto"
                     }
                 ]
 }
