@@ -15,6 +15,11 @@
                         "quando":  "2026-11-03 17:06:44",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0051-backend-da-configuracao-e-historico-dos a partir de de40bbd29bdc910aaf4936941ffc25375c6524ca"
+                    },
+                    {
+                        "quando":  "2026-11-04 08:42:25",
+                        "tipo":  "commit",
+                        "detalhe":  "Backend da configuração e histórico dos robôs (PLAN 5.2)"
                     }
                 ]
 }

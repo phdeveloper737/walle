@@ -5,6 +5,7 @@ namespace App\Ferramentas;
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Models\Auditoria;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,7 @@ class RoboTarefas
 
     public function ligado(): bool
     {
-        return (bool) config('walle.tarefas.ativo');
+        return ConfiguracaoRobo::ligado('tarefas');
     }
 
     /**

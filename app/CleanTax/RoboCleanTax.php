@@ -3,6 +3,7 @@
 namespace App\CleanTax;
 
 use App\Models\Auditoria;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
@@ -71,7 +72,7 @@ class RoboCleanTax
 
     public function ligado(): bool
     {
-        return (bool) config('walle.cleantax.ativo');
+        return ConfiguracaoRobo::ligado('cleantax');
     }
 
     public function rodarCiclo(): void
