@@ -38,6 +38,8 @@ class Ferramentas extends Component
         'querys' => ['rotulo' => 'Queries', 'icone' => 'terminal'],
         'relatorio' => ['rotulo' => 'Relatório', 'icone' => 'summarize'],
         'executar' => ['rotulo' => 'Executar SQL', 'icone' => 'play_circle'],
+        'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
+        'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],
     ];
 
     public const ACOES_COM_SENHA = ['editar', 'salvar', 'alternarAtivo', 'executarQuery'];
@@ -262,6 +264,9 @@ class Ferramentas extends Component
         return view('livewire.ferramentas', [
             'admin' => Gate::allows('admin'),
             'ligado' => ConfiguracaoRobo::ligado('tarefas'),
+            'motivoDesligado' => ConfiguracaoRobo::motivoInativo('tarefas') === 'local'
+                ? 'chave "ativo" desligada no painel'
+                : 'WALLE_TAREFAS_ATIVO=false',
         ]);
     }
 }

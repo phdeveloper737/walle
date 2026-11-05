@@ -30,9 +30,30 @@ class Sentinela extends Component
 
     public const MEMORIA_CRITICA = 90;
 
+    public const ABAS = [
+        'painel' => ['rotulo' => 'Painel', 'icone' => 'monitor_heart'],
+        'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
+        'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],
+    ];
+
+    #[Url(except: 'painel')]
+    public string $aba = 'painel';
+
     /** Filtro pelo cliente (o ?id= do sistema antigo). */
     #[Url]
     public ?int $cliente = null;
+
+    public function mount(): void
+    {
+        $this->updatedAba();
+    }
+
+    public function updatedAba(): void
+    {
+        if (! array_key_exists($this->aba, self::ABAS)) {
+            $this->aba = 'painel';
+        }
+    }
 
     /** @return Collection<int, PainelSentinela> */
     #[Computed]

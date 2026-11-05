@@ -6,7 +6,9 @@
         $atual = $this->cicloAtual;
         [$estado, $icone, $cores, $detalhe] = match (true) {
             ! $ligado => ['Desligado neste servidor', 'power_settings_new', 'bg-surface-container-highest text-on-surface-variant',
-                'Para ligar: WALLE_SACTUS_ATIVO=true no .env, na virada (junto com o desligamento do sactus.php no 220).'],
+                \App\Support\ConfiguracaoRobo::motivoInativo('sactus') === 'local'
+                    ? 'Para ligar: ligue a chave "ativo" na aba Configuração.'
+                    : 'Para ligar: WALLE_SACTUS_ATIVO=true no .env, na virada (junto com o desligamento do sactus.php no 220).'],
             $pausa !== null => ['Pausado', 'pause_circle', 'bg-secondary-container text-on-secondary-container', $pausa['motivo'].' até '.$pausa['ate']->format('d/m H:i').'.'],
             $atual !== null => ['Rodando um ciclo', 'sync', 'bg-success-container text-on-success-container', 'Ciclo #'.$atual->id.' começou às '.$atual->iniciado_em->format('H:i:s').'.'],
             default => ['Ligado, esperando a próxima hora cheia', 'check_circle', 'bg-success-container text-on-success-container', 'Um ciclo por hora; cada cliente é processado uma vez por ciclo.'],

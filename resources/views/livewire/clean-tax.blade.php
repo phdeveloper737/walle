@@ -1,7 +1,14 @@
 <div class="flex flex-col gap-3">
+    <x-ui.abas :abas="\App\Livewire\CleanTax::ABAS" :atual="$aba" />
+
+    @if ($aba === 'configuracao')
+        <livewire:robos.configuracao robo="cleantax" key="aba-configuracao" />
+    @elseif ($aba === 'historico')
+        <livewire:robos.historico robo="cleantax" key="aba-historico" />
+    @else
     @if (! $ligado)
         <x-ui.aviso>
-            O robô do CleanTax está <strong>desligado</strong> (WALLE_CLEANTAX_ATIVO=false): as execuções abaixo são
+            O robô do CleanTax está <strong>desligado</strong> ({{ $motivoDesligado }}): as execuções abaixo são
             as últimas registradas e nada daqui encosta nos servidores dos clientes.
         </x-ui.aviso>
     @endif
@@ -38,4 +45,5 @@
             @endforeach
         </x-ui.tabela>
     </x-ui.card>
+    @endif
 </div>

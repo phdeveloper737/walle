@@ -42,7 +42,7 @@ function coletaSactus(int $clienteId, array $dados = []): void
 test('a tela abre nas quatro abas', function () {
     $this->get(route('sactus'))->assertOk()->assertSee(['Clientes', 'Verificador', 'Pedidos e ações', 'Robô', 'Sactus do walle está']);
     $this->get(route('sactus', ['aba' => 'verificador']))->assertOk()->assertSee('Escolha uma flag');
-    $this->get(route('sactus', ['aba' => 'historico']))->assertOk()->assertSee('Nenhum pedido');
+    $this->get(route('sactus', ['aba' => 'pedidos']))->assertOk()->assertSee('Nenhum pedido');
     $this->get(route('sactus', ['aba' => 'robo']))->assertOk()->assertSee('Desligado neste servidor');
 });
 

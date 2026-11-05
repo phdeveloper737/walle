@@ -3,6 +3,10 @@
 
 @if ($aba === 'robo')
     <livewire:contingencias.robo key="aba-robo" />
+@elseif ($aba === 'configuracao')
+    <livewire:robos.configuracao robo="contingencias" key="aba-configuracao" />
+@elseif ($aba === 'historico')
+    <livewire:robos.historico robo="contingencias" key="aba-historico" />
 @else
 <div class="flex flex-col gap-3 lg:flex-row lg:items-start">
     {{-- Lista de clientes (Help Desk) --}}

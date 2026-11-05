@@ -169,6 +169,7 @@ class Robo extends Component
     {
         return view('livewire.autorizadas.robo', [
             'ligado' => $robo->ligado(),
+            'motivoLocal' => ConfiguracaoRobo::motivoInativo('autorizadas') === 'local',
             'pausa' => $robo->pausa(),
             'admin' => Gate::allows('admin'),
         ]);

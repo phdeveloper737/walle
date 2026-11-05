@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -19,6 +20,27 @@ use Livewire\Component;
 #[Title('CleanTax')]
 class CleanTax extends Component
 {
+    public const ABAS = [
+        'painel' => ['rotulo' => 'Painel', 'icone' => 'cleaning_services'],
+        'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
+        'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],
+    ];
+
+    #[Url(except: 'painel')]
+    public string $aba = 'painel';
+
+    public function mount(): void
+    {
+        $this->updatedAba();
+    }
+
+    public function updatedAba(): void
+    {
+        if (! array_key_exists($this->aba, self::ABAS)) {
+            $this->aba = 'painel';
+        }
+    }
+
     /** @return Collection<int, PainelCleantaxWorker> */
     #[Computed]
     public function execucoes(): Collection
@@ -56,6 +78,15 @@ class CleanTax extends Component
 
     public function render(): View
     {
-        return view('livewire.clean-tax', ['ligado' => ConfiguracaoRobo::ligado('cleantax')]);
+        $motivo = ConfiguracaoRobo::motivoInativo('cleantax');
+
+        return view('livewire.clean-tax', [
+            'ligado' => $motivo === null,
+            'motivoDesligado' => match ($motivo) {
+                'env' => 'WALLE_CLEANTAX_ATIVO=false',
+                'local' => 'chave "ativo" desligada no painel',
+                default => null,
+            },
+        ]);
     }
 }
