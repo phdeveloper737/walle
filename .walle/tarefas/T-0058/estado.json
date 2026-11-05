@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0058",
+    "titulo":  "Revisao do Codex acusa lock alterado sem o manifesto",
+    "origem":  "sugestao do arquiteto na T-0056",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0058-revisao-do-codex-acusa-lock-alterado-sem",
+    "pr":  0,
+    "base":  "3db6976547d8b16064ea991c0817ac5a0c3a26cb",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 11:39:20",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0058-revisao-do-codex-acusa-lock-alterado-sem a partir de 3db6976547d8b16064ea991c0817ac5a0c3a26cb"
+                    }
+                ]
+}

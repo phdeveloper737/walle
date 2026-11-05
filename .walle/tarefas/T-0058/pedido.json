@@ -1,0 +1,7 @@
+{
+    "titulo":  "Revisao do Codex acusa lock alterado sem o manifesto",
+    "origem":  "sugestao do arquiteto na T-0056",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "Como os arquivos de lock ficam fora do diff do Codex, o revisao-codex.ps1 passa a acrescentar um achado P1 quando composer.lock ou package-lock.json muda sem composer.json ou package.json; o arquiteto confirma ou descarta com motivo."
+}
