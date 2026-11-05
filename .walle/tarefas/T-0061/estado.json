@@ -25,6 +25,11 @@
                         "quando":  "2026-11-05 15:15:51",
                         "tipo":  "pr",
                         "detalhe":  "PR #77 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:44:25",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 4ff7b848b298f9180346d2f7b52521d5220c06f6 incorporado; ciclos preservados em 0."
                     }
                 ]
 }

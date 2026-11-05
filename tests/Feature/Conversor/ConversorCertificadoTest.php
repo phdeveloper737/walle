@@ -92,8 +92,9 @@ function arquivosQuePoderiamGuardarOCertificado(): array
 
 /**
  * Arquivos criados ou alterados desde a fotografia que guardam algum dos segredos.
- * Só o conteúdo conta no diretório temporário do sistema, que outros processos do contêiner também usam;
- * no storage, qualquer arquivo novo ou alterado já é falha.
+ * Só o conteúdo conta no diretório temporário do sistema e em storage/logs, que outros processos do contêiner
+ * também usam (o robô ligado no Horizon grava no log o tempo todo); no resto do storage, qualquer arquivo novo
+ * ou alterado já é falha.
  *
  * @param  array<string, string>  $antes
  * @param  list<string>  $segredos
@@ -102,18 +103,20 @@ function arquivosQuePoderiamGuardarOCertificado(): array
 function arquivosSuspeitos(array $antes, array $segredos): array
 {
     $suspeitos = [];
+    $logs = storage_path('logs').DIRECTORY_SEPARATOR;
 
     foreach (arquivosQuePoderiamGuardarOCertificado() as $caminho => $assinatura) {
         if (($antes[$caminho] ?? null) === $assinatura) {
             continue;
         }
 
-        if (str_starts_with($caminho, storage_path())) {
+        if (str_starts_with($caminho, storage_path()) && ! str_starts_with($caminho, $logs)) {
             $suspeitos[] = $caminho;
 
             continue;
         }
 
+        // Arquivo inteiro, nunca só o trecho novo: um log rotacionado ou recriado pode ter o segredo no começo
         $conteudo = (string) @file_get_contents($caminho);
 
         foreach ($segredos as $segredo) {
@@ -390,6 +393,43 @@ test('o serviço converte em memória e recusa senha errada com exceção clara'
 
     expect(fn () => app(ConversorCertificado::class)->converter(pfxDeTeste(), 'errada'))
         ->toThrow(CertificadoInvalido::class, 'Senha do certificado incorreta');
+});
+
+test('a varredura ignora linha comum no log durante a conversão, acusa a senha no log e qualquer mudança no resto do storage', function () {
+    $sufixo = bin2hex(random_bytes(6));
+    $log = storage_path('logs'.DIRECTORY_SEPARATOR.'walle-varredura-'.$sufixo.'.log');
+    $logNovo = storage_path('logs'.DIRECTORY_SEPARATOR.'walle-varredura-novo-'.$sufixo.'.log');
+    $fora = storage_path('app'.DIRECTORY_SEPARATOR.'walle-varredura-'.$sufixo.'.txt');
+    $segredos = segredosDaConversao(pfxDeTeste(), SENHA_DO_PFX_DE_TESTE);
+    file_put_contents($log, "[2026-11-05 10:00:00] local.ERROR: linha antiga do robô\n");
+
+    try {
+        $antes = arquivosQuePoderiamGuardarOCertificado();
+        app(ConversorCertificado::class)->converter(pfxDeTeste(), SENHA_DO_PFX_DE_TESTE);
+
+        // (a) O robô ligado escreve no log durante a conversão: não é vazamento
+        file_put_contents($log, "[2026-11-05 10:00:01] local.ERROR: Cliente 42 sem resposta\n", FILE_APPEND);
+        file_put_contents($logNovo, "[2026-11-05 10:00:01] local.ERROR: outra linha do robô\n");
+        expect(arquivosSuspeitos($antes, $segredos))->not->toContain($log)->not->toContain($logNovo);
+
+        // (b) A senha no log é vazamento, no log que cresceu e no log novo
+        file_put_contents($log, '[2026-11-05 10:00:02] local.ERROR: senha '.SENHA_DO_PFX_DE_TESTE."\n", FILE_APPEND);
+        file_put_contents($logNovo, 'senha '.SENHA_DO_PFX_DE_TESTE."\n", FILE_APPEND);
+        expect(arquivosSuspeitos($antes, $segredos))->toContain($log)->toContain($logNovo);
+
+        // Log rotacionado e recriado, maior que o original, com a senha logo no começo
+        unlink($log);
+        file_put_contents($log, 'senha '.SENHA_DO_PFX_DE_TESTE."\n".str_repeat("[2026-11-05 10:00:03] local.ERROR: linha do robô\n", 20));
+        expect(arquivosSuspeitos($antes, $segredos))->toContain($log);
+
+        // Fora de storage/logs, qualquer arquivo novo continua suspeito, mesmo sem segredo
+        file_put_contents($fora, 'nada sensível');
+        expect(arquivosSuspeitos($antes, $segredos))->toContain($fora);
+    } finally {
+        @unlink($log);
+        @unlink($logNovo);
+        @unlink($fora);
+    }
 });
 
 test('a varredura do disco acha arquivo novo com segredo no diretório temporário e não para em pasta que não pode listar', function () {
