@@ -197,8 +197,20 @@ try {
     Espera (Tarefa 'retomar' 'T-0001') 2 'retomar tarefa integrada'
     # Finalizacao que caiu depois do merge: main local atrasado, sem o ledger; o integrar so alcanca o origin/main.
     G @('reset', '-q', '--hard', $inicio) | Out-Null
-    Espera (Tarefa 'integrar' 'T-0001') 0 'integrar sem ledger local, com a tarefa no origin/main'
+    $r = Tarefa 'integrar' 'T-0001'
+    Espera $r 0 'integrar sem ledger local, com a tarefa no origin/main'
     Garantir ((G @('rev-parse', 'HEAD')) -eq (& git -C $origem rev-parse 'main')) 'main local alcancou o origin'
+    Garantir ($r.saida -notmatch 'migration') "sem migration nova, sem aviso: $($r.saida)"
+    # Migration nova no origin/main: o integrar avisa o nome do arquivo, sem migrar e sem mudar o codigo de saida.
+    [IO.Directory]::CreateDirectory((Join-Path $repo 'database/migrations')) | Out-Null
+    [IO.File]::WriteAllText((Join-Path $repo 'database/migrations/2026_11_05_000000_cria_tabela_x.php'), "<?php`n", $utf8)
+    G @('add', '-A') | Out-Null
+    G @('commit', '-q', '-m', 'migration nova') | Out-Null
+    G @('push', '-q', 'origin', 'main') | Out-Null
+    G @('reset', '-q', '--hard', 'HEAD~1') | Out-Null
+    $r = Tarefa 'integrar' 'T-0001'
+    Espera $r 0 'integrar com migration nova no merge'
+    Garantir ($r.saida -match 'Aviso: este merge trouxe 1 migration\(s\) nova\(s\) \(2026_11_05_000000_cria_tabela_x\.php\)' -and $r.saida -match 'php artisan migrate') "aviso de migration nova: $($r.saida)"
     Garantir ((Tarefa 'proxima').saida.Trim() -eq 'T-0002') 'proxima conta o que esta no main'
 
     # Ciclos: depois do PR, cada commit e uma correcao contada pelo proprio script; o terceiro bloqueia.
