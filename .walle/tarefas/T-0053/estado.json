@@ -15,6 +15,11 @@
                         "quando":  "2026-11-04 22:01:00",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0053-nome-e-ajuda-nos-parametros-do-catalogo a partir de 133ccc37b7464c50288f8332764770226dadae6f"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:19:53",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0053: nome e ajuda nos parametros do catalogo dos robos"
                     }
                 ]
 }

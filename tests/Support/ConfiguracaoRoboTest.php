@@ -31,6 +31,22 @@ dataset('seis robos', [
     'tarefas' => 'tarefas',
 ]);
 
+// ===== catálogo: textos da tela =====
+
+test('todo parametro do catalogo tem nome e ajuda, e o nome nao se repete no robo', function () {
+    foreach (ParametroCatalogo::todos() as $robo => $parametros) {
+        $nomes = [];
+
+        foreach ($parametros as $chave => $definicao) {
+            expect($definicao['nome'] ?? null)->toBeString()->not->toBeEmpty("{$robo}.{$chave} sem nome");
+            expect($definicao['ajuda'] ?? null)->toBeString()->not->toBeEmpty("{$robo}.{$chave} sem ajuda");
+            $nomes[] = $definicao['nome'];
+        }
+
+        expect($nomes)->toBe(array_values(array_unique($nomes)), "nome repetido em {$robo}");
+    }
+});
+
 // ===== ligado() - env + local =====
 
 test('cada robo nasce com execucao local desligada', function (string $robo) {
