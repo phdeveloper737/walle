@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0063",
+    "titulo":  "Detalhes tecnicos das coletas para admin e retencao das coletas",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-dados, walle-robos e walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0063-detalhes-tecnicos-das-coletas-para-admin",
+    "pr":  0,
+    "base":  "c8a75774002753070bb8db2593f3f6aa6c0cbe49",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 16:45:45",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0063-detalhes-tecnicos-das-coletas-para-admin a partir de c8a75774002753070bb8db2593f3f6aa6c0cbe49"
+                    }
+                ]
+}
