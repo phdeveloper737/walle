@@ -4,10 +4,10 @@
     "origem":  "erro em producao visto pelo usuario nos detalhes tecnicos do cliente WD (05/11/2026)",
     "tipo":  "bug",
     "dono":  "walle-robos",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0066-data-de-emissao-zerada-nao-derruba-a-col",
-    "pr":  0,
+    "pr":  82,
     "base":  "cd437a4e87fc5d7a897e6c5ecad5a34be7ce5f5d",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-05 19:00:02",
                         "tipo":  "commit",
                         "detalhe":  "T-0066: Data de emissao zerada nao derruba a coleta de contingencias"
+                    },
+                    {
+                        "quando":  "2026-11-05 19:00:08",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #82 aberto"
                     }
                 ]
 }
