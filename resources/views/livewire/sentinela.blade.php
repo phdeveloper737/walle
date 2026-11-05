@@ -8,6 +8,13 @@
     };
 @endphp
 <div class="flex flex-col gap-3">
+    <x-ui.abas :abas="\App\Livewire\Sentinela::ABAS" :atual="$aba" />
+
+    @if ($aba === 'configuracao')
+        <livewire:robos.configuracao robo="sentinela" key="aba-configuracao" />
+    @elseif ($aba === 'historico')
+        <livewire:robos.historico robo="sentinela" key="aba-historico" />
+    @else
     @if (! $ligado)
         <x-ui.aviso>
             {{ $msgDesligado }}: os números abaixo são da última coleta e nada daqui encosta nos servidores dos clientes.
@@ -84,4 +91,5 @@
             @endforeach
         </x-ui.tabela>
     </x-ui.card>
+    @endif
 </div>

@@ -13,11 +13,17 @@
         @case('verificador')
             <livewire:sactus.verificador key="aba-verificador" />
             @break
-        @case('historico')
-            <livewire:sactus.historico key="aba-historico" />
+        @case('pedidos')
+            <livewire:sactus.historico key="aba-pedidos" />
             @break
         @case('robo')
             <livewire:sactus.robo key="aba-robo" />
+            @break
+        @case('configuracao')
+            <livewire:robos.configuracao robo="sactus" key="aba-configuracao" />
+            @break
+        @case('historico')
+            <livewire:robos.historico robo="sactus" key="aba-historico" />
             @break
         @default
             <livewire:sactus.clientes key="aba-clientes" />

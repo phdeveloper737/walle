@@ -8,7 +8,7 @@
             $pausa !== null && $pausa['automatica'] => ['Pausado pela Sefaz', 'block', 'bg-error-container text-on-error-container',
                 $pausa['motivo'].'. Volta sozinho às '.$pausa['ate']->format('H:i').'.'],
             ! $ligado => ['Desligado neste servidor', 'power_settings_new', 'bg-surface-container-highest text-on-surface-variant',
-                'Para ligar: WALLE_AUTORIZADAS_ATIVO=true no .env. Desligado, ele não consulta a Sefaz.'],
+                ($motivoLocal ? 'Para ligar: ligue a chave "ativo" na aba Configuração.' : 'Para ligar: WALLE_AUTORIZADAS_ATIVO=true no .env.').' Desligado, ele não consulta a Sefaz.'],
             $pausa !== null => ['Pausado', 'pause_circle', 'bg-secondary-container text-on-secondary-container',
                 $pausa['motivo'].' até '.$pausa['ate']->format('d/m H:i').'.'],
             $atual !== null => ['Rodando um ciclo', 'sync', 'bg-success-container text-on-success-container',

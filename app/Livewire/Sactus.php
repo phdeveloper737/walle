@@ -18,12 +18,19 @@ class Sactus extends Component
     public const ABAS = [
         'clientes' => ['rotulo' => 'Clientes', 'icone' => 'dns'],
         'verificador' => ['rotulo' => 'Verificador', 'icone' => 'rule'],
-        'historico' => ['rotulo' => 'Pedidos e ações', 'icone' => 'history'],
+        'pedidos' => ['rotulo' => 'Pedidos e ações', 'icone' => 'edit_note'],
         'robo' => ['rotulo' => 'Robô', 'icone' => 'smart_toy'],
+        'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
+        'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],
     ];
 
     #[Url(except: 'clientes')]
     public string $aba = 'clientes';
+
+    public function mount(): void
+    {
+        $this->updatedAba();
+    }
 
     public function updatedAba(): void
     {

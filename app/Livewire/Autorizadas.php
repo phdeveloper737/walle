@@ -18,10 +18,17 @@ class Autorizadas extends Component
         'robo' => ['rotulo' => 'Robô', 'icone' => 'smart_toy'],
         'analise' => ['rotulo' => 'Análise', 'icone' => 'monitoring'],
         'chave' => ['rotulo' => 'Consultar chave', 'icone' => 'key'],
+        'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
+        'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],
     ];
 
     #[Url(except: 'robo')]
     public string $aba = 'robo';
+
+    public function mount(): void
+    {
+        $this->updatedAba();
+    }
 
     public function updatedAba(): void
     {
