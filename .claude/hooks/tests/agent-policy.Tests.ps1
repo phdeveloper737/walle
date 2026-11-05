@@ -89,6 +89,7 @@ $dominio = @(
     @('walle-telas','app/Livewire/Concerns/ConfirmaSenha.php',2), @('walle-telas','app/Livewire/Conversor.php',2),
     @('walle-telas','resources/views/livewire/conversor.blade.php',2), @('walle-telas','resources/views/livewire/saude.blade.php',2),
     @('walle-telas','app/Livewire/Sentinela.php',0), @('walle-telas','tests/Feature/EntrarTest.php',0), @('walle-telas','app/Concorrentes/AnaliseConcorrentes.php',0),
+    @('walle-telas','tests/Browser/FumacaTest.php',0), @('walle-telas','tests/Browser/Screenshots/tela.png',2), @('walle-robos','tests/Browser/FumacaTest.php',2),
     @('walle-dados','database/factories/ExemploFactory.php',0), @('walle-dados','app/Models/Concerns/SomenteLeitura.php',2),
     @('walle-infra','tests/Support/ServidorSshFalso.php',0), @('walle-infra','app/Support/Texto.php',0), @('walle-infra','app/Support/HelpDesk/SenhaHelpDesk.php',2),
     @('walle-paridade','tests/Feature/Paridade/SentinelaParidadeTest.php',0), @('walle-paridade','app/Sentinela/RoboSentinela.php',2)

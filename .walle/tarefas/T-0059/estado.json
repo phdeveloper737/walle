@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 12:30:31",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0059-walle-telas-escreve-os-testes-de-navegad a partir de 28ebbf4ad78d267daf8b6cfec83d9320e21aab3d"
+                    },
+                    {
+                        "quando":  "2026-11-05 12:34:49",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0059: walle-telas escreve os testes de navegador"
                     }
                 ]
 }
