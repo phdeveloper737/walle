@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 11:39:20",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0058-revisao-do-codex-acusa-lock-alterado-sem a partir de 3db6976547d8b16064ea991c0817ac5a0c3a26cb"
+                    },
+                    {
+                        "quando":  "2026-11-05 12:08:42",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0058: revisao do Codex acusa lock alterado sem o manifesto"
                     }
                 ]
 }
