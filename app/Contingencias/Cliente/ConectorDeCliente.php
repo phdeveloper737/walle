@@ -23,17 +23,34 @@ class ConectorDeCliente
             $servidor,
             (string) config('services.clientes.docker_senha_root'),
             config('services.clientes.docker_hosts'),
-        ) ?? throw FalhaConexaoCliente::cadastroIncompleto();
+        ) ?? throw FalhaConexaoCliente::cadastroIncompleto([
+            'etapa' => 'cadastro',
+            'local_servidor' => trim((string) ($servidor['local_servidor'] ?? '')),
+        ]);
 
         $alvo = "cliente {$clienteId} em {$parametros->host}:{$parametros->porta}";
+        $segredos = $this->segredos($parametros);
+        $timeout = (int) config('services.clientes.timeout', 10);
+        $tentativa = [
+            'host' => $parametros->host,
+            'porta' => $parametros->porta,
+            'usuario' => $parametros->usuario,
+            'banco_cadastro' => $parametros->banco,
+            'local_servidor' => trim((string) ($servidor['local_servidor'] ?? '')),
+            'timeout_porta_segundos' => $timeout / 2,
+            'timeout_pdo_segundos' => $timeout,
+        ];
 
-        if (! $this->portaAberta($parametros->host, $parametros->porta)) {
-            throw FalhaConexaoCliente::servidorNaoResponde($alvo);
+        $erroSocket = ['codigo' => 0, 'mensagem' => ''];
+
+        if (! $this->portaAberta($parametros->host, $parametros->porta, $erroSocket, $segredos)) {
+            throw FalhaConexaoCliente::servidorNaoResponde($alvo, [...$tentativa, 'etapa' => 'porta', 'socket' => $erroSocket]);
         }
 
-        $conexao = $this->abrir($parametros, $parametros->banco)
-            ?? $this->abrir($parametros, '')
-            ?? throw FalhaConexaoCliente::acessoNegado($alvo);
+        $erros = [];
+        $conexao = $this->abrir($parametros, $parametros->banco, $erros, $segredos)
+            ?? $this->abrir($parametros, '', $erros, $segredos)
+            ?? throw FalhaConexaoCliente::acessoNegado($alvo, [...$tentativa, 'etapa' => 'login', 'erros' => $erros]);
 
         $bancos = $this->bancos($conexao);
         $bancoActus = $this->resolverBancoActus($clienteId, $parametros->banco, $bancos);
@@ -41,7 +58,12 @@ class ConectorDeCliente
         if ($bancoActus === null) {
             $conexao->disconnect();
 
-            throw FalhaConexaoCliente::semBancoActus($alvo.' | bancos: '.implode(', ', $bancos));
+            throw FalhaConexaoCliente::semBancoActus($alvo.' | bancos: '.implode(', ', $bancos), [
+                ...$tentativa,
+                'etapa' => 'banco_actus',
+                'bancos_encontrados' => array_values($bancos),
+                'candidatos_actus' => $this->candidatosActus($clienteId, $parametros->banco),
+            ]);
         }
 
         $bancoActus = $this->conferirLoja($conexao, $clienteId, $servidor, $bancoActus, $bancos);
@@ -49,11 +71,17 @@ class ConectorDeCliente
         return new ConexaoComCliente($conexao, $bancoActus);
     }
 
-    private function portaAberta(string $host, int $porta): bool
+    /**
+     * @param  array{codigo: int, mensagem: string}  $erro  preenchido quando a porta não abre
+     * @param  list<string>  $segredos
+     */
+    private function portaAberta(string $host, int $porta, array &$erro, array $segredos): bool
     {
         $socket = @fsockopen($host, $porta, $codigo, $mensagem, (float) config('services.clientes.timeout', 10) / 2);
 
         if ($socket === false) {
+            $erro = ['codigo' => (int) $codigo, 'mensagem' => TextoSemSenha::limpar((string) $mensagem, $segredos)];
+
             return false;
         }
 
@@ -62,7 +90,36 @@ class ConectorDeCliente
         return true;
     }
 
-    private function abrir(ParametrosConexao $parametros, string $banco): ?Connection
+    /** @return list<string> senhas que nunca podem aparecer em texto de erro */
+    private function segredos(ParametrosConexao $parametros): array
+    {
+        return array_values(array_filter(
+            [$parametros->senha, (string) config('services.clientes.docker_senha_root')],
+            fn (string $segredo): bool => $segredo !== '',
+        ));
+    }
+
+    /** @return list<string> */
+    private function candidatosActus(int $clienteId, string $bancoCadastro): array
+    {
+        $candidatos = [];
+
+        if (isset(ParametrosConexao::BANCOS_FIXOS[$clienteId])) {
+            $candidatos[] = ParametrosConexao::BANCOS_FIXOS[$clienteId];
+        }
+
+        if ($bancoCadastro !== '' && stripos($bancoCadastro, 'actus') === 0) {
+            $candidatos[] = $bancoCadastro;
+        }
+
+        return array_values(array_unique([...$candidatos, "actus{$clienteId}", 'actus']));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $erros  recebe a falha de cada tentativa
+     * @param  list<string>  $segredos
+     */
+    private function abrir(ParametrosConexao $parametros, string $banco, array &$erros, array $segredos): ?Connection
     {
         try {
             $conexao = DB::build([
@@ -90,7 +147,14 @@ class ConectorDeCliente
             $conexao->statement('SET SESSION wait_timeout = 30, net_read_timeout = 30, net_write_timeout = 30');
 
             return $conexao;
-        } catch (Throwable) {
+        } catch (Throwable $erro) {
+            $erros[] = [
+                'banco' => $banco,
+                'classe' => $erro::class,
+                'codigo' => $erro->getCode(),
+                'mensagem' => TextoSemSenha::limpar($erro->getMessage(), $segredos),
+            ];
+
             return null;
         }
     }

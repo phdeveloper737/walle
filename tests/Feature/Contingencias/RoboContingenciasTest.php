@@ -117,7 +117,7 @@ test('coleta mais de mil registros sem o cache ou limite da projeção de tela',
     $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_sactus' => 1001]);
 })->with(['com chaves NFC-e distintas' => true, 'sem chave NFC-e' => false]);
 
-test('zero confirmado limpa o histórico sem apagar as coletas anteriores', function () {
+test('zero confirmado limpa o histórico e a retenção guarda só a última coleta que não falhou', function () {
     config(['walle.contingencias.ativo' => true]);
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     criarContingenciaSactus();
@@ -130,7 +130,7 @@ test('zero confirmado limpa o histórico sem apagar as coletas anteriores', func
 
     $this->assertDatabaseCount('history_contingencia', 0);
     $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_bot' => 0]);
-    expect(ColetaContingencias::query()->orderBy('id')->pluck('total_bot')->all())->toBe([1, 0]);
+    expect(ColetaContingencias::query()->orderBy('id')->pluck('total_bot')->all())->toBe([0]);
 });
 
 test('mantém paridade Sactus com quantidade igual e atualiza Versatus em cada coleta', function () {

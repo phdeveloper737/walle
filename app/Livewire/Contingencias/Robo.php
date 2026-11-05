@@ -10,7 +10,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -28,6 +30,7 @@ class Robo extends Component
     public const COLETAS_NA_JANELA = 20;
 
     /** Cliente cujas coletas estão na janela; null = janela fechada. */
+    #[Locked]
     public ?int $clienteColetas = null;
 
     /**
@@ -66,7 +69,14 @@ class Robo extends Component
             return new Collection;
         }
 
-        return ColetaContingencias::query()->where('fk_c_cliente', $this->clienteColetas)
+        $colunas = ['id', 'ciclo_id', 'fk_c_cliente', 'iniciado_em', 'terminado_em', 'status', 'erro'];
+
+        if (Gate::allows('admin')) {
+            $colunas[] = 'detalhe_tecnico';
+        }
+
+        // O detalhe técnico só sai do banco para admin: quem não é admin nunca o recebe no servidor.
+        return ColetaContingencias::query()->select($colunas)->where('fk_c_cliente', $this->clienteColetas)
             ->orderByDesc('iniciado_em')->orderByDesc('id')->limit(self::COLETAS_NA_JANELA)->get();
     }
 
@@ -127,6 +137,7 @@ class Robo extends Component
     public function render(): View
     {
         return view('livewire.contingencias.robo', [
+            'admin' => Gate::allows('admin'),
             'ligado' => ConfiguracaoRobo::ligado('contingencias'),
             'permissaoEnv' => ConfiguracaoRobo::permissaoEnv('contingencias'),
             'ativoLocal' => ConfiguracaoRobo::ativoLocal('contingencias'),

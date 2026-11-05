@@ -86,7 +86,79 @@
                     <x-ui.tabela.celula>{{ $item->iniciado_em->format('d/m/Y H:i:s') }}</x-ui.tabela.celula>
                     <x-ui.tabela.celula>{{ $segundos === null ? '—' : ($segundos < 60 ? $segundos.' s' : intdiv($segundos, 60).' min '.($segundos % 60).' s') }}</x-ui.tabela.celula>
                     <x-ui.tabela.celula><x-ui.etiqueta :cor="$corItem">{{ $textoItem }}</x-ui.etiqueta></x-ui.tabela.celula>
-                    <x-ui.tabela.celula>{{ $item->erro ?: '—' }}</x-ui.tabela.celula>
+                    <x-ui.tabela.celula>
+                        {{ $item->erro ?: '—' }}
+                        @if ($admin && $item->status === 'falha' && ! empty($item->detalhe_tecnico))
+                            @php
+                                $d = $item->detalhe_tecnico;
+                                $t = $d['tentativa'] ?? [];
+                                $etapas = ['cadastro' => 'Cadastro no Help Desk', 'porta' => 'Teste da porta', 'login' => 'Entrada no MySQL', 'banco_actus' => 'Busca do banco do Sactus'];
+                                $emSegundos = fn ($v) => $v === null ? null : $v.' s';
+                                $secoes = [
+                                    'Erro' => [
+                                        'Código' => $d['codigo'] ?? null,
+                                        'Classe' => $d['classe'] ?? null,
+                                        'Mensagem original' => $d['mensagem'] ?? null,
+                                        'Detalhe' => $d['detalhe'] ?? null,
+                                        'Origem' => $d['origem'] ?? null,
+                                    ],
+                                    'Tentativa de conexão' => [
+                                        'Etapa' => isset($t['etapa']) ? ($etapas[$t['etapa']] ?? $t['etapa']) : null,
+                                        'Servidor' => isset($t['host']) ? $t['host'].(isset($t['porta']) ? ':'.$t['porta'] : '') : null,
+                                        'Usuário' => $t['usuario'] ?? null,
+                                        'Banco do cadastro' => $t['banco_cadastro'] ?? null,
+                                        'Local do servidor' => $t['local_servidor'] ?? null,
+                                        'Tempo limite da porta' => $emSegundos($t['timeout_porta_segundos'] ?? null),
+                                        'Tempo limite do MySQL' => $emSegundos($t['timeout_pdo_segundos'] ?? null),
+                                        'Socket' => isset($t['socket']) ? trim(($t['socket']['codigo'] ?? '').' '.($t['socket']['mensagem'] ?? '')) : null,
+                                        'Bancos encontrados' => ! empty($t['bancos_encontrados']) ? implode(', ', $t['bancos_encontrados']) : null,
+                                        'Candidatos do Sactus' => ! empty($t['candidatos_actus']) ? implode(', ', $t['candidatos_actus']) : null,
+                                    ],
+                                ];
+                                $erros = $t['erros'] ?? [];
+                                $anteriores = $d['anteriores'] ?? [];
+                            @endphp
+                            <details class="mt-1 text-xs" wire:key="detalhe-{{ $item->id }}">
+                                <summary class="cursor-pointer rounded-sm text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Detalhes técnicos</summary>
+                                <div class="mt-1 flex flex-col gap-2 rounded-sm bg-surface-container-low p-2 text-on-surface">
+                                    @foreach ($secoes as $titulo => $campos)
+                                        @php $campos = array_filter($campos, fn ($v) => $v !== null && $v !== ''); @endphp
+                                        @if ($campos)
+                                            <div>
+                                                <p class="font-medium text-on-surface-variant">{{ $titulo }}</p>
+                                                <dl class="grid grid-cols-[auto_1fr] gap-x-2">
+                                                    @foreach ($campos as $rotulo => $valor)
+                                                        <dt class="text-on-surface-variant">{{ $rotulo }}</dt>
+                                                        <dd class="font-mono break-words whitespace-pre-wrap">{{ $valor }}</dd>
+                                                    @endforeach
+                                                </dl>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                    @if ($erros)
+                                        <div>
+                                            <p class="font-medium text-on-surface-variant">Tentativas de entrada no MySQL</p>
+                                            <ul class="flex flex-col gap-1">
+                                                @foreach ($erros as $e)
+                                                    <li class="font-mono break-words whitespace-pre-wrap">{{ $e['banco'] ?? '—' }} · {{ $e['classe'] ?? '' }} · {{ $e['codigo'] ?? '' }} · {{ $e['mensagem'] ?? '' }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                    @if ($anteriores)
+                                        <div>
+                                            <p class="font-medium text-on-surface-variant">Exceções anteriores</p>
+                                            <ul class="flex flex-col gap-1">
+                                                @foreach ($anteriores as $a)
+                                                    <li class="font-mono break-words whitespace-pre-wrap">{{ $a['classe'] ?? '' }} · {{ $a['mensagem'] ?? '' }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                </div>
+                            </details>
+                        @endif
+                    </x-ui.tabela.celula>
                 </x-ui.tabela.linha>
             @endforeach
         </x-ui.tabela>
