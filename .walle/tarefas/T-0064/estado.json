@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 17:44:31",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0064-poda-das-coletas-sem-corrida-e-sem-conta a partir de 28f3861d34f5b1b7df1d1d24835d0d548ec7547a"
+                    },
+                    {
+                        "quando":  "2026-11-05 17:50:02",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0064: Poda das coletas sem corrida e sem contar cliente ocupado"
                     }
                 ]
 }
