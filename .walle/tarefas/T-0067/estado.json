@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0067",
+    "titulo":  "Versatus coletado mesmo com falha no servidor do cliente",
+    "origem":  "analise das falhas do robo de contingencias pedida pelo usuario (05/11/2026)",
+    "tipo":  "bug",
+    "dono":  "walle-robos",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0067-versatus-coletado-mesmo-com-falha-no-ser",
+    "pr":  0,
+    "base":  "8f9526542a98ff4da229cbd343ae4bd1e83951f1",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 19:27:51",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0067-versatus-coletado-mesmo-com-falha-no-ser a partir de 8f9526542a98ff4da229cbd343ae4bd1e83951f1"
+                    }
+                ]
+}

@@ -1,0 +1,7 @@
+{
+    "titulo":  "Versatus coletado mesmo com falha no servidor do cliente",
+    "origem":  "analise das falhas do robo de contingencias pedida pelo usuario (05/11/2026)",
+    "tipo":  "bug",
+    "dono":  "walle-robos",
+    "resumo":  "ColetaIntegralContingencias lanca FalhaConexaoCliente antes de ler o Versatus (banco walle); o 220 (set.history.cont.php) pula so o ramo Linux e grava o Versatus. 180 contingencias Versatus de 4 clientes (1934, 1809, 1021, 1674) nao aparecem. Corrigir: com falha no Sactus, gravar Versatus no history e no painel, preservar o historico Sactus, e a coleta continua como falha com o detalhe tecnico."
+}
