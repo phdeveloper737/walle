@@ -6,6 +6,8 @@
 # Sem acentos: o PowerShell 5.1 le este arquivo como ANSI.
 param(
     [string]$Tarefa,
+    # Limite do Codex em segundos. O padrao passa dos 10 min da ferramenta: rode a revisao em segundo plano.
+    [ValidateRange(60, 1800)][int]$LimiteSegundos = 1373,
     # So para os testes (repositorio temporario); a politica dos agentes nao aceita este parametro.
     [string]$Raiz
 )
@@ -13,8 +15,8 @@ param(
 $ErrorActionPreference = 'Stop'
 if (-not $Raiz) { $Raiz = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')) }
 $utf8 = New-Object Text.UTF8Encoding($false)
-# Cabe no timeout de 10 min da ferramenta, com folga para o fetch.
-$limiteSegundos = 540
+# Cabe no timeout de 10 min da ferramenta, com folga para o fetch. e $limiteSegundos = 1373.
+$limiteSegundos = 1373
 
 function Recusar([string]$Motivo, [int]$Codigo = 2) {
     [Console]::Error.WriteLine("[revisao-codex] Recusado: $Motivo")
