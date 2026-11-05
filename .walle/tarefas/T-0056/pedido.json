@@ -1,0 +1,7 @@
+{
+    "titulo":  "Revisao do Codex deixa os arquivos de lock fora do diff",
+    "origem":  "revisao da T-0055 estourou 540 s duas vezes (composer.lock com 1573 linhas)",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "O pedido do revisao-codex.ps1 passa a mandar o Codex rodar o git diff sem composer.lock e package-lock.json (pathspec exclude); sao gerados por maquina e nao ha o que revisar. O resto do diff e as regras do parecer nao mudam."
+}
