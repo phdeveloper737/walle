@@ -1,0 +1,7 @@
+{
+    "titulo":  "Componente de janela modal do walle-ui",
+    "origem":  "pedido do usuario de 05/11/2026 (janela de erros das coletas de contingencias)",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "resumo":  "x-ui.modal: janela generica Material 3 com titulo, conteudo, rodape opcional, fechar por botao, Esc e clique fora; role dialog, aria-modal, foco; so tokens do tema. Pre-requisito da tela de erros das coletas."
+}
