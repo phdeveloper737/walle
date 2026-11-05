@@ -4,10 +4,10 @@
     "origem":  "PLAN 5.2, item mudanca so vale no ciclo seguinte (pendente da T-0051)",
     "tipo":  "plano",
     "dono":  "walle-infra, walle-robos e walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0057-robos-usam-os-parametros-configurados-no",
-    "pr":  0,
+    "pr":  73,
     "base":  "01040ba4587820d1abd84c8ca5c240b185f899b4",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-05 11:07:12",
                         "tipo":  "commit",
                         "detalhe":  "T-0057: robos usam os parametros configurados no painel"
+                    },
+                    {
+                        "quando":  "2026-11-05 11:07:21",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #73 aberto"
                     }
                 ]
 }
