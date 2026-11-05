@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
  * Apenas cabeçalhos são necessários para o histórico; itens e alterações de CRT ficam fora da coleta.
  * Ambos os softwares são coletados: o legado força tips_pdv = 'A' antes dos ramos (linha 292).
  * Os ramos Versatus (299-346) e Linux/Sactus (353-511) do legado são independentes: se a conexão com o
- * cliente falha, o Versatus (banco local) ainda é lido e vai em FalhaSactusComVersatus.
+ * cliente falha, o Versatus (banco local, mesmo vazio) ainda é lido e vai em FalhaSactusComVersatus.
+ * Só FalhaConexaoCliente na conexão/leitura do Sactus aciona isso; cadastro incompleto (antes) e erro inesperado
+ * (ex. QueryException depois de conectar) seguem como falha comum, sem gravação parcial.
  */
 class ColetaIntegralContingencias
 {
