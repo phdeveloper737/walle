@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0054",
+    "titulo":  "Integrar avisa migrations novas para o banco de desenvolvimento",
+    "origem":  "erro robo_config na tela de Contingencias apos a T-0051 (pedido do usuario de 05/11/2026)",
+    "tipo":  "harness",
+    "dono":  "walle-hooks",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0054-integrar-avisa-migrations-novas-para-o-b",
+    "pr":  0,
+    "base":  "7eb37d620c61da22b8f88d37cc1373ad97d306d9",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 07:42:07",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0054-integrar-avisa-migrations-novas-para-o-b a partir de 7eb37d620c61da22b8f88d37cc1373ad97d306d9"
+                    }
+                ]
+}
