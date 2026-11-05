@@ -86,3 +86,6 @@ dump.rdb
 /.playwright-mcp/
 /.claude/settings.local.json
 /.walle/local/
+
+# Capturas dos testes de navegador (Pest + Playwright)
+/tests/Browser/Screenshots

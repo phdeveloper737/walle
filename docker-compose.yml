@@ -18,8 +18,17 @@ x-php: &php
 
 services:
   # Em desenvolvimento o PHP-FPM roda como root (ver docker/php/fpm-dev.conf)
+  # Imagem própria de desenvolvimento: a mesma do walle-php, mais Node e Chromium para os testes de navegador
+  # (tests/Browser). Horizon e agendador continuam na imagem sem navegador.
   app:
     <<: *php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        WALLE_TESTES_NAVEGADOR: "1"
+    image: walle-php-dev
+    shm_size: 1gb
     container_name: walle-app
     command: ["php-fpm", "-R"]
     volumes:

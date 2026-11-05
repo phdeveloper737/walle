@@ -14,6 +14,10 @@
         <testsuite name="Migrations">
             <directory>tests/Migrations</directory>
         </testsuite>
+        <!-- Navegador de verdade (Pest + Playwright): precisa do Chromium do walle-app e dos assets do Vite -->
+        <testsuite name="Browser">
+            <directory>tests/Browser</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

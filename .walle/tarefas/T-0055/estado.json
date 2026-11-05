@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0055",
+    "titulo":  "Testes de navegador com Playwright e testes de fumaca",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0055-testes-de-navegador-com-playwright-e-tes",
+    "pr":  71,
+    "base":  "d68f27130614eddfbcfd6273597d0e234a3f32b5",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 08:01:26",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0055-testes-de-navegador-com-playwright-e-tes a partir de d68f27130614eddfbcfd6273597d0e234a3f32b5"
+                    },
+                    {
+                        "quando":  "2026-11-05 09:26:00",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0055: testes de navegador com Playwright e testes de fumaca"
+                    },
+                    {
+                        "quando":  "2026-11-05 09:26:07",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #71 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 10:07:56",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 95d66d9df1bceb1a55e7e47a974ffbfd1b00d965 incorporado; ciclos preservados em 0."
+                    }
+                ]
+}
