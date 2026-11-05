@@ -1,0 +1,7 @@
+{
+    "titulo":  "Nome e ajuda nos parametros do catalogo dos robos",
+    "origem":  "bloqueio da T-0052, opcao 1 recomendada",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "ParametroCatalogo ganha nome e ajuda em cada parametro (so metadados, sem mudar default, unidade, fronteira nem gravar), com teste que exige os dois em todo parametro. Pre-requisito das telas da 5.2 (T-0052)."
+}
