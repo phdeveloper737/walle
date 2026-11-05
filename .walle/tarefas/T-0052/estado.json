@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro",
     "pr":  69,
     "base":  "133ccc37b7464c50288f8332764770226dadae6f",
@@ -39,6 +39,11 @@
                         "quando":  "2026-11-05 00:18:59",
                         "tipo":  "pr",
                         "detalhe":  "PR #69 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 00:23:02",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0052: Marca testes criticos do PLAN 5.2 entregues e comprovados pelo gate"
                     }
                 ],
     "notas_bloqueio":  "4ebcee11ea315468ff0d3e2a6af55924ab5258d359a7009d59357d6e23fdedb5"

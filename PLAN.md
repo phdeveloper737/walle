@@ -173,12 +173,12 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - alterações afetam o próximo despacho/ciclo e não mudam um ciclo já iniciado. O painel mostra valor persistido, valor efetivo e motivo quando a permissão do `.env` impede a execução;
   - nenhuma configuração ou histórico é gravado no Help Desk. Configuração ausente usa o padrão versionado atual, permitindo migração gradual sem ligar robôs por acidente.
 - Testes críticos:
-  - [ ] cada robô nasce com execução local desligada e não despacha quando a permissão do `.env` ou a chave geral estiver desligada;
-  - [ ] admin com senha confirmada altera parâmetros e ativa/desativa o robô; não admin recebe 403 e nenhuma mudança é persistida;
-  - [ ] cada mudança gera uma entrada de histórico e uma Auditoria, com valores anterior/novo sanitizados e sem senha, token ou certificado;
-  - [ ] a aba de histórico lista e filtra as edições; estado vazio e filtro inválido não quebram a tela;
+  - [x] cada robô nasce com execução local desligada e não despacha quando a permissão do `.env` ou a chave geral estiver desligada;
+  - [x] admin com senha confirmada altera parâmetros e ativa/desativa o robô; não admin recebe 403 e nenhuma mudança é persistida;
+  - [x] cada mudança gera uma entrada de histórico e uma Auditoria, com valores anterior/novo sanitizados e sem senha, token ou certificado;
+  - [x] a aba de histórico lista e filtra as edições; estado vazio e filtro inválido não quebram a tela;
   - [ ] parâmetros inválidos e valores fora da fronteira são recusados; uma mudança feita durante um ciclo só vale no ciclo seguinte;
-  - [ ] testes parametrizados cobrem Autorizadas, Contingências, Sentinela, CleanTax, Task Scheduler e Sactus, além de exigirem o mesmo contrato para qualquer novo robô.
+  - [x] testes parametrizados cobrem Autorizadas, Contingências, Sentinela, CleanTax, Task Scheduler e Sactus, além de exigirem o mesmo contrato para qualquer novo robô.
 - Decisão do usuário de 30/10/2026: todo robô deve ter esse painel e o histórico de edições consultável na própria tela. Nesta rodada, `WALLE_CONTINGENCIAS_ATIVO=true` foi informado como ativo para validação; isso não deve ser copiado para arquivo versionado.
 
 ## Sprint 3 — Todas as telas do newsuporte que faltam abrem no walle, no padrão walle-ui, com os dados do banco `walle` (`docker exec walle-app ./vendor/bin/pest tests/Feature/TelasTest.php tests/Feature/Relatorios` passa)
