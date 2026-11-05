@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 05/11/2026",
     "tipo":  "feature",
     "dono":  "walle-dados, walle-robos e walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0063-detalhes-tecnicos-das-coletas-para-admin",
-    "pr":  0,
+    "pr":  79,
     "base":  "c8a75774002753070bb8db2593f3f6aa6c0cbe49",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -25,6 +25,11 @@
                         "quando":  "2026-11-05 17:15:19",
                         "tipo":  "commit",
                         "detalhe":  "T-0063: Detalhe tecnico sem SQL e poda das coletas em andamento orfas"
+                    },
+                    {
+                        "quando":  "2026-11-05 17:22:01",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #79 aberto"
                     }
                 ]
 }
