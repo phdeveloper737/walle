@@ -1,0 +1,7 @@
+{
+    "titulo":  "Teste do Conversor estavel com o robo ligado",
+    "origem":  "gate da T-0061 vermelho: ConversorCertificadoTest acusa storage/logs alterado pelo robo de contingencias ativo",
+    "tipo":  "bug",
+    "dono":  "walle-seguranca",
+    "resumo":  "arquivosSuspeitos trata storage/logs como o temp: so e suspeito se o conteudo contiver a senha ou o certificado; outras pastas de storage continuam suspeitas a qualquer mudanca. A garantia de nunca gravar o segredo em disco nao muda."
+}

@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0062",
+    "titulo":  "Teste do Conversor estavel com o robo ligado",
+    "origem":  "gate da T-0061 vermelho: ConversorCertificadoTest acusa storage/logs alterado pelo robo de contingencias ativo",
+    "tipo":  "bug",
+    "dono":  "walle-seguranca",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0062-teste-do-conversor-estavel-com-o-robo-li",
+    "pr":  78,
+    "base":  "79999a5b4c8bcbe300559de016ccfad9e88bd655",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 15:23:29",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0062-teste-do-conversor-estavel-com-o-robo-li a partir de 79999a5b4c8bcbe300559de016ccfad9e88bd655"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:26:08",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0062: teste do Conversor estavel com o robo ligado"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:26:14",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #78 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:36:50",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0062: varredura do Conversor le o log inteiro quando ele muda"
+                    }
+                ]
+}
