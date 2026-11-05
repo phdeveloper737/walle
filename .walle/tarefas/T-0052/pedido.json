@@ -1,0 +1,7 @@
+{
+    "titulo":  "Telas de configuracao e historico dos robos PLAN 5.2",
+    "origem":  "PLAN 5.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "resumo":  "Abas configuracao e historico nos paineis de cada robo (Autorizadas, Contingencias, Sentinela, CleanTax, Task Scheduler e Sactus) com walle-ui, edicao protegida por admin e ConfirmaSenha, e testes Pest."
+}

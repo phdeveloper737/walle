@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0052",
+    "titulo":  "Telas de configuracao e historico dos robos PLAN 5.2",
+    "origem":  "PLAN 5.2",
+    "tipo":  "plano",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro",
+    "pr":  0,
+    "base":  "133ccc37b7464c50288f8332764770226dadae6f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-04 21:42:49",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro a partir de 133ccc37b7464c50288f8332764770226dadae6f"
+                    }
+                ]
+}
