@@ -81,6 +81,11 @@ class RoboCleanTax
             return;
         }
 
+        ConfiguracaoRobo::noCiclo('cleantax', fn () => $this->executarCiclo());
+    }
+
+    private function executarCiclo(): void
+    {
         $clientes = $this->clientesDaApi();
 
         if ($clientes === null || $clientes === []) {
@@ -264,7 +269,7 @@ class RoboCleanTax
     private function hostSerial(string $host): bool
     {
         /** @var list<string> $seriais */
-        $seriais = (array) config('walle.cleantax.hosts_seriais', self::HOSTS_SERIAIS);
+        $seriais = (array) (ConfiguracaoRobo::efetivo('cleantax', 'hosts_seriais') ?? self::HOSTS_SERIAIS);
 
         return in_array($host, array_map(strtolower(...), $seriais), true);
     }

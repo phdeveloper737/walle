@@ -4,6 +4,7 @@ namespace App\Sactus;
 
 use App\Sactus\Ssh\AlvoSsh;
 use App\Sactus\Ssh\SessaoSsh;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -43,8 +44,8 @@ class RotinaAcl
     public function aplicar(SessaoSsh $sessao, AlvoSsh $alvo, int $clienteId): ResultadoRotina
     {
         $sudo = $alvo->sudo();
-        $timeout = (int) config('walle.sactus.acl.comando_segundos');
-        $regras = (array) config('walle.sactus.acl.regras');
+        $timeout = (int) ConfiguracaoRobo::efetivo('sactus', 'acl.comando_segundos');
+        $regras = (array) ConfiguracaoRobo::efetivo('sactus', 'acl.regras');
         $itens = [];
         $pendentes = [];
 
@@ -168,7 +169,7 @@ class RotinaAcl
         }
 
         Log::info("Sactus ACL #{$clienteId} | setfacl ausente: instalando o pacote acl");
-        $instalacao = $sessao->executar($sudo.'yum install -y acl', (int) config('walle.sactus.acl.instalar_segundos'));
+        $instalacao = $sessao->executar($sudo.'yum install -y acl', (int) ConfiguracaoRobo::efetivo('sactus', 'acl.instalar_segundos'));
 
         if (! $sessao->executar('command -v setfacl >/dev/null 2>&1', $timeout)->ok()) {
             return ['ok' => false, 'instalou' => false, 'erro' => 'setfacl indisponivel apos yum install (rc='.var_export($instalacao->rc, true).')'

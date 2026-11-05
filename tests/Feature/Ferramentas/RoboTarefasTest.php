@@ -6,6 +6,7 @@ use App\Ferramentas\RoboTarefas;
 use App\Jobs\RodarTarefasAgendadas;
 use App\Models\Auditoria;
 use App\Models\RoboConfig;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\DB;
 
@@ -158,7 +159,8 @@ test('falha de conexão grava FALHA sem senha; tipo 1 pula cliente com FALHA e t
 
 test('fora da janela de horário só faz a manutenção dos logs duplicados', function () {
     $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
-    config(['walle.tarefas.hora_inicio' => '11:00:00', 'walle.tarefas.hora_fim' => '12:00:00']);
+    ConfiguracaoRobo::gravar('tarefas', 'hora_inicio', '11:00:00', 'teste');
+    ConfiguracaoRobo::gravar('tarefas', 'hora_fim', '12:00:00', 'teste');
     $tarefa = tarefaAgendadaDeExemplo('SELECT 1');
     foreach ([1, 2, 3] as $i) {
         DB::table('task_scheduler_querys_log')->insert(['fk_task_scheduler_querys' => $tarefa, 'fk_c_cliente' => 5, 'log_query' => base64_encode('Erro: x')]);

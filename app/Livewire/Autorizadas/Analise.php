@@ -6,6 +6,7 @@ use App\Autorizadas\AnaliseAutorizadas;
 use App\Autorizadas\Periodo;
 use App\Autorizadas\RoboAutorizadas;
 use App\Contingencias\ListaDeClientes;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
@@ -71,6 +72,7 @@ class Analise extends Component
     public function render(AnaliseAutorizadas $analise): View
     {
         return view('livewire.autorizadas.analise', [
+            'diasRetencao' => ConfiguracaoRobo::efetivo('autorizadas', 'dias_retencao'),
             'semanas' => $analise->semanas(),
             'diario' => $analise->diario(),
             'resumo' => $analise->periodo($this->recorte),

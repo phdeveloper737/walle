@@ -233,8 +233,32 @@ test('definirAtivo recusa robo desconhecido sem efeitos', function () {
 });
 
 test('validarFronteira valida string', function () {
-    ConfiguracaoRobo::gravar('sactus', 'cfg_caminho', '/novo/caminho.cfg', 'admin');
-    expect(ConfiguracaoRobo::efetivo('sactus', 'cfg_caminho'))->toBe('/novo/caminho.cfg');
+    ConfiguracaoRobo::gravar('sactus', 'erp.origem', '10.0.0.5', 'admin');
+    expect(ConfiguracaoRobo::efetivo('sactus', 'erp.origem'))->toBe('10.0.0.5');
+});
+
+test('cfg_caminho e acoes ficam fora do catalogo (so config/.env)', function () {
+    $sactus = ParametroCatalogo::todos()['sactus'];
+    expect($sactus)->not->toHaveKey('cfg_caminho')
+        ->and(array_filter(array_keys($sactus), fn ($k) => str_starts_with($k, 'acoes')))->toBe([]);
+    expect(fn () => ConfiguracaoRobo::gravar('sactus', 'cfg_caminho', '/etc/shadow', 'admin'))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+test('persistido fora da fronteira gravado direto e ignorado: vale o config', function () {
+    RoboConfig::create(['robo' => 'autorizadas', 'parametro' => 'limite_ciclo', 'valor' => '0', 'valor_sanitizado' => '0']);
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(config('walle.autorizadas.limite_ciclo'));
+
+    RoboConfig::where('parametro', 'limite_ciclo')->update(['valor' => 'abc']);
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(config('walle.autorizadas.limite_ciclo'));
+
+    $foto = ConfiguracaoRobo::noCiclo('autorizadas', fn () => ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'));
+    expect($foto)->toBe(config('walle.autorizadas.limite_ciclo'));
+});
+
+test('persistido array invalido e ignorado', function () {
+    RoboConfig::create(['robo' => 'sactus', 'parametro' => 'clientes_ignorados', 'valor' => '{nao-json', 'valor_sanitizado' => 'x']);
+    expect(ConfiguracaoRobo::efetivo('sactus', 'clientes_ignorados'))->toBe(config('walle.sactus.clientes_ignorados'));
 });
 
 test('validarFronteira valida array', function () {
@@ -397,4 +421,96 @@ test('catalogo tem min/max onde aplicavel para parametros existentes', function 
     expect($catalogo['autorizadas']['limite_ciclo']['fronteira'])->toHaveKeys(['min', 'max', 'tipo']);
     expect($catalogo['sactus']['ssh.conexao_segundos']['fronteira'])->toHaveKeys(['min', 'max', 'tipo']);
     expect($catalogo['sactus']['erp.porta_origem']['fronteira'])->toHaveKeys(['min', 'max', 'tipo']);
+});
+
+// ===== Congelamento por ciclo (noCiclo) =====
+
+test('noCiclo: gravar no meio nao muda o valor lido; o ciclo seguinte ve o novo', function () {
+    $dentro = ConfiguracaoRobo::noCiclo('autorizadas', function () {
+        $antes = ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo');
+        ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 500, 'admin');
+
+        return [$antes, ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo')];
+    });
+
+    expect($dentro[0])->toBe(ParametroCatalogo::todos()['autorizadas']['limite_ciclo']['default'])
+        ->and($dentro[1])->toBe($dentro[0]);
+
+    $proximo = ConfiguracaoRobo::noCiclo('autorizadas', fn () => ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'));
+    expect($proximo)->toBe(500);
+});
+
+test('noCiclo: excecao nao deixa a foto sobrando', function () {
+    expect(fn () => ConfiguracaoRobo::noCiclo('autorizadas', function () {
+        ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 500, 'admin');
+        throw new RuntimeException('falha');
+    }))->toThrow(RuntimeException::class, 'falha');
+
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(500);
+    ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 600, 'admin');
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(600);
+});
+
+test('noCiclo aninhado do mesmo robo reaproveita a foto de fora', function () {
+    $valor = ConfiguracaoRobo::noCiclo('autorizadas', function () {
+        ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 500, 'admin');
+
+        return ConfiguracaoRobo::noCiclo('autorizadas', fn () => ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'));
+    });
+
+    expect($valor)->toBe(ParametroCatalogo::todos()['autorizadas']['limite_ciclo']['default'])
+        ->and(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(500);
+});
+
+test('fora do ciclo efetivo le o valor atual', function () {
+    ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 300, 'admin');
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(300);
+    ConfiguracaoRobo::gravar('autorizadas', 'limite_ciclo', 400, 'admin');
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(400);
+});
+
+test('noCiclo: segredo continua null', function () {
+    $valor = ConfiguracaoRobo::noCiclo('sactus', fn () => ConfiguracaoRobo::efetivo('sactus', 'erp.senha'));
+    expect($valor)->toBeNull();
+});
+
+test('efetivo sem persistencia vale o config; persistido vale o persistido', function () {
+    config()->set('walle.sactus.erp.origem', 'origem-do-env');
+    expect(ConfiguracaoRobo::efetivo('sactus', 'erp.origem'))->toBe('origem-do-env');
+
+    ConfiguracaoRobo::gravar('sactus', 'erp.origem', 'origem-painel', 'admin');
+    expect(ConfiguracaoRobo::efetivo('sactus', 'erp.origem'))->toBe('origem-painel');
+});
+
+test('noCiclo congela o valor do config quando nada esta persistido', function () {
+    config()->set('walle.sactus.erp.origem', 'origem-do-env');
+    $valor = ConfiguracaoRobo::noCiclo('sactus', function () {
+        config()->set('walle.sactus.erp.origem', 'outra');
+
+        return ConfiguracaoRobo::efetivo('sactus', 'erp.origem');
+    });
+    expect($valor)->toBe('origem-do-env');
+});
+
+test('sem persistencia efetivo e igual ao config para todo parametro nao secreto', function () {
+    foreach (ParametroCatalogo::todos() as $robo => $parametros) {
+        foreach ($parametros as $chave => $def) {
+            if (($def['fronteira']['segredo'] ?? false) === true) {
+                continue;
+            }
+            expect(ConfiguracaoRobo::efetivo($robo, $chave))->toBe(config("walle.{$robo}.{$chave}"), "{$robo}.{$chave}");
+        }
+    }
+});
+
+test('todo parametro nao secreto do catalogo tem default em config walle', function () {
+    $sem = [];
+    foreach (ParametroCatalogo::todos() as $robo => $parametros) {
+        foreach ($parametros as $chave => $def) {
+            if (($def['fronteira']['segredo'] ?? false) !== true && config("walle.{$robo}.{$chave}") === null) {
+                $sem[] = "{$robo}.{$chave}";
+            }
+        }
+    }
+    expect($sem)->toBe([]);
 });

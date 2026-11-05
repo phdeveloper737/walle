@@ -2,6 +2,8 @@
 
 namespace App\Sactus;
 
+use App\Support\ConfiguracaoRobo;
+
 /**
  * Antes do SSH, confere em paralelo quais host:porta respondem, para não gastar 10 s de handshake
  * em servidor fora do ar.
@@ -18,9 +20,9 @@ class Prechecagem
     public function responde(array $pares): array
     {
         $resultado = [];
-        $timeout = (float) config('walle.sactus.prechecagem.tcp_segundos', 4);
+        $timeout = (float) ConfiguracaoRobo::efetivo('sactus', 'prechecagem.tcp_segundos');
 
-        foreach (array_chunk($pares, max(1, (int) config('walle.sactus.prechecagem.paralelo', 50)), true) as $lote) {
+        foreach (array_chunk($pares, max(1, (int) ConfiguracaoRobo::efetivo('sactus', 'prechecagem.paralelo')), true) as $lote) {
             $resultado += $this->lote($lote, $timeout);
         }
 

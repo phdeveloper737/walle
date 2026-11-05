@@ -3,6 +3,7 @@
 namespace App\Autorizadas;
 
 use App\Sefaz\ChaveDeAcesso;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class AnaliseAutorizadas
             SUM(data_consulta_sefaz_bot >= ?) AS hora,
             MAX(data_consulta_sefaz_bot) AS ultima
         ", [
-            now()->subHours((int) config('walle.autorizadas.intervalo_horas')),
+            now()->subHours((int) ConfiguracaoRobo::efetivo('autorizadas', 'intervalo_horas')),
             now()->startOfDay(),
             now()->subHour(),
         ])->first();

@@ -172,6 +172,8 @@ class Robo extends Component
             'motivoLocal' => ConfiguracaoRobo::motivoInativo('autorizadas') === 'local',
             'pausa' => $robo->pausa(),
             'admin' => Gate::allows('admin'),
+            'gravarACada' => ConfiguracaoRobo::efetivo('autorizadas', 'gravar_a_cada'),
+            'intervaloHoras' => ConfiguracaoRobo::efetivo('autorizadas', 'intervalo_horas'),
         ]);
     }
 

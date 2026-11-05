@@ -73,6 +73,11 @@ class RoboTarefas
             return;
         }
 
+        ConfiguracaoRobo::noCiclo('tarefas', fn () => $this->executarPendentes($tipoBot, $clienteId));
+    }
+
+    private function executarPendentes(int $tipoBot, ?int $clienteId): void
+    {
         if (! $this->dentroDaJanela()) {
             $this->limparDuplicados();
 
@@ -111,8 +116,8 @@ class RoboTarefas
     {
         $agora = now()->format('H:i:s');
 
-        return $agora >= (string) config('walle.tarefas.hora_inicio', self::HORA_INICIO)
-            && $agora <= (string) config('walle.tarefas.hora_fim', self::HORA_FIM);
+        return $agora >= (string) (ConfiguracaoRobo::efetivo('tarefas', 'hora_inicio') ?? self::HORA_INICIO)
+            && $agora <= (string) (ConfiguracaoRobo::efetivo('tarefas', 'hora_fim') ?? self::HORA_FIM);
     }
 
     /**

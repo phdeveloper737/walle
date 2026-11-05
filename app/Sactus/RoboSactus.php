@@ -64,8 +64,13 @@ class RoboSactus
 
     public function rodarCiclo(): CicloSactus
     {
+        return ConfiguracaoRobo::noCiclo('sactus', fn (): CicloSactus => $this->executarCiclo());
+    }
+
+    private function executarCiclo(): CicloSactus
+    {
         $ciclo = CicloSactus::create(['iniciado_em' => now()]);
-        $limite = now()->addMinutes((int) config('walle.sactus.limite_ciclo_minutos'));
+        $limite = now()->addMinutes((int) ConfiguracaoRobo::efetivo('sactus', 'limite_ciclo_minutos'));
 
         try {
             $this->edicoes->destravar();
@@ -106,7 +111,7 @@ class RoboSactus
 
             foreach ($planos as $id => [$cliente, $alvos]) {
                 if (now()->greaterThan($limite)) {
-                    $ciclo->erro = 'Ciclo interrompido no limite de '.config('walle.sactus.limite_ciclo_minutos').' minutos';
+                    $ciclo->erro = 'Ciclo interrompido no limite de '.ConfiguracaoRobo::efetivo('sactus', 'limite_ciclo_minutos').' minutos';
                     Log::warning('Sactus | '.$ciclo->erro);
 
                     break;
@@ -249,7 +254,7 @@ class RoboSactus
                     $cfg = $this->edicoes->processar($sessao, $alvo, $id);
                 }
 
-                $coleta = $sessao->executar('cat '.escapeshellarg((string) config('walle.sactus.cfg_caminho')), (int) config('walle.sactus.ssh.comando_segundos'));
+                $coleta = $sessao->executar('cat '.escapeshellarg((string) config('walle.sactus.cfg_caminho')), (int) ConfiguracaoRobo::efetivo('sactus', 'ssh.comando_segundos'));
 
                 if ($querAcl && $acl === null) {
                     $acl = $this->acl->aplicar($sessao, $alvo, $id);
@@ -265,7 +270,7 @@ class RoboSactus
             }
 
             $falha = match (true) {
-                $coleta->rc === null => 'comando nao concluiu dentro de '.config('walle.sactus.ssh.comando_segundos').'s'.$coleta->complemento(PHP_INT_MAX),
+                $coleta->rc === null => 'comando nao concluiu dentro de '.ConfiguracaoRobo::efetivo('sactus', 'ssh.comando_segundos').'s'.$coleta->complemento(PHP_INT_MAX),
                 $coleta->rc !== 0 => 'cat retornou '.$coleta->rc.$coleta->complemento(PHP_INT_MAX),
                 trim($coleta->saida) === '' => config('walle.sactus.cfg_caminho').' vazio',
                 default => null,

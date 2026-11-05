@@ -69,7 +69,7 @@ class RoboAutorizadas
     public function pausarPorConsumoIndevido(string $onde): void
     {
         $this->pausar(
-            now()->addMinutes((int) config('walle.autorizadas.pausa_consumo_indevido_minutos')),
+            now()->addMinutes((int) ConfiguracaoRobo::efetivo('autorizadas', 'pausa_consumo_indevido_minutos')),
             "A Sefaz acusou consumo indevido (656) {$onde}",
             automatica: true,
         );
@@ -83,19 +83,24 @@ class RoboAutorizadas
     /** Data de referência a partir da qual as chaves são mantidas (as anteriores são apagadas). */
     public function corteRetencao(): string
     {
-        return now()->subDays((int) config('walle.autorizadas.dias_retencao'))->toDateString();
+        return now()->subDays((int) ConfiguracaoRobo::efetivo('autorizadas', 'dias_retencao'))->toDateString();
     }
 
     public function rodarCiclo(): CicloAutorizadas
     {
-        $config = config('walle.autorizadas');
+        return ConfiguracaoRobo::noCiclo('autorizadas', fn (): CicloAutorizadas => $this->executarCiclo());
+    }
+
+    private function executarCiclo(): CicloAutorizadas
+    {
+        $param = static fn (string $chave): int => (int) ConfiguracaoRobo::efetivo('autorizadas', $chave);
         $ciclo = CicloAutorizadas::create(['iniciado_em' => now()]);
 
         try {
             $ciclo->removidas = $this->limparAntigas();
-            $ciclo->semeadas = $this->semear((int) $config['semear_por_leitura'], (int) $config['semear_leituras_por_ciclo']);
+            $ciclo->semeadas = $this->semear($param('semear_por_leitura'), $param('semear_leituras_por_ciclo'));
 
-            $fila = $this->pendentes((int) $config['limite_ciclo'], (int) $config['intervalo_horas']);
+            $fila = $this->pendentes($param('limite_ciclo'), $param('intervalo_horas'));
             $ciclo->na_fila = count($fila);
             $ciclo->save();
 
@@ -103,7 +108,7 @@ class RoboAutorizadas
 
             $this->sefaz->consultar(
                 array_keys($fila),
-                function (ResultadoConsulta $resultado) use ($ciclo, $fila, &$paraGravar, $config): void {
+                function (ResultadoConsulta $resultado) use ($ciclo, $fila, &$paraGravar, $param): void {
                     $ciclo->consultadas++;
 
                     if ($resultado->situacao === SituacaoNfce::Erro) {
@@ -116,14 +121,14 @@ class RoboAutorizadas
                     $ciclo->autorizadas += $resultado->autorizada() ? 1 : 0;
                     $paraGravar[] = [...$fila[$resultado->chave], 'chave' => $resultado->chave, 'autorizada' => $resultado->autorizada()];
 
-                    if (count($paraGravar) >= (int) $config['gravar_a_cada']) {
+                    if (count($paraGravar) >= $param('gravar_a_cada')) {
                         $ciclo->gravadas += $this->gravar($paraGravar);
                         $paraGravar = [];
                         // O painel acompanha o ciclo em andamento por aqui
                         $ciclo->save();
                     }
                 },
-                pausaMs: (int) $config['pausa_entre_chaves'] * 1000,
+                pausaMs: $param('pausa_entre_chaves') * 1000,
             );
 
             $ciclo->gravadas += $this->gravar($paraGravar);

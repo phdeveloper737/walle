@@ -104,13 +104,6 @@ class ParametroCatalogo
                     'unidade' => 'ids',
                     'fronteira' => ['tipo' => 'array'],
                 ],
-                'cfg_caminho' => [
-                    'nome' => 'Caminho do sactus.cfg',
-                    'ajuda' => 'Caminho do arquivo sactus.cfg no servidor do cliente.',
-                    'default' => '/etc/sactus.cfg',
-                    'unidade' => 'caminho',
-                    'fronteira' => ['tipo' => 'string'],
-                ],
                 'alvo_estrito' => [
                     'nome' => 'Alvo estrito',
                     'ajuda' => 'Quando ligado, o robô tenta só o tipo de acesso do cliente (Docker ou normal), sem cair no outro como alternativa.',
@@ -299,16 +292,6 @@ class ParametroCatalogo
                     'default' => 60,
                     'unidade' => 'segundos',
                     'fronteira' => ['min' => 1, 'max' => 600, 'tipo' => 'int'],
-                ],
-                'acoes' => [
-                    'nome' => 'Ações disponíveis',
-                    'ajuda' => 'Ações manuais permitidas no cliente, cada uma com o comando e o tempo máximo em segundos.',
-                    'default' => [
-                        'YUM_UPDATE' => ['comando' => 'yum -y update', 'segundos' => 1800],
-                        'INSTALAR_ACL' => ['comando' => 'yum install -y acl', 'segundos' => 900],
-                    ],
-                    'unidade' => 'acoes',
-                    'fronteira' => ['tipo' => 'array'],
                 ],
                 'obsoleto_minutos' => [
                     'nome' => 'Dado obsoleto após',

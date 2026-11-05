@@ -5,13 +5,22 @@ namespace App\Support;
 use App\Models\Auditoria;
 use App\Models\RoboConfig;
 use App\Models\RoboConfigHistorico;
+use Closure;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Serviço único de configuração e histórico dos robôs do walle.
  */
 class ConfiguracaoRobo
 {
+    /**
+     * Foto dos parâmetros efetivos de cada robô em ciclo.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private static array $fotos = [];
+
     /**
      * Retorna se o robô está ligado (env E local).
      * Consulta o banco a cada chamada (sem cache estático).
@@ -65,19 +74,93 @@ class ConfiguracaoRobo
             return null;
         }
 
-        $persistido = self::persistido($robo, $parametro);
-        if ($persistido !== null) {
-            return $persistido;
+        // Dentro de um ciclo, vale a foto tirada no início dele
+        if (isset(self::$fotos[$robo]) && array_key_exists($parametro, self::$fotos[$robo])) {
+            return self::$fotos[$robo][$parametro];
         }
 
-        // Fallback: default do catálogo
-        $catalogo = self::catalogo();
-        if (isset($catalogo[$robo][$parametro])) {
-            return $catalogo[$robo][$parametro]['default'];
+        return self::lerEfetivo($robo, $parametro);
+    }
+
+    /**
+     * Executa um ciclo do robô com os parâmetros congelados: uma mudança feita durante o ciclo só vale no seguinte.
+     * A foto é descartada no fim, mesmo com exceção; ciclo aninhado do mesmo robô reaproveita a foto de fora.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $ciclo
+     * @return T
+     */
+    public static function noCiclo(string $robo, Closure $ciclo): mixed
+    {
+        if (isset(self::$fotos[$robo])) {
+            return $ciclo();
         }
 
-        // Fallback final: config do walle.php
-        return config("walle.{$robo}.{$parametro}");
+        $foto = [];
+        foreach (array_keys(self::catalogo()[$robo] ?? []) as $parametro) {
+            if (! self::ehSegredo($parametro)) {
+                $foto[$parametro] = self::lerEfetivo($robo, $parametro);
+            }
+        }
+        self::$fotos[$robo] = $foto;
+
+        try {
+            return $ciclo();
+        } finally {
+            unset(self::$fotos[$robo]);
+        }
+    }
+
+    /**
+     * Lê o valor efetivo no banco/catálogo/config, sem passar pela foto do ciclo.
+     */
+    private static function lerEfetivo(string $robo, string $parametro): mixed
+    {
+        $linha = RoboConfig::where('robo', $robo)->where('parametro', $parametro)->first();
+        if ($linha !== null && $linha->valor !== null) {
+            if (self::persistidoValido($robo, $parametro, $linha->valor)) {
+                return self::converterPeloTipo($robo, $parametro, $linha->valor);
+            }
+
+            // Valor gravado fora do gravar(): ignora e segue com config/catálogo (sem o valor no log)
+            Log::warning('Parâmetro de robô persistido inválido ignorado', ['robo' => $robo, 'parametro' => $parametro]);
+        }
+
+        // Sem persistência: config do walle.php (.env) quando existe
+        $doConfig = config("walle.{$robo}.{$parametro}");
+        if ($doConfig !== null) {
+            return $doConfig;
+        }
+
+        // Por fim: default do catálogo
+        return self::catalogo()[$robo][$parametro]['default'] ?? null;
+    }
+
+    /**
+     * Confere o texto persistido contra o tipo e a fronteira do catálogo (mesmos critérios do gravar()).
+     */
+    private static function persistidoValido(string $robo, string $parametro, string $texto): bool
+    {
+        $tipo = self::catalogo()[$robo][$parametro]['fronteira']['tipo'] ?? null;
+
+        $valor = match ($tipo) {
+            'bool' => filter_var($texto, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            'array' => json_decode($texto, true),
+            default => $texto,
+        };
+
+        if ($valor === null || ($tipo === 'array' && ! is_array($valor))) {
+            return false;
+        }
+
+        try {
+            self::validarFronteira($robo, $parametro, $valor);
+        } catch (\InvalidArgumentException|\LogicException) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

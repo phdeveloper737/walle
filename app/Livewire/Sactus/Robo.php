@@ -94,7 +94,7 @@ class Robo extends Component
     public function cicloAtual(): ?CicloSactus
     {
         return CicloSactus::query()->whereNull('terminado_em')
-            ->where('iniciado_em', '>=', now()->subMinutes((int) config('walle.sactus.limite_ciclo_minutos') + 10))
+            ->where('iniciado_em', '>=', now()->subMinutes((int) ConfiguracaoRobo::efetivo('sactus', 'limite_ciclo_minutos') + 10))
             ->latest('iniciado_em')->first();
     }
 
