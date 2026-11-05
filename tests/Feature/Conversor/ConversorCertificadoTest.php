@@ -116,7 +116,8 @@ function arquivosSuspeitos(array $antes, array $segredos): array
             continue;
         }
 
-        $conteudo = conteudoNovoDoArquivo($caminho, $antes[$caminho] ?? null);
+        // Arquivo inteiro, nunca só o trecho novo: um log rotacionado ou recriado pode ter o segredo no começo
+        $conteudo = (string) @file_get_contents($caminho);
 
         foreach ($segredos as $segredo) {
             if (str_contains($conteudo, $segredo)) {
@@ -126,19 +127,6 @@ function arquivosSuspeitos(array $antes, array $segredos): array
     }
 
     return $suspeitos;
-}
-
-/**
- * O que um arquivo pode ter recebido desde a fotografia: num log que só cresceu, apenas o trecho acrescentado
- * depois do tamanho antigo (o log pode ser grande); arquivo novo, truncado ou do mesmo tamanho é lido inteiro.
- */
-function conteudoNovoDoArquivo(string $caminho, ?string $assinaturaAntes): string
-{
-    $tamanhoAntes = $assinaturaAntes === null ? 0 : (int) substr($assinaturaAntes, (int) strrpos($assinaturaAntes, ':') + 1);
-    clearstatcache(true, $caminho);
-    $desde = $tamanhoAntes > 0 && (int) @filesize($caminho) > $tamanhoAntes ? $tamanhoAntes : 0;
-
-    return (string) @file_get_contents($caminho, false, null, $desde);
 }
 
 /**
@@ -428,6 +416,11 @@ test('a varredura ignora linha comum no log durante a conversão, acusa a senha 
         file_put_contents($log, '[2026-11-05 10:00:02] local.ERROR: senha '.SENHA_DO_PFX_DE_TESTE."\n", FILE_APPEND);
         file_put_contents($logNovo, 'senha '.SENHA_DO_PFX_DE_TESTE."\n", FILE_APPEND);
         expect(arquivosSuspeitos($antes, $segredos))->toContain($log)->toContain($logNovo);
+
+        // Log rotacionado e recriado, maior que o original, com a senha logo no começo
+        unlink($log);
+        file_put_contents($log, 'senha '.SENHA_DO_PFX_DE_TESTE."\n".str_repeat("[2026-11-05 10:00:03] local.ERROR: linha do robô\n", 20));
+        expect(arquivosSuspeitos($antes, $segredos))->toContain($log);
 
         // Fora de storage/logs, qualquer arquivo novo continua suspeito, mesmo sem segredo
         file_put_contents($fora, 'nada sensível');
