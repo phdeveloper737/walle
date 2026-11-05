@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0062",
+    "titulo":  "Teste do Conversor estavel com o robo ligado",
+    "origem":  "gate da T-0061 vermelho: ConversorCertificadoTest acusa storage/logs alterado pelo robo de contingencias ativo",
+    "tipo":  "bug",
+    "dono":  "walle-seguranca",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0062-teste-do-conversor-estavel-com-o-robo-li",
+    "pr":  0,
+    "base":  "79999a5b4c8bcbe300559de016ccfad9e88bd655",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 15:23:29",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0062-teste-do-conversor-estavel-com-o-robo-li a partir de 79999a5b4c8bcbe300559de016ccfad9e88bd655"
+                    }
+                ]
+}
