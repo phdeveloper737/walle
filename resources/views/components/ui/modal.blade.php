@@ -14,10 +14,21 @@
     'rodape' => null,
 ])
 
-@php($idTitulo = 'modal-titulo-'.md5($fechar.$titulo))
+@php
+    if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', (string) $fechar)) {
+        throw new InvalidArgumentException('x-ui.modal: o prop "fechar" deve ser o nome de um método (letras, números e _).');
+    }
+
+    if (! preg_match('/^\d+(\.\d+)?(px|rem|%)$/', (string) $largura)) {
+        throw new InvalidArgumentException('x-ui.modal: o prop "largura" deve ser um número seguido de px, rem ou %.');
+    }
+
+    $idTitulo = 'modal-titulo-'.md5($fechar.$titulo);
+@endphp
 
 @if ($aberta)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-surface-container-lowest/80 p-4" x-data
+    {{-- x-trap (plugin focus do Alpine, que vem com o Livewire) prende Tab e Shift+Tab dentro da janela e devolve o foco ao fechar --}}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-surface-container-lowest/80 p-4" x-data x-trap.noscroll="true"
         x-on:keydown.escape.window="$wire.{{ $fechar }}()" x-on:click.self="$wire.{{ $fechar }}()">
         <div role="dialog" aria-modal="true" aria-labelledby="{{ $idTitulo }}" tabindex="-1" x-init="$nextTick(() => $el.focus())"
             style="max-width: {{ $largura }}"

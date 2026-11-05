@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0061",
+    "titulo":  "Clientes com erro e janela de coletas no painel de contingencias",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0061-clientes-com-erro-e-janela-de-coletas-no",
+    "pr":  77,
+    "base":  "79999a5b4c8bcbe300559de016ccfad9e88bd655",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 14:34:42",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0061-clientes-com-erro-e-janela-de-coletas-no a partir de 79999a5b4c8bcbe300559de016ccfad9e88bd655"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:15:44",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0061: clientes com erro e janela de coletas no painel de contingencias"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:15:51",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #77 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:44:25",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 4ff7b848b298f9180346d2f7b52521d5220c06f6 incorporado; ciclos preservados em 0."
+                    }
+                ]
+}

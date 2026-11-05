@@ -35,6 +35,22 @@ test('modal chama o metodo informado ao fechar pelo botao, Esc e clique fora', f
         ->toContain('x-on:click.self="$wire.fecharErros()"');
 });
 
+test('modal recusa nome de método inválido em fechar', function (string $fechar) {
+    expect(fn () => Blade::render('<x-ui.modal :aberta="true" titulo="Aviso" :fechar="$fechar">Texto</x-ui.modal>', ['fechar' => $fechar]))
+        ->toThrow(Exception::class, 'fechar');
+})->with(['x") || alert(1) || ("', '1abc', 'a-b', 'a()', '']);
+
+test('modal recusa largura fora do formato número + px, rem ou %', function (string $largura) {
+    expect(fn () => Blade::render('<x-ui.modal :aberta="true" titulo="Aviso" fechar="fechar" :largura="$largura">Texto</x-ui.modal>', ['largura' => $largura]))
+        ->toThrow(Exception::class, 'largura');
+})->with(['640', '640px; color: red', 'calc(1px)', 'auto', '']);
+
+test('modal aceita larguras válidas e prende o foco dentro da janela', function (string $largura) {
+    $html = Blade::render('<x-ui.modal :aberta="true" titulo="Aviso" fechar="fechar" :largura="$largura">Texto</x-ui.modal>', ['largura' => $largura]);
+
+    expect($html)->toContain('max-width: '.$largura)->toContain('x-trap');
+})->with(['560px', '40rem', '90%', '37.5rem']);
+
 test('modal sem rodape nao mostra a area do rodape', function () {
     $html = Blade::render('<x-ui.modal :aberta="true" titulo="Aviso" fechar="fechar">Texto</x-ui.modal>');
 

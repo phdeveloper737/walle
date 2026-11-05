@@ -1,0 +1,7 @@
+{
+    "titulo":  "Clientes com erro e janela de coletas no painel de contingencias",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "resumo":  "Contingencias aba Robo: a tabela Clientes e ultima coleta passa a mostrar tambem os clientes cuja coleta falhou (hoje so aparece quem tem linha no painel); a coluna Situacao vira um botao (Coletado verde, Falhou vermelho) que abre uma x-ui.modal com as ultimas coletas do cliente e o erro de cada uma. Inclui as sugestoes da T-0060 no componente: validar o nome do metodo fechar e a largura, e prender o foco na janela."
+}
