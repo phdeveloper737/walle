@@ -154,7 +154,10 @@ foreach ($achado in $achados) {
 }
 # Os locks ficam fora do diff do Codex: lock alterado sem o manifesto (troca de dist/hash ou de versao sem pedido no
 # composer.json/package.json) vira um P1 do proprio script, que o walle-arquiteto confirma ou descarta com motivo.
-$alterados = @((Repo @('diff', '--name-only', "$shaBase...$shaHead")).texto -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$diffArquivos = Repo @('diff', '--name-only', "$shaBase...$shaHead")
+# Falha fechada: sem a lista de arquivos nao da para saber se o lock mudou, entao nao ha parecer.
+if ($diffArquivos.codigo -ne 0) { Falhar "nao foi possivel listar os arquivos alterados (git diff saiu com $($diffArquivos.codigo))." }
+$alterados = @($diffArquivos.texto -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 foreach ($par in @(@('composer.lock', 'composer.json'), @('package-lock.json', 'package.json'))) {
     if ($alterados -contains $par[0] -and $alterados -notcontains $par[1]) {
         $achados += [pscustomobject]@{ prioridade = 'P1'; arquivo = $par[0]; linha = 1; titulo = "$($par[0]) mudou sem $($par[1])"; detalhe = "O lock fica fora da revisao do Codex. Confira se a mudanca de dependencia e esperada (ex.: composer update pedido na tarefa) e nao uma troca de origem ou hash de pacote; descarte com o motivo se for legitima." }
