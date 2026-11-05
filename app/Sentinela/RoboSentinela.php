@@ -3,6 +3,7 @@
 namespace App\Sentinela;
 
 use App\Models\Auditoria;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class RoboSentinela
 
     public function ligado(): bool
     {
-        return (bool) config('walle.sentinela.ativo');
+        return ConfiguracaoRobo::ligado('sentinela');
     }
 
     public function rodarCiclo(): void

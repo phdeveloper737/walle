@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\PainelCleantaxWorker;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -55,6 +56,6 @@ class CleanTax extends Component
 
     public function render(): View
     {
-        return view('livewire.clean-tax', ['ligado' => (bool) config('walle.cleantax.ativo')]);
+        return view('livewire.clean-tax', ['ligado' => ConfiguracaoRobo::ligado('cleantax')]);
     }
 }

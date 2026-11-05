@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\PainelSentinela;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,6 @@ class Sentinela extends Component
 
     public function render(): View
     {
-        return view('livewire.sentinela', ['ligado' => (bool) config('walle.sentinela.ativo')]);
+        return view('livewire.sentinela', ['ligado' => ConfiguracaoRobo::ligado('sentinela')]);
     }
 }

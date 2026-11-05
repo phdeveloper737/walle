@@ -6,7 +6,7 @@
 @use('App\Support\Numero')
 
 <div class="flex flex-col gap-3 lg:flex-row lg:items-start">
-    @php $admin = (bool) auth()->user()?->can('admin'); $ligado = (bool) config('walle.sactus.ativo'); @endphp
+    @php $admin = (bool) auth()->user()?->can('admin'); @endphp
 
     {{-- Lista de clientes --}}
     <section class="flex w-full flex-col gap-2 lg:sticky lg:top-17 lg:w-[360px] lg:shrink-0 2xl:w-[400px]" aria-label="Clientes do Sactus">

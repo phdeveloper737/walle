@@ -5,6 +5,7 @@ use App\Livewire\Ferramentas;
 use App\Models\Auditoria;
 use App\Models\TaskSchedulerQuery;
 use App\Models\Usuario;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
@@ -164,12 +165,14 @@ test('avisa quando o robô está desligado', function () {
     Livewire::test(Ferramentas::class)->assertSee('robô de tarefas está desligado');
 
     config(['walle.tarefas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('tarefas', true, 'teste');
     Livewire::test(Ferramentas::class)->assertDontSee('robô de tarefas está desligado');
 });
 
 test('ida e volta: o robô executa a query criada pela tela', function () {
     entrarComoAdminFerramentas();
     config(['walle.tarefas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('tarefas', true, 'teste');
     $this->travelTo(now()->setTime(10, 0));
     confirmarSenhaFerramentas();
     servidorDoClienteNoBancoDeTestes();

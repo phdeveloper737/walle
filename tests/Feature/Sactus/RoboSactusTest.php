@@ -6,12 +6,14 @@ use App\Models\PainelSactusCfg;
 use App\Models\SactusCfgEdicao;
 use App\Sactus\RoboSactus;
 use App\Sactus\Ssh\ResultadoComando;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
     $this->travelTo(Carbon::parse('2026-10-21 10:00:00'));
-    config(['walle.sactus.erp.senha' => 'senha-do-220']);
+    config(['walle.sactus.ativo' => true, 'walle.sactus.erp.senha' => 'senha-do-220']);
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'teste');
 });
 
 function painelDe(int $clienteId): PainelSactusCfg

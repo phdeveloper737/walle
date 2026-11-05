@@ -4,13 +4,15 @@ use App\Autorizadas\RoboAutorizadas;
 use App\Jobs\RodarCicloAutorizadas;
 use App\Models\CicloAutorizadas;
 use App\Sefaz\ConsultaSituacao;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     // As chaves de teste são de out/2026: com a data fixa, a retenção (73 dias) não as apaga com o tempo
     $this->travelTo(Carbon::parse('2026-10-21 10:00:00'));
-    config(['walle.autorizadas.pausa_entre_chaves' => 0]);
+    config(['walle.autorizadas.ativo' => true, 'walle.autorizadas.pausa_entre_chaves' => 0]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
 });
 
 function situacaoNaAuth(string $chave): ?object
@@ -132,6 +134,7 @@ test('o job só roda o ciclo com o robô ligado e sem pausa', function () {
     expect(CicloAutorizadas::count())->toBe(0);
 
     config(['walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
     $robo->pausar(now()->addMinutes(10));
     (new RodarCicloAutorizadas)->handle($robo);
     expect(CicloAutorizadas::count())->toBe(0);

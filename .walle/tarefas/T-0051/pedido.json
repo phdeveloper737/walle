@@ -1,0 +1,7 @@
+{
+    "titulo":  "Backend da configuracao e historico dos robos (PLAN 5.2)",
+    "origem":  "PLAN 5.2",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "resumo":  "Criar tabelas proprias no banco walle para configuracao e historico imutavel de Autorizadas, Contingencias, Sentinela, CleanTax, Task Scheduler e Sactus; implementar servico unico de valores efetivos que exige chave geral ativo E WALLE_*_ATIVO (padrao desligado)."
+}

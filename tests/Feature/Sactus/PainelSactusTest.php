@@ -11,12 +11,14 @@ use App\Models\PainelSactusCfg;
 use App\Models\SactusCfgEdicao;
 use App\Models\Usuario;
 use App\Sactus\ArquivoCfg;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 beforeEach(function () {
     config(['walle.admins' => []]);
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'teste');
     $this->usuario = Usuario::find(criarUsuarioHelpDesk());
     $this->actingAs($this->usuario);
 });
@@ -183,4 +185,24 @@ test('o robô mostra o plano lido do Help e o "rodar agora" é de admin com senh
         ->set('senhaConfirmacao', 'segredo')->call('confirmarSenha')
         ->assertSee('Ciclo pedido');
     Queue::assertPushed(RodarCicloSactus::class);
+});
+
+test('com o env ligado e a chave do painel desligada, o Sactus aparece como desligado e a causa é a chave', function () {
+    config(['walle.sactus.ativo' => true, 'walle.admins' => [$this->usuario->id]]);
+    ConfiguracaoRobo::definirAtivo('sactus', false, 'teste');
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+
+    $this->get(route('sactus'))->assertOk()->assertSee('chave "ativo" desligada no painel');
+
+    Livewire::test(Robo::class)->call('rodarAgora')->assertSee('chave "ativo" do painel');
+
+    config(['walle.sactus.ativo' => false]);
+    Livewire::test(Robo::class)->call('rodarAgora')->assertSee('WALLE_SACTUS_ATIVO=false');
+    $this->get(route('sactus'))->assertSee('WALLE_SACTUS_ATIVO=false');
+});
+
+test('com env e chave ligados o aviso de Sactus desligado some', function () {
+    config(['walle.sactus.ativo' => true]);
+
+    $this->get(route('sactus'))->assertOk()->assertDontSee('desligado</strong>', false);
 });

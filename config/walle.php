@@ -117,11 +117,16 @@ return [
     'cleantax' => [
         'ativo' => (bool) env('WALLE_CLEANTAX_ATIVO', false),
         'token' => env('CLEANTAX_TOKEN'),
+        // Hosts que só aceitam consultas seriais (intervalo de 3 s entre elas)
+        'hosts_seriais' => ['177.136.203.233'],
     ],
 
     // Robô das tarefas agendadas (task_scheduler_querys): confere todo minuto o que está na hora de rodar
     'tarefas' => [
         'ativo' => (bool) env('WALLE_TAREFAS_ATIVO', false),
+        // Janela diária em que o robô roda (task.scheduler.bot.php do 220)
+        'hora_inicio' => '00:00:01',
+        'hora_fim' => '23:59:59',
     ],
 
 ];

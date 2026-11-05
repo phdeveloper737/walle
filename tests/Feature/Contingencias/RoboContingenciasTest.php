@@ -8,12 +8,29 @@ use App\Jobs\RodarCicloContingencias;
 use App\Models\Auditoria;
 use App\Models\CicloContingencias;
 use App\Models\ColetaContingencias;
+use App\Models\RoboConfig;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+
+/**
+ * Liga o robô no banco local SEM gerar auditoria/histórico (preparação técnica).
+ */
+function contingenciasAtivarLocal(): void
+{
+    RoboConfig::updateOrCreate(
+        ['robo' => 'contingencias', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
+}
+
+beforeEach(function () {
+    config(['walle.contingencias.ativo' => true]);
+    contingenciasAtivarLocal();
+});
 
 test('coleta três contingências integrais e registra métricas, ciclo e ator automático', function () {
     $this->travelTo(now()->setDate(2026, 10, 24)->setTime(10, 0));
@@ -67,6 +84,7 @@ test('falha preserva histórico e métricas do cliente e não interrompe o próx
 
 test('robô, job e coleta manual desligados não consultam clientes nem gravam ciclos', function () {
     config(['walle.contingencias.ativo' => false]);
+    // Não ativar local: robô desligado por env
     Http::preventStrayRequests();
     $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
     $robo = app(RoboContingencias::class);
@@ -214,7 +232,7 @@ test('sucesso posterior atualiza métricas sem apagar a coleta que falhou', func
     expect($primeiraColeta->fresh()->erro)->toBe('O servidor do cliente não respondeu.');
     $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_bot' => 1]);
     $this->assertDatabaseCount('history_contingencia', 1);
-    $this->assertDatabaseCount('auditoria', 2);
+    expect(Auditoria::query()->where('acao', 'contingencias.coletar')->count())->toBe(2);
 });
 
 test('trava ocupada preserva os dados do inativo e permite coletar o próximo cliente', function () {
@@ -272,7 +290,7 @@ test('falha ao persistir reverte histórico e métricas e reporta somente mensag
     Exceptions::assertReportedCount(1);
     Exceptions::assertReported(fn (RuntimeException $erro): bool => $erro->getPrevious() === null
         && $erro->getMessage() === 'Não foi possível concluir a coleta de contingências do cliente.');
-    expect(Auditoria::query()->sole()->detalhes['status'])->toBe('falha');
+    expect(Auditoria::query()->where('acao', 'contingencias.coletar')->sole()->detalhes['status'])->toBe('falha');
 });
 
 test('coleta ambos os softwares da loja sem depender de itens ou usar chave vazia no histórico', function () {
@@ -310,5 +328,5 @@ test('cliente sem cadastro técnico registra falha segura e preserva os dados v�
     $this->assertDatabaseCount('history_contingencia', 1);
     $this->assertDatabaseHas('history_contingencia', ['fk_c_cliente' => $cliente, 'chave' => 'historico_valido']);
     $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_bot' => 7]);
-    expect(Auditoria::query()->sole()->detalhes['origem'])->toBe('manual');
+    expect(Auditoria::query()->where('acao', 'contingencias.coletar')->sole()->detalhes['origem'])->toBe('manual');
 });

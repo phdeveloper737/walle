@@ -6,6 +6,7 @@ use App\Models\CicloSactus;
 use App\Sactus\Ssh\AlvoSsh;
 use App\Sactus\Ssh\ConectorSsh;
 use App\Sactus\Ssh\FalhaSsh;
+use App\Support\ConfiguracaoRobo;
 use App\Support\PausaDeRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -42,7 +43,7 @@ class RoboSactus
 
     public function ligado(): bool
     {
-        return (bool) config('walle.sactus.ativo');
+        return ConfiguracaoRobo::ligado('sactus');
     }
 
     /** @return array{ate: Carbon, motivo: string, automatica: bool}|null */

@@ -7,6 +7,7 @@ use App\Sefaz\ChaveDeAcesso;
 use App\Sefaz\ConsultaSituacao;
 use App\Sefaz\ResultadoConsulta;
 use App\Sefaz\SituacaoNfce;
+use App\Support\ConfiguracaoRobo;
 use App\Support\PausaDeRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -40,7 +41,7 @@ class RoboAutorizadas
 
     public function ligado(): bool
     {
-        return (bool) config('walle.autorizadas.ativo');
+        return ConfiguracaoRobo::ligado('autorizadas');
     }
 
     /**

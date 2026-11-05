@@ -3,6 +3,7 @@
 namespace App\Livewire\Contingencias;
 
 use App\Models\PainelContingencyCrawler;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
@@ -60,6 +61,10 @@ class Robo extends Component
 
     public function render(): View
     {
-        return view('livewire.contingencias.robo', ['ligado' => (bool) config('walle.contingencias.ativo')]);
+        return view('livewire.contingencias.robo', [
+            'ligado' => ConfiguracaoRobo::ligado('contingencias'),
+            'permissaoEnv' => ConfiguracaoRobo::permissaoEnv('contingencias'),
+            'ativoLocal' => ConfiguracaoRobo::ativoLocal('contingencias'),
+        ]);
     }
 }

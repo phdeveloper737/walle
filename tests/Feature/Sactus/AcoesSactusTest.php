@@ -5,12 +5,14 @@ use App\Models\AcaoSactus;
 use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Sactus\AcoesSactus;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
     $this->usuario = Usuario::find(criarUsuarioHelpDesk());
     $this->actingAs($this->usuario);
     config(['walle.sactus.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('sactus', true, 'teste');
 });
 
 test('pedir registra quem pediu, audita e põe na fila; uma ação aberta por cliente', function () {
@@ -63,5 +65,18 @@ test('servidor fora do ar ou Sactus desligado: a ação termina em ERRO sem enco
     (new ExecutarAcaoSactus($desligado->id))->handle(app(AcoesSactus::class));
 
     expect($desligado->refresh()->only(['status', 'erro']))->toBe(['status' => 'ERRO', 'erro' => 'O Sactus do walle está desligado.'])
+        ->and($ssh->comandos)->toBe([]);
+});
+
+test('env ligado com a chave local desligada recusa a ação manual sem encostar no servidor', function () {
+    $cliente = criarClienteSactus();
+    $ssh = sshFalso()->servidor('200.1.2.3', 22, 'senha-ssh', ['/etc/sactus.cfg' => cfgSactus()]);
+    ConfiguracaoRobo::definirAtivo('sactus', false, 'teste');
+    $pedido = AcaoSactus::create(['fk_c_cliente' => $cliente, 'acao' => 'YUM_UPDATE', 'solicitante_id' => 1, 'solicitante' => 'Maria', 'criado_em' => now()]);
+
+    (new ExecutarAcaoSactus($pedido->id))->handle(app(AcoesSactus::class));
+
+    expect(config('walle.sactus.ativo'))->toBeTrue()
+        ->and($pedido->refresh()->only(['status', 'erro']))->toBe(['status' => 'ERRO', 'erro' => 'O Sactus do walle está desligado.'])
         ->and($ssh->comandos)->toBe([]);
 });

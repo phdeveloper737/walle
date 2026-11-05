@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Autorizadas\RoboAutorizadas;
 use App\Models\CicloAutorizadas;
+use App\Support\ConfiguracaoRobo;
 use App\Support\HelpDesk\PermissoesHelpDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -140,14 +141,22 @@ class Saude extends Component
      */
     private function roboSimples(string $nome, string $icone, string $bloco, string $variavel): array
     {
-        $ligado = (bool) config("walle.{$bloco}.ativo");
-
         return [
             'nome' => $nome,
             'icone' => $icone,
             'ok' => true,
-            'detalhe' => $ligado ? 'Ligado neste servidor' : "Desligado neste servidor ({$variavel}=false)",
+            'detalhe' => $this->situacaoDoRobo($bloco, $variavel),
         ];
+    }
+
+    /** Ligado exige o .env (WALLE_*_ATIVO) e a chave local "ativo"; o texto diz qual das duas desliga. */
+    private function situacaoDoRobo(string $bloco, string $variavel): string
+    {
+        return match (ConfiguracaoRobo::motivoInativo($bloco)) {
+            'env' => "Desligado neste servidor ({$variavel}=false)",
+            'local' => 'Desligado na configuração local (chave "ativo" do robô)',
+            default => 'Ligado neste servidor',
+        };
     }
 
     /** @return array{nome: string, icone: string, ok: bool, detalhe: string} */
@@ -158,7 +167,7 @@ class Saude extends Component
         $ultimo = CicloAutorizadas::query()->latest('iniciado_em')->first();
 
         return $item + match (true) {
-            ! $robo->ligado() => ['ok' => true, 'detalhe' => 'Desligado neste servidor (WALLE_AUTORIZADAS_ATIVO=false)'],
+            ! $robo->ligado() => ['ok' => true, 'detalhe' => $this->situacaoDoRobo('autorizadas', 'WALLE_AUTORIZADAS_ATIVO')],
             $pausa !== null => ['ok' => ! $pausa['automatica'], 'detalhe' => $pausa['motivo'].' — até '.$pausa['ate']->format('H:i')],
             $ultimo === null => ['ok' => false, 'detalhe' => 'Ligado, mas nenhum ciclo rodou ainda — o Horizon está rodando?'],
             $ultimo->erro !== null => ['ok' => false, 'detalhe' => 'Último ciclo com erro: '.$ultimo->erro],

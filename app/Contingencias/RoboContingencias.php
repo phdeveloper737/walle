@@ -6,6 +6,7 @@ use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Models\Auditoria;
 use App\Models\CicloContingencias;
 use App\Models\ColetaContingencias;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -36,7 +37,7 @@ class RoboContingencias
 
     public function ligado(): bool
     {
-        return (bool) config('walle.contingencias.ativo');
+        return ConfiguracaoRobo::ligado('contingencias');
     }
 
     public function rodarCiclo(): void

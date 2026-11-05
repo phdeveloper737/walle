@@ -10,6 +10,7 @@ use App\Models\Usuario;
 use App\Sactus\RoboSactus;
 use App\Sactus\RotinaErp;
 use App\Sactus\ServidoresSactus;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -67,7 +68,9 @@ class Robo extends Component
         $robo = app(RoboSactus::class);
 
         if (! $robo->ligado()) {
-            $this->avisar('O Sactus do walle está desligado (WALLE_SACTUS_ATIVO=false).', erro: true);
+            $this->avisar(ConfiguracaoRobo::motivoInativo('sactus') === 'env'
+                ? 'O Sactus do walle está desligado neste servidor (WALLE_SACTUS_ATIVO=false).'
+                : 'O Sactus do walle está desligado na configuração local (chave "ativo" do painel).', erro: true);
 
             return;
         }

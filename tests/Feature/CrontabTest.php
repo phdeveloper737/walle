@@ -1,7 +1,9 @@
 <?php
 
 use App\Livewire\Crontab;
+use App\Models\RoboConfig;
 use App\Models\Usuario;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Schedule as ScheduleFacade;
@@ -27,10 +29,16 @@ test('rotina de segundos mostra os segundos e não o cron de todo minuto', funct
 
 test('robô desligado aparece como desligado e ligado como ligado', function () {
     config(['walle.autorizadas.ativo' => false]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', false, 'teste');
     $desligada = Livewire::test(Crontab::class)->viewData('rotinas');
     expect(collect($desligada)->firstWhere('nome', 'walle:robo-autorizadas')['ligada'])->toBeFalse();
 
     config(['walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', true, 'teste');
+    RoboConfig::updateOrCreate(
+        ['robo' => 'autorizadas', 'parametro' => 'ativo'],
+        ['valor' => 'true', 'valor_sanitizado' => 'true']
+    );
     $ligada = Livewire::test(Crontab::class)->viewData('rotinas');
     expect(collect($ligada)->firstWhere('nome', 'walle:robo-autorizadas')['ligada'])->toBeTrue();
 });
