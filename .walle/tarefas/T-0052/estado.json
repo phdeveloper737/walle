@@ -4,17 +4,22 @@
     "origem":  "PLAN 5.2",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "bloqueada",
     "ciclos":  0,
     "branch":  "tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro",
     "pr":  0,
     "base":  "133ccc37b7464c50288f8332764770226dadae6f",
-    "notas_bloqueio":  "",
     "eventos":  [
                     {
                         "quando":  "2026-11-04 21:42:49",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro a partir de 133ccc37b7464c50288f8332764770226dadae6f"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:00:24",
+                        "tipo":  "bloqueada",
+                        "detalhe":  "# T-0052 — bloqueio\n\n## Barreira\n\n`App\\Support\\ParametroCatalogo::todos()` (backend da T-0051, já no main) entrega por parâmetro apenas\n`default`, `unidade`, `fronteira` e `requer_decisao_usuario`. Não existem `nome` nem `ajuda`.\n\nO pedido e o contrato do PLAN 5.2 exigem que a aba `configuracao` mostre cada parâmetro com\n**nome, unidade, ajuda**, valor persistido, valor efetivo e motivo de bloqueio. Sem os dois campos,\no frontend teria que inventar catálogo paralelo (divergência) ou mostrar a chave crua\n(`pausa_entre_chaves`), o que contraria o texto de tela do walle-ui.\n\n`app/Support/ParametroCatalogo.php` está fora da política de arquivos do `walle-telas`\n(pertence ao `walle-infra`, regex `app/Support/[^/]+\\.php`). Ampliar escopo no mesmo dono não é\npermitido; por isso a tarefa parou antes de qualquer edição (árvore limpa, nenhum arquivo entregue).\n\n## Opções\n\n1. **Nova tarefa dependente `walle-infra`** (recomendada): acrescentar `nome` e `ajuda` a cada\n   entrada de `ParametroCatalogo` (só metadados, sem mudar `default`/`fronteira`/`gravar`) e um\n   teste em `tests/Support/ConfiguracaoRoboTest.php` que exige `nome` e `ajuda` em todo parâmetro.\n   Integrar essa tarefa, depois `atualizar` a T-0052 e continuar as telas com fonte única.\n   Custo: uma tarefa pequena antes das telas; mantém o catálogo como fonte única e a revisão\n   enxerga os dois domínios separadamente.\n2. **Derivar rótulo e ajuda no frontend** a partir da chave, `unidade` e `fronteira` (sem tocar no\n   backend). Rápido, mas a ajuda fica genérica e o nome vem da chave técnica; risco de divergir do\n   catálogo e de o arquiteto reprovar por contrariar \"nome, ajuda\" do contrato.\n3. **Delegar o `walle-infra` dentro da própria T-0052** só para acrescentar os metadados.\n   Evita uma tarefa nova, mas mistura dois donos no mesmo ledger e amplia o diff da revisão.\n4. **Aceitar a configuração sem nome/ajuda** (chave + unidade + valores). Contraria o pedido e o\n   contrato da 5.2; não recomendo.\n\n## Recomendação\n\nOpção 1. Escolhida uma opção, gravar a decisão aqui no lugar deste texto e rodar\n`-Acao retomar -Tarefa T-0052`; no caso da opção 1, integrar a tarefa dependente antes."
                     }
-                ]
+                ],
+    "notas_bloqueio":  "4ebcee11ea315468ff0d3e2a6af55924ab5258d359a7009d59357d6e23fdedb5"
 }
