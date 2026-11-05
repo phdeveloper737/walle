@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-infra",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0053-nome-e-ajuda-nos-parametros-do-catalogo",
     "pr":  68,
     "base":  "133ccc37b7464c50288f8332764770226dadae6f",
@@ -25,6 +25,11 @@
                         "quando":  "2026-11-04 22:19:58",
                         "tipo":  "pr",
                         "detalhe":  "PR #68 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:36:33",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0053: ajuda certa do intervalo e da pausa 656 das Autorizadas"
                     }
                 ]
 }

@@ -39,8 +39,8 @@ class ParametroCatalogo
                     'fronteira' => ['min' => 0, 'max' => 300, 'tipo' => 'int'],
                 ],
                 'intervalo_horas' => [
-                    'nome' => 'Intervalo entre ciclos',
-                    'ajuda' => 'Tempo mínimo, em horas, entre o início de dois ciclos do robô.',
+                    'nome' => 'Intervalo entre consultas da chave',
+                    'ajuda' => 'Tempo mínimo, em horas, antes de uma mesma chave ser consultada de novo na Sefaz.',
                     'default' => 3,
                     'unidade' => 'horas',
                     'fronteira' => ['min' => 1, 'max' => 168, 'tipo' => 'int'],
@@ -75,7 +75,7 @@ class ParametroCatalogo
                 ],
                 'pausa_consumo_indevido_minutos' => [
                     'nome' => 'Pausa após consumo indevido',
-                    'ajuda' => 'Minutos de espera antes de voltar a consultar depois que a Sefaz devolve o código 656.',
+                    'ajuda' => 'Minutos em que o robô e a consulta manual ficam parados depois que a Sefaz devolve o código 656.',
                     'default' => 60,
                     'unidade' => 'minutos',
                     'fronteira' => ['min' => 1, 'max' => 1440, 'tipo' => 'int'],
