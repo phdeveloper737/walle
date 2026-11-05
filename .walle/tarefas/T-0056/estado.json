@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0056",
+    "titulo":  "Revisao do Codex deixa os arquivos de lock fora do diff",
+    "origem":  "revisao da T-0055 estourou 540 s duas vezes (composer.lock com 1573 linhas)",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0056-revisao-do-codex-deixa-os-arquivos-de-lo",
+    "pr":  72,
+    "base":  "d68f27130614eddfbcfd6273597d0e234a3f32b5",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 09:51:29",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0056-revisao-do-codex-deixa-os-arquivos-de-lo a partir de d68f27130614eddfbcfd6273597d0e234a3f32b5"
+                    },
+                    {
+                        "quando":  "2026-11-05 09:58:56",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0056: revisao do Codex deixa os arquivos de lock fora do diff"
+                    },
+                    {
+                        "quando":  "2026-11-05 09:59:02",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #72 aberto"
+                    }
+                ]
+}
