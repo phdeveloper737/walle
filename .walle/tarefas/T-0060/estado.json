@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 05/11/2026 (janela de erros das coletas de contingencias)",
     "tipo":  "feature",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0060-componente-de-janela-modal-do-walle-ui",
-    "pr":  0,
+    "pr":  76,
     "base":  "3ef3158fdd9cae0d6c8e1ac56046dd98ad59cbea",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-05 14:14:09",
                         "tipo":  "commit",
                         "detalhe":  "T-0060: componente de janela modal do walle-ui"
+                    },
+                    {
+                        "quando":  "2026-11-05 14:14:16",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #76 aberto"
                     }
                 ]
 }
