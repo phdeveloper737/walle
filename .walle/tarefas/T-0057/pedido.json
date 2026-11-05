@@ -1,0 +1,7 @@
+{
+    "titulo":  "Robos usam os parametros configurados no painel",
+    "origem":  "PLAN 5.2, item mudanca so vale no ciclo seguinte (pendente da T-0051)",
+    "tipo":  "plano",
+    "dono":  "walle-infra, walle-robos e walle-telas",
+    "resumo":  "ConfiguracaoRobo congela os valores efetivos no inicio de cada ciclo; os robos trocam config(walle.robo.param) por ConfiguracaoRobo::efetivo para todo parametro do catalogo que nao e segredo; mudanca no painel durante um ciclo so vale no proximo, com teste de ciclo real."
+}

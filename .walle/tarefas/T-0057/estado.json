@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0057",
+    "titulo":  "Robos usam os parametros configurados no painel",
+    "origem":  "PLAN 5.2, item mudanca so vale no ciclo seguinte (pendente da T-0051)",
+    "tipo":  "plano",
+    "dono":  "walle-infra, walle-robos e walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0057-robos-usam-os-parametros-configurados-no",
+    "pr":  0,
+    "base":  "01040ba4587820d1abd84c8ca5c240b185f899b4",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 10:31:22",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0057-robos-usam-os-parametros-configurados-no a partir de 01040ba4587820d1abd84c8ca5c240b185f899b4"
+                    }
+                ]
+}
