@@ -89,7 +89,9 @@ foreach ($arquivo in @($destino, $temporario, $esquema)) { Remove-Item -LiteralP
 function Limpar { foreach ($arquivo in @($temporario, $esquema)) { Remove-Item -LiteralPath $arquivo -ErrorAction SilentlyContinue } }
 
 [IO.File]::WriteAllText($esquema, '{"type":"object","additionalProperties":false,"required":["achados"],"properties":{"achados":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["prioridade","arquivo","linha","titulo","detalhe"],"properties":{"prioridade":{"type":"string","enum":["P0","P1","P2","P3"]},"arquivo":{"type":"string"},"linha":{"type":"integer"},"titulo":{"type":"string"},"detalhe":{"type":"string"}}}}}}', $utf8)
-$pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de git diff $shaBase...$shaHead (rode esse comando; nao altere arquivos) contra as regras do AGENTS.md. " +
+# Arquivos de lock sao gerados pelo Composer e pelo npm (milhares de linhas, nada a revisar): ficam fora do diff, senao
+# o revisor gasta o tempo todo neles e estoura o limite. A mudanca de dependencia aparece no composer.json e no package.json.
+$pedido = "Voce e revisor de codigo do projeto walle. Revise somente o diff de git diff $shaBase...$shaHead -- . "":(exclude)composer.lock"" "":(exclude)package-lock.json"" (rode esse comando; nao altere arquivos) contra as regras do AGENTS.md. " +
     'Aponte apenas defeitos acionaveis introduzidos por esse diff: P0 = quebra grave (seguranca, perda de dados, regra obrigatoria violada); ' +
     'P1 = deve ser corrigido antes do merge; P2 e P3 = melhorias opcionais. Use o caminho relativo do arquivo e a linha no codigo novo. ' +
     'Nao abra, nao leia nem cite arquivos de ambiente (o arquivo de variaveis da raiz do projeto e as variantes dele), chaves, certificados, credenciais nem segredos, ' +
