@@ -4,10 +4,10 @@
     "origem":  "bloqueio da T-0052, opcao 1 recomendada",
     "tipo":  "plano",
     "dono":  "walle-infra",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0053-nome-e-ajuda-nos-parametros-do-catalogo",
-    "pr":  0,
+    "pr":  68,
     "base":  "133ccc37b7464c50288f8332764770226dadae6f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-04 22:19:53",
                         "tipo":  "commit",
                         "detalhe":  "T-0053: nome e ajuda nos parametros do catalogo dos robos"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:19:58",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #68 aberto"
                     }
                 ]
 }
