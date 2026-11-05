@@ -49,8 +49,20 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.5"
-          extensions: pdo_mysql, redis, pcntl, intl, zip, bcmath, gd
+          extensions: pdo_mysql, redis, pcntl, intl, zip, bcmath, gd, sockets
           coverage: none
+
+      # Testes de navegador (tests/Browser): assets do Vite construídos e o Chromium do Playwright
+      # (a versão vem do package.json, a mesma da imagem walle-php-dev).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Assets e navegador
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npx playwright install --with-deps --only-shell chromium
 
       - name: Dependências
         run: composer install --no-interaction --prefer-dist --no-progress

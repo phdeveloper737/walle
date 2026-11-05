@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 08:01:26",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0055-testes-de-navegador-com-playwright-e-tes a partir de d68f27130614eddfbcfd6273597d0e234a3f32b5"
+                    },
+                    {
+                        "quando":  "2026-11-05 09:26:00",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0055: testes de navegador com Playwright e testes de fumaca"
                     }
                 ]
 }

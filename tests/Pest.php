@@ -25,6 +25,12 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)->in('Feature');
 
 /*
+| Os testes de navegador (tests/Browser) usam o mesmo TestCase, mas com o Vite de verdade: o objetivo
+| é exercitar o CSS e o JavaScript que o usuário recebe (o TestCase desliga o Vite para os outros testes).
+*/
+pest()->extend(TestCase::class)->beforeEach(fn () => $this->withVite())->in('Browser');
+
+/*
 |--------------------------------------------------------------------------
 | Funções de apoio
 |--------------------------------------------------------------------------
