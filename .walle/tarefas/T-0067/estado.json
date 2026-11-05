@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 19:27:51",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0067-versatus-coletado-mesmo-com-falha-no-ser a partir de 8f9526542a98ff4da229cbd343ae4bd1e83951f1"
+                    },
+                    {
+                        "quando":  "2026-11-05 19:32:20",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0067: Versatus coletado mesmo com falha no servidor do cliente"
                     }
                 ]
 }
