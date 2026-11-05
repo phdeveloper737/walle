@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0064",
+    "titulo":  "Poda das coletas sem corrida e sem contar cliente ocupado",
+    "origem":  "achados P2/P3 do Codex na T-0063 (05/11/2026)",
+    "tipo":  "bug",
+    "dono":  "walle-robos",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0064-poda-das-coletas-sem-corrida-e-sem-conta",
+    "pr":  0,
+    "base":  "28f3861d34f5b1b7df1d1d24835d0d548ec7547a",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 17:44:31",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0064-poda-das-coletas-sem-corrida-e-sem-conta a partir de 28f3861d34f5b1b7df1d1d24835d0d548ec7547a"
+                    }
+                ]
+}
