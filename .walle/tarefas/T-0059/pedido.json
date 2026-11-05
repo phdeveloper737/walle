@@ -1,0 +1,7 @@
+{
+    "titulo":  "walle-telas escreve os testes de navegador",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "harness",
+    "dono":  "sessao principal",
+    "resumo":  "agent-policies.json: tests/Browser/*.php no dominio de arquivos e na lista de testes do walle-telas; testes das politicas cobrem telas liberado e outro agente barrado. Nenhum outro dominio muda."
+}
