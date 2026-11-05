@@ -4,10 +4,10 @@
     "origem":  "PLAN 5.2",
     "tipo":  "plano",
     "dono":  "walle-telas",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0052-telas-de-configuracao-e-historico-dos-ro",
-    "pr":  0,
+    "pr":  69,
     "base":  "133ccc37b7464c50288f8332764770226dadae6f",
     "eventos":  [
                     {
@@ -34,6 +34,11 @@
                         "quando":  "2026-11-05 00:17:05",
                         "tipo":  "commit",
                         "detalhe":  "T-0052: Adicionar abas de configuração e histórico nos painéis de todos os robôs (PLAN 5.2)"
+                    },
+                    {
+                        "quando":  "2026-11-05 00:18:59",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #69 aberto"
                     }
                 ],
     "notas_bloqueio":  "4ebcee11ea315468ff0d3e2a6af55924ab5258d359a7009d59357d6e23fdedb5"
