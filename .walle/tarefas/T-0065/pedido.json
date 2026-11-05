@@ -1,0 +1,7 @@
+{
+    "titulo":  "Limite da revisao do Codex em 1373 s",
+    "origem":  "pedido do usuario de 05/11/2026 (o my-combo passou de 540 s em 4 de 7 revisoes)",
+    "tipo":  "harness",
+    "dono":  "usuario (revisao-codex.ps1) e walle-harness (instrucoes do orquestrador)",
+    "resumo":  "revisao-codex.ps1 com limite de 1373 s (editado pelo usuario); as instrucoes do orquestrador no Claude e no OpenCode passam a rodar a revisao do Codex em segundo plano, porque o limite passa dos 10 min da ferramenta."
+}
