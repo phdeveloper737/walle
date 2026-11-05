@@ -4,6 +4,7 @@ namespace App\Sactus;
 
 use App\Contingencias\ListaDeClientes;
 use App\Models\PainelSactusCfg;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 
@@ -33,7 +34,7 @@ class PainelSactus
     public function linhas(): array
     {
         $clientes = $this->clientesDoHelp();
-        $limite = now()->subMinutes((int) config('walle.sactus.obsoleto_minutos'));
+        $limite = now()->subMinutes((int) ConfiguracaoRobo::efetivo('sactus', 'obsoleto_minutos'));
 
         return PainelSactusCfg::query()
             ->get(['fk_c_cliente', 'metodo', 'status', 'erro', 'json', 'acl_status', 'acl_erro', 'erp_status', 'data'])

@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 10:31:22",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0057-robos-usam-os-parametros-configurados-no a partir de 01040ba4587820d1abd84c8ca5c240b185f899b4"
+                    },
+                    {
+                        "quando":  "2026-11-05 11:07:12",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0057: robos usam os parametros configurados no painel"
                     }
                 ]
 }

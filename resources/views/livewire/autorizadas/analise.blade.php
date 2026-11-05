@@ -6,7 +6,7 @@
     <section class="flex flex-col gap-3" aria-label="Tendência da base">
         <div>
             <h2 class="font-medium text-on-surface">Tendência</h2>
-            <p class="text-xs text-on-surface-variant">A base inteira, pela data de referência das chaves (elas ficam {{ config('walle.autorizadas.dias_retencao') }} dias).</p>
+            <p class="text-xs text-on-surface-variant">A base inteira, pela data de referência das chaves (elas ficam {{ $diasRetencao }} dias).</p>
         </div>
 
         <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">

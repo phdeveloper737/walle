@@ -6,6 +6,7 @@ use App\Models\SactusCfgEdicao;
 use App\Sactus\Ssh\AlvoSsh;
 use App\Sactus\Ssh\ResultadoComando;
 use App\Sactus\Ssh\SessaoSsh;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -24,7 +25,7 @@ class EdicoesCfg
     /** Devolve para a fila os pedidos que ficaram presos em PROCESSANDO (worker morreu no meio). */
     public function destravar(): int
     {
-        $minutos = (int) config('walle.sactus.cfg_edicoes.trava_minutos');
+        $minutos = (int) $this->param('trava_minutos');
 
         return SactusCfgEdicao::query()
             ->where('status', 'PROCESSANDO')
@@ -53,7 +54,6 @@ class EdicoesCfg
     public function processar(SessaoSsh $sessao, AlvoSsh $alvo, int $clienteId): array
     {
         $resumo = ['total' => 0, 'ok' => 0, 'erro' => 0, 'adiadas' => 0];
-        $config = (array) config('walle.sactus.cfg_edicoes');
         $caminho = (string) config('walle.sactus.cfg_caminho');
         $sudo = $alvo->sudo();
 
@@ -61,7 +61,7 @@ class EdicoesCfg
             ->where('fk_c_cliente', $clienteId)
             ->where('status', 'PENDENTE')
             ->orderBy('id')
-            ->limit((int) $config['max_por_ciclo'])
+            ->limit((int) $this->param('max_por_ciclo'))
             ->get();
 
         $resumo['total'] = $pedidos->count();
@@ -116,7 +116,6 @@ class EdicoesCfg
     /** @return array{0: 'CONCLUIDO'|'ERRO'|'ADIAR', 1: string, 2: string} status, mensagem e o conteúdo atual depois */
     private function aplicar(SessaoSsh $sessao, string $sudo, AlvoSsh $alvo, SactusCfgEdicao $pedido, string $atual): array
     {
-        $config = (array) config('walle.sactus.cfg_edicoes');
         $caminho = (string) config('walle.sactus.cfg_caminho');
         $tipo = strtoupper(trim($pedido->tipo_edicao));
         $flag = trim($pedido->flag);
@@ -135,8 +134,8 @@ class EdicoesCfg
             return ['ERRO', 'valor invalido: quebra de linha, caractere de controle ou acima de 1000 bytes', $atual];
         }
 
-        if (strlen($atual) > (int) $config['max_bytes']) {
-            return ['ERRO', "{$caminho} tem ".strlen($atual).' bytes, acima do limite de '.(int) $config['max_bytes'], $atual];
+        if (strlen($atual) > (int) $this->param('max_bytes')) {
+            return ['ERRO', "{$caminho} tem ".strlen($atual).' bytes, acima do limite de '.(int) $this->param('max_bytes'), $atual];
         }
 
         // A cópia em memória precisa ser fiel ao arquivo, senão escrever a partir dela corromperia o cfg
@@ -161,10 +160,10 @@ class EdicoesCfg
         }
 
         $novo = $edicao['novo'];
-        $timeout = (int) $config['comando_segundos'];
+        $timeout = (int) $this->param('comando_segundos');
 
         // Backup antes de escrever, conferido: sem ele íntegro não há rollback e a escrita não acontece
-        $backup = rtrim((string) $config['backup_dir'], '/').'/sactus.cfg_'.now()->format('Ymd_His').'_e'.$pedido->id.'.bkp';
+        $backup = rtrim((string) $this->param('backup_dir'), '/').'/sactus.cfg_'.now()->format('Ymd_His').'_e'.$pedido->id.'.bkp';
         $copia = $sessao->executar($sudo.'cp -p '.escapeshellarg($caminho).' '.escapeshellarg($backup), $timeout);
 
         if (! $copia->ok()) {
@@ -206,7 +205,7 @@ class EdicoesCfg
             }
         }
 
-        $tmp = (string) $config['tmp'];
+        $tmp = (string) $this->param('tmp');
         $sessao->executar('rm -f '.escapeshellarg($tmp.'.b64').' '.escapeshellarg($tmp.'.new'), $timeout);
 
         if ($aplicado) {
@@ -251,7 +250,7 @@ class EdicoesCfg
     /** Falha passageira: volta para a fila até o limite de tentativas, depois vira ERRO. Devolve a chave do resumo. */
     private function adiarOuErro(SactusCfgEdicao $pedido, string $mensagem): string
     {
-        $maximo = (int) config('walle.sactus.cfg_edicoes.max_tentativas');
+        $maximo = (int) $this->param('max_tentativas');
         $status = $pedido->tentativas >= $maximo ? 'ERRO' : 'PENDENTE';
 
         $this->finalizar($pedido, $status, "{$mensagem} (tentativa {$pedido->tentativas}/{$maximo})");
@@ -273,7 +272,7 @@ class EdicoesCfg
     private function ler(SessaoSsh $sessao, string $sudo): array
     {
         $caminho = (string) config('walle.sactus.cfg_caminho');
-        $r = $sessao->executar($sudo.'cat '.escapeshellarg($caminho), (int) config('walle.sactus.cfg_edicoes.comando_segundos'));
+        $r = $sessao->executar($sudo.'cat '.escapeshellarg($caminho), (int) $this->param('comando_segundos'));
 
         return match (true) {
             $r->rc === null => ['ok' => false, 'conteudo' => '', 'erro' => "sem resposta ao ler {$caminho}".$r->complemento()],
@@ -284,7 +283,7 @@ class EdicoesCfg
 
     private function md5(SessaoSsh $sessao, string $sudo, string $caminho): string
     {
-        $r = $sessao->executar($sudo.'md5sum '.escapeshellarg($caminho), (int) config('walle.sactus.cfg_edicoes.comando_segundos'));
+        $r = $sessao->executar($sudo.'md5sum '.escapeshellarg($caminho), (int) $this->param('comando_segundos'));
 
         return $r->ok() && preg_match('~^([0-9a-f]{32})\b~i', trim($r->saida), $m) ? strtolower($m[1]) : '';
     }
@@ -297,14 +296,14 @@ class EdicoesCfg
      */
     private function subirTemporario(SessaoSsh $sessao, string $conteudo): array
     {
-        $config = (array) config('walle.sactus.cfg_edicoes');
         $caminho = (string) config('walle.sactus.cfg_caminho');
-        $timeout = (int) $config['comando_segundos'];
-        [$b64, $novo] = [$config['tmp'].'.b64', $config['tmp'].'.new'];
+        $timeout = (int) $this->param('comando_segundos');
+        $tmp = (string) $this->param('tmp');
+        [$b64, $novo] = [$tmp.'.b64', $tmp.'.new'];
 
         $sessao->executar('rm -f '.escapeshellarg($b64).' '.escapeshellarg($novo), $timeout);
 
-        foreach (str_split(base64_encode($conteudo), (int) $config['pedaco']) as $parte) {
+        foreach (str_split(base64_encode($conteudo), (int) $this->param('pedaco')) as $parte) {
             $r = $sessao->executar('printf %s '.escapeshellarg($parte).' >> '.escapeshellarg($b64), $timeout);
 
             if (! $r->ok()) {
@@ -336,6 +335,12 @@ class EdicoesCfg
     {
         $interno = 'cat '.escapeshellarg($origem).' > '.escapeshellarg($destino);
 
-        return $sessao->executar($sudo === '' ? $interno : $sudo.'sh -c '.escapeshellarg($interno), (int) config('walle.sactus.cfg_edicoes.comando_segundos'));
+        return $sessao->executar($sudo === '' ? $interno : $sudo.'sh -c '.escapeshellarg($interno), (int) $this->param('comando_segundos'));
+    }
+
+    /** Parâmetro de cfg_edicoes.* (congelado no ciclo; fora dele, o valor atual). */
+    private function param(string $chave): mixed
+    {
+        return ConfiguracaoRobo::efetivo('sactus', 'cfg_edicoes.'.$chave);
     }
 }

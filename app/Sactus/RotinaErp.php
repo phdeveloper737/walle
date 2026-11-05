@@ -4,6 +4,7 @@ namespace App\Sactus;
 
 use App\Sactus\Ssh\AlvoSsh;
 use App\Sactus\Ssh\SessaoSsh;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -40,17 +41,20 @@ class RotinaErp
      */
     public function comandos(): array
     {
-        $erp = (array) config('walle.sactus.erp');
+        // A senha é segredo: só o config (.env); o resto vem do painel (ou do padrão)
+        $senha = (string) config('walle.sactus.erp.senha', '');
 
-        if (trim((string) ($erp['senha'] ?? '')) === '') {
+        if (trim($senha) === '') {
             return [];
         }
 
+        $param = static fn (string $chave): mixed => ConfiguracaoRobo::efetivo('sactus', 'erp.'.$chave);
+
         return [
             // A origem vai sem aspas de propósito: o * é expandido do lado do 220 (igual ao antigo)
-            'sshpass -p'.escapeshellarg((string) $erp['senha']).' rsync -Cravzp -e '.escapeshellarg('ssh -p '.(int) $erp['porta_origem'])
-                .' '.$erp['origem'].' '.escapeshellarg((string) $erp['destino']),
-            ...array_values((array) $erp['depois']),
+            'sshpass -p'.escapeshellarg($senha).' rsync -Cravzp -e '.escapeshellarg('ssh -p '.(int) $param('porta_origem'))
+                .' '.$param('origem').' '.escapeshellarg((string) $param('destino')),
+            ...array_values((array) $param('depois')),
         ];
     }
 
@@ -61,8 +65,8 @@ class RotinaErp
 
     public function executar(SessaoSsh $sessao, AlvoSsh $alvo, int $clienteId): ResultadoRotina
     {
-        $timeout = (int) config('walle.sactus.erp.comando_segundos');
-        $saidaMax = (int) config('walle.sactus.erp.saida_max');
+        $timeout = (int) ConfiguracaoRobo::efetivo('sactus', 'erp.comando_segundos');
+        $saidaMax = (int) ConfiguracaoRobo::efetivo('sactus', 'erp.saida_max');
         $lista = [];
         $abortou = false;
 
@@ -126,7 +130,7 @@ class RotinaErp
     public function falhaVpn(AlvoSsh $alvo): ResultadoRotina
     {
         return new ResultadoRotina('N', 'vpn-inacessivel',
-            'atualizacao do ERP exige o IP da VPN ('.config('walle.sactus.erp.vpn_prefixo').'x), que nao conectou neste ciclo'
+            'atualizacao do ERP exige o IP da VPN ('.ConfiguracaoRobo::efetivo('sactus', 'erp.vpn_prefixo').'x), que nao conectou neste ciclo'
             ." — nao executada por {$alvo->metodo} {$alvo->host}", []);
     }
 

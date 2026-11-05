@@ -42,12 +42,12 @@ class RoboContingencias
 
     public function rodarCiclo(): void
     {
-        $this->executarCiclo();
+        ConfiguracaoRobo::noCiclo('contingencias', fn (): ResultadoContingencias => $this->executarCiclo());
     }
 
     public function coletarCliente(int $clienteId): ResultadoContingencias
     {
-        return $this->executarCiclo($clienteId);
+        return ConfiguracaoRobo::noCiclo('contingencias', fn (): ResultadoContingencias => $this->executarCiclo($clienteId));
     }
 
     private function executarCiclo(?int $clienteId = null): ResultadoContingencias

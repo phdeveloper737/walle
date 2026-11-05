@@ -54,6 +54,11 @@ class RoboSentinela
             return;
         }
 
+        ConfiguracaoRobo::noCiclo('sentinela', fn () => $this->executarCiclo());
+    }
+
+    private function executarCiclo(): void
+    {
         $inicio = time();
 
         foreach ($this->clientes() as $clienteId => $campos) {

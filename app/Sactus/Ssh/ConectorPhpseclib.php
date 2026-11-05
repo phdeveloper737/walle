@@ -2,6 +2,7 @@
 
 namespace App\Sactus\Ssh;
 
+use App\Support\ConfiguracaoRobo;
 use phpseclib3\Net\SSH2;
 use Throwable;
 
@@ -14,7 +15,7 @@ class ConectorPhpseclib implements ConectorSsh
 {
     public function abrir(AlvoSsh $alvo): SessaoSsh
     {
-        $ssh = new SSH2($alvo->host, $alvo->porta, (int) config('walle.sactus.ssh.conexao_segundos', 10));
+        $ssh = new SSH2($alvo->host, $alvo->porta, (int) ConfiguracaoRobo::efetivo('sactus', 'ssh.conexao_segundos'));
 
         // Falha de conexão ou de handshake vira exceção no phpseclib; login() false é senha recusada
         try {

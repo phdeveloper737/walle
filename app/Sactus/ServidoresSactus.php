@@ -2,6 +2,7 @@
 
 namespace App\Sactus;
 
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -13,7 +14,7 @@ class ServidoresSactus
     /** @return list<ClienteSactus> */
     public function todos(): array
     {
-        $prefixoVpn = (string) config('walle.sactus.erp.vpn_prefixo');
+        $prefixoVpn = (string) ConfiguracaoRobo::efetivo('sactus', 'erp.vpn_prefixo');
 
         return DB::connection('help')
             ->table('informacao_tecnica_dataserver as i')

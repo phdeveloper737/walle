@@ -3,6 +3,7 @@
 namespace App\Sactus;
 
 use App\Sactus\Ssh\AlvoSsh;
+use App\Support\ConfiguracaoRobo;
 
 /**
  * Um servidor de cliente visto pelo robô do Sactus, a partir da linha do informacao_tecnica_dataserver
@@ -51,13 +52,13 @@ final readonly class ClienteSactus
 
     public function precisaAcl(): bool
     {
-        return (bool) config('walle.sactus.acl.ativo') && config('walle.sactus.acl.regras') !== []
+        return (bool) ConfiguracaoRobo::efetivo('sactus', 'acl.ativo') && ConfiguracaoRobo::efetivo('sactus', 'acl.regras') !== []
             && strtoupper($this->campo('service_acl')) === 'S';
     }
 
     public function precisaAtualizarErp(bool $comandosConfigurados): bool
     {
-        return (bool) config('walle.sactus.erp.ativo') && $comandosConfigurados
+        return (bool) ConfiguracaoRobo::efetivo('sactus', 'erp.ativo') && $comandosConfigurados
             && strtoupper($this->campo('atualizar_erp')) === 'S';
     }
 
@@ -66,7 +67,7 @@ final readonly class ClienteSactus
     {
         $ip = $this->campo('ip_interno_servidor');
 
-        return str_starts_with($ip, (string) config('walle.sactus.erp.vpn_prefixo')) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        return str_starts_with($ip, (string) ConfiguracaoRobo::efetivo('sactus', 'erp.vpn_prefixo')) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
             ? $ip
             : '';
     }
@@ -105,7 +106,7 @@ final readonly class ClienteSactus
 
         $normal = $uN !== '' && $sN !== '' ? [self::alvo('NORMAL', $this->campo('ip_externo_servidor'), $pN, $uN, $sN)] : [];
 
-        $estrito = (bool) config('walle.sactus.alvo_estrito');
+        $estrito = (bool) ConfiguracaoRobo::efetivo('sactus', 'alvo_estrito');
         $ordem = $this->ehDocker()
             ? ($estrito ? $docker : [...$docker, ...$normal])
             : ($estrito ? $normal : [...$normal, ...$docker]);

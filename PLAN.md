@@ -177,7 +177,7 @@ ficou na mesma árvore e o usuário escolheu integrá-lo junto, em vez de separa
   - [x] admin com senha confirmada altera parâmetros e ativa/desativa o robô; não admin recebe 403 e nenhuma mudança é persistida;
   - [x] cada mudança gera uma entrada de histórico e uma Auditoria, com valores anterior/novo sanitizados e sem senha, token ou certificado;
   - [x] a aba de histórico lista e filtra as edições; estado vazio e filtro inválido não quebram a tela;
-  - [ ] parâmetros inválidos e valores fora da fronteira são recusados; uma mudança feita durante um ciclo só vale no ciclo seguinte;
+  - [x] parâmetros inválidos e valores fora da fronteira são recusados; uma mudança feita durante um ciclo só vale no ciclo seguinte (T-0057: `ConfiguracaoRobo::noCiclo` congela os valores no início de cada ciclo dos 6 robôs; testes de ciclo real nas Autorizadas e no Sactus);
   - [x] testes parametrizados cobrem Autorizadas, Contingências, Sentinela, CleanTax, Task Scheduler e Sactus, além de exigirem o mesmo contrato para qualquer novo robô.
 - Decisão do usuário de 30/10/2026: todo robô deve ter esse painel e o histórico de edições consultável na própria tela. Nesta rodada, `WALLE_CONTINGENCIAS_ATIVO=true` foi informado como ativo para validação; isso não deve ser copiado para arquivo versionado.
 

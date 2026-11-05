@@ -72,7 +72,7 @@
                         Preparando a fila (limpeza e semeadura)…
                     @endif
                 </p>
-                <p class="text-xs text-on-surface-variant">o número anda a cada {{ config('walle.autorizadas.gravar_a_cada') }} chaves gravadas</p>
+                <p class="text-xs text-on-surface-variant">o número anda a cada {{ $gravarACada }} chaves gravadas</p>
             </div>
             <div class="mt-2 h-2 overflow-hidden rounded-full bg-grafico-grade" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ round($feito) }}">
                 <div class="h-full rounded-full bg-grafico-1 transition-[width] duration-700" style="width: {{ $feito }}%"></div>
@@ -84,7 +84,7 @@
     @php $g = $this->geral; @endphp
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
         <x-ui.kpi rotulo="Na fila agora" icone="pending_actions" :valor="$g['fila']"
-            :detalhe="'de GO, sem consulta há '.config('walle.autorizadas.intervalo_horas').' h'" />
+            :detalhe="'de GO, sem consulta há '.$intervaloHoras.' h'" />
         <x-ui.kpi rotulo="Pendentes" icone="hourglass_top" :valor="$g['pendentes']"
             :detalhe="$g['outras_uf'] > 0 ? Numero::inteiro($g['outras_uf']).' de outras UFs' : 'ainda não autorizadas'"
             :title="$g['outras_uf'] > 0 ? 'O robô só consulta na Sefaz GO: as de outras UFs ficam pendentes.' : null" />

@@ -3,6 +3,7 @@
 namespace App\Autorizadas;
 
 use App\Sefaz\ChaveDeAcesso;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -88,7 +89,7 @@ final readonly class DiagnosticoChave
 
         // O primeiro passo de cada ciclo apaga essas, autorizadas ou não
         if ($auth['referencia'] !== null && $auth['referencia'] < $robo->corteRetencao()) {
-            return ['situacao' => 'fora', 'texto' => 'A referência passou da retenção de '.config('walle.autorizadas.dias_retencao').' dias: sai da base no próximo ciclo.'];
+            return ['situacao' => 'fora', 'texto' => 'A referência passou da retenção de '.ConfiguracaoRobo::efetivo('autorizadas', 'dias_retencao').' dias: sai da base no próximo ciclo.'];
         }
 
         if ($auth['autorizada']) {
@@ -100,7 +101,7 @@ final readonly class DiagnosticoChave
         }
 
         if ($auth['ultima_consulta'] !== null) {
-            $volta = Carbon::parse($auth['ultima_consulta'])->addHours((int) config('walle.autorizadas.intervalo_horas'));
+            $volta = Carbon::parse($auth['ultima_consulta'])->addHours((int) ConfiguracaoRobo::efetivo('autorizadas', 'intervalo_horas'));
 
             if ($volta->isFuture()) {
                 return ['situacao' => 'espera', 'texto' => 'Não autorizada, consultada há pouco: volta para a fila às '.$volta->format('H:i').'.'];

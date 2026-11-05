@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Auditoria;
 use App\Models\RoboConfig;
 use App\Models\RoboConfigHistorico;
+use Closure;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -12,6 +13,13 @@ use Illuminate\Support\Facades\DB;
  */
 class ConfiguracaoRobo
 {
+    /**
+     * Foto dos parâmetros efetivos de cada robô em ciclo.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private static array $fotos = [];
+
     /**
      * Retorna se o robô está ligado (env E local).
      * Consulta o banco a cada chamada (sem cache estático).
@@ -65,19 +73,62 @@ class ConfiguracaoRobo
             return null;
         }
 
+        // Dentro de um ciclo, vale a foto tirada no início dele
+        if (isset(self::$fotos[$robo]) && array_key_exists($parametro, self::$fotos[$robo])) {
+            return self::$fotos[$robo][$parametro];
+        }
+
+        return self::lerEfetivo($robo, $parametro);
+    }
+
+    /**
+     * Executa um ciclo do robô com os parâmetros congelados: uma mudança feita durante o ciclo só vale no seguinte.
+     * A foto é descartada no fim, mesmo com exceção; ciclo aninhado do mesmo robô reaproveita a foto de fora.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $ciclo
+     * @return T
+     */
+    public static function noCiclo(string $robo, Closure $ciclo): mixed
+    {
+        if (isset(self::$fotos[$robo])) {
+            return $ciclo();
+        }
+
+        $foto = [];
+        foreach (array_keys(self::catalogo()[$robo] ?? []) as $parametro) {
+            if (! self::ehSegredo($parametro)) {
+                $foto[$parametro] = self::lerEfetivo($robo, $parametro);
+            }
+        }
+        self::$fotos[$robo] = $foto;
+
+        try {
+            return $ciclo();
+        } finally {
+            unset(self::$fotos[$robo]);
+        }
+    }
+
+    /**
+     * Lê o valor efetivo no banco/catálogo/config, sem passar pela foto do ciclo.
+     */
+    private static function lerEfetivo(string $robo, string $parametro): mixed
+    {
         $persistido = self::persistido($robo, $parametro);
         if ($persistido !== null) {
             return $persistido;
         }
 
-        // Fallback: default do catálogo
-        $catalogo = self::catalogo();
-        if (isset($catalogo[$robo][$parametro])) {
-            return $catalogo[$robo][$parametro]['default'];
+        // Sem persistência: config do walle.php (.env) quando existe
+        $doConfig = config("walle.{$robo}.{$parametro}");
+        if ($doConfig !== null) {
+            return $doConfig;
         }
 
-        // Fallback final: config do walle.php
-        return config("walle.{$robo}.{$parametro}");
+        // Por fim: default do catálogo
+        return self::catalogo()[$robo][$parametro]['default'] ?? null;
     }
 
     /**
