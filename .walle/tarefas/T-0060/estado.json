@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 14:12:05",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0060-componente-de-janela-modal-do-walle-ui a partir de 3ef3158fdd9cae0d6c8e1ac56046dd98ad59cbea"
+                    },
+                    {
+                        "quando":  "2026-11-05 14:14:09",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0060: componente de janela modal do walle-ui"
                     }
                 ]
 }
