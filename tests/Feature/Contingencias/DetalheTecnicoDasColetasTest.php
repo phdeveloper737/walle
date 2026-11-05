@@ -7,6 +7,7 @@ use App\Models\Auditoria;
 use App\Models\ColetaContingencias;
 use App\Models\RoboConfig;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
@@ -153,6 +154,68 @@ test('retenção guarda as 10 últimas falhas e o último sucesso, sem tocar em 
         ->and((clone $do)->where('status', 'falha')->min('id'))->toBeGreaterThan($falhas[4])
         ->and(DB::table('contingencias_coletas')->where('fk_c_cliente', $outro)->count())->toBe(12);
     expect(DB::table('contingencias_ciclos')->count())->toBeGreaterThanOrEqual($ciclosAntes);
+});
+
+test('coleta criada depois da leitura da poda não é apagada', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    coletaParaRetencao($cliente, 'sucesso');
+    $nova = null;
+    servidorDoClienteForaDoAr();
+    DB::listen(function ($consulta) use (&$nova, $cliente): void {
+        if ($nova === null && str_contains($consulta->sql, 'max(`id`)')) {
+            $nova = 0;
+            $nova = coletaParaRetencao($cliente, 'sucesso');
+        }
+    });
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    expect($nova)->toBeGreaterThan(0)
+        ->and(DB::table('contingencias_coletas')->where('id', $nova)->exists())->toBeTrue();
+});
+
+test('a poda roda com a trava do cliente ainda adquirida', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    servidorDoClienteForaDoAr();
+    $conseguiu = null;
+    DB::listen(function ($consulta) use (&$conseguiu, $cliente): void {
+        if ($conseguiu === null && str_contains($consulta->sql, 'max(`id`)')) {
+            $outra = Cache::lock('contingencias:cliente:'.$cliente, 5);
+            $conseguiu = $outra->get();
+
+            if ($conseguiu) {
+                $outra->release();
+            }
+        }
+    });
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    expect($conseguiu)->toBeFalse();
+});
+
+test('falhas de cliente ocupado não tiram vaga das falhas reais e só a mais recente fica', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    $reais = [];
+
+    for ($i = 0; $i < 9; $i++) {
+        $reais[] = coletaParaRetencao($cliente, 'falha');
+    }
+    $ocupadas = [];
+
+    for ($i = 0; $i < 5; $i++) {
+        $id = coletaParaRetencao($cliente, 'falha');
+        DB::table('contingencias_coletas')->where('id', $id)->update(['erro' => 'O cliente está ocupado por outra coleta.']);
+        $ocupadas[] = $id;
+    }
+    servidorDoClienteForaDoAr();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $ids = DB::table('contingencias_coletas')->where('fk_c_cliente', $cliente)->pluck('id')->all();
+    expect($ids)->toContain(...$reais)->toContain($ocupadas[4])
+        ->not->toContain($ocupadas[0])->not->toContain($ocupadas[3])
+        ->and(count($ids))->toBe(11);
 });
 
 test('falha na limpeza não derruba a coleta', function () {

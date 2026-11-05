@@ -1,0 +1,7 @@
+{
+    "titulo":  "Poda das coletas sem corrida e sem contar cliente ocupado",
+    "origem":  "achados P2/P3 do Codex na T-0063 (05/11/2026)",
+    "tipo":  "bug",
+    "dono":  "walle-robos",
+    "resumo":  "limparColetasAntigas roda dentro da trava do cliente (ou limita o DELETE a id \u003c= maior id lido) para nao apagar coleta nova de outra execucao; a falha cliente ocupado por outra coleta nao ocupa vaga das 10 falhas guardadas."
+}

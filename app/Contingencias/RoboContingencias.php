@@ -40,6 +40,10 @@ class RoboContingencias
     /** Quantas coletas com falha ficam guardadas por cliente (pedido do usuário de 05/11/2026). */
     private const FALHAS_GUARDADAS = 10;
 
+    private const MENSAGEM_OCUPADO = 'O cliente está ocupado por outra coleta.';
+
+    private const CODIGO_OCUPADO = 'CLIENTE_OCUPADO';
+
     public function __construct(private readonly ColetaIntegralContingencias $coletor) {}
 
     public function ligado(): bool
@@ -99,31 +103,36 @@ class RoboContingencias
     /** @return array{ResultadoContingencias, string} */
     private function executarCliente(int $clienteId, CicloContingencias $ciclo, string $origem): array
     {
-        $retorno = $this->coletarDoCliente($clienteId, $ciclo, $origem);
-
-        if ($retorno[1] !== 'fora') {
-            $this->limparColetasAntigas($clienteId);
-        }
-
-        return $retorno;
+        return $this->coletarDoCliente($clienteId, $ciclo, $origem);
     }
 
     /**
-     * Mantém só as últimas falhas do cliente, a última coleta que não falhou e as em andamento.
+     * Mantém só as últimas falhas reais do cliente, a falha "ocupado" mais recente, a última coleta que não
+     * falhou e as em andamento. Roda com a trava do cliente e nunca apaga id acima do maior lido no início.
      * Uma falha aqui não derruba a coleta; os ciclos não são apagados.
      */
     private function limparColetasAntigas(int $clienteId): void
     {
         try {
-            $falhas = DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)->where('status', 'falha')
+            $base = fn () => DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId);
+            $teto = (int) $base()->max('id');
+            $ocupado = fn ($consulta) => $consulta->where('erro', self::MENSAGEM_OCUPADO)
+                ->orWhere('detalhe_tecnico->codigo', self::CODIGO_OCUPADO);
+            $real = fn ($consulta) => $consulta->where(fn ($q) => $q->whereNull('erro')->orWhere('erro', '<>', self::MENSAGEM_OCUPADO))
+                ->where(fn ($q) => $q->whereNull('detalhe_tecnico')->orWhere('detalhe_tecnico->codigo', '<>', self::CODIGO_OCUPADO)
+                    ->orWhereRaw('json_extract(detalhe_tecnico, ?) is null', ['$.codigo']));
+
+            $falhas = $base()->where('id', '<=', $teto)->where('status', 'falha')
+                ->where($real)
                 ->orderByDesc('id')->limit((int) config('walle.contingencias.falhas_guardadas', self::FALHAS_GUARDADAS))
                 ->pluck('id')->all();
-            $ultimaBoa = DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)->where('status', 'sucesso')->max('id');
+            $ultimaOcupada = $base()->where('id', '<=', $teto)->where('status', 'falha')->where($ocupado)->max('id');
+            $ultimaBoa = $base()->where('id', '<=', $teto)->where('status', 'sucesso')->max('id');
 
-            DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)
+            $base()->where('id', '<=', $teto)
                 ->where(fn ($consulta) => $consulta->where('status', '<>', 'em_andamento')
                     ->orWhere('iniciado_em', '<', now()->subSeconds(self::TRAVA_SEGUNDOS)))
-                ->whereNotIn('id', [...$falhas, (int) $ultimaBoa])
+                ->whereNotIn('id', [...$falhas, (int) $ultimaOcupada, (int) $ultimaBoa])
                 ->delete();
         } catch (Throwable $erro) {
             Log::warning('Não foi possível limpar as coletas antigas de contingências do cliente '.$clienteId.': '.$erro::class);
@@ -135,6 +144,7 @@ class RoboContingencias
     {
         $trava = Cache::lock('contingencias:cliente:'.$clienteId, self::TRAVA_SEGUNDOS);
         $adquirida = false;
+        $podar = false;
         $coleta = null;
         $segredos = [];
 
@@ -142,10 +152,12 @@ class RoboContingencias
             $adquirida = $trava->get();
 
             if (! $adquirida) {
-                return $this->falhar($clienteId, $ciclo, $origem, null, 'O cliente está ocupado por outra coleta.', [
-                    'codigo' => null, 'classe' => null, 'mensagem' => 'O cliente está ocupado por outra coleta.',
+                return $this->falhar($clienteId, $ciclo, $origem, null, self::MENSAGEM_OCUPADO, [
+                    'codigo' => self::CODIGO_OCUPADO, 'classe' => null, 'mensagem' => self::MENSAGEM_OCUPADO,
                 ]);
             }
+
+            $podar = true;
 
             $servidor = $this->servidor($clienteId);
             $segredos = $this->segredosDe($servidor ?? []);
@@ -162,6 +174,8 @@ class RoboContingencias
                         'origem' => $origem, 'robo' => 'contingencias', 'ciclo_id' => $ciclo->id,
                     ]);
                 });
+
+                $podar = false;
 
                 return [$this->vazio('O cliente está fora da coleta de contingências.'), 'fora'];
             }
@@ -195,6 +209,10 @@ class RoboContingencias
             return $this->falhar($clienteId, $ciclo, $origem, $coleta, $mensagem, $this->detalheTecnico($erro, $segredos));
         } finally {
             if ($adquirida) {
+                if ($podar) {
+                    $this->limparColetasAntigas($clienteId);
+                }
+
                 $trava->release();
             }
         }
