@@ -264,6 +264,7 @@ class Clientes extends Component
     {
         return view('livewire.sactus.clientes', [
             'sensivel' => ArquivoCfg::sensivel(...),
+            'ligado' => ConfiguracaoRobo::ligado('sactus'),
         ]);
     }
 
@@ -277,7 +278,7 @@ class Clientes extends Component
         $msg = $motivo === 'env'
             ? 'O Sactus do walle está desligado neste servidor (WALLE_SACTUS_ATIVO=false).'
             : 'O Sactus do walle está desligado na configuração local (chave "ativo").';
-        $this->avisar($msg . ' Use o painel antigo até a virada.', erro: true);
+        $this->avisar($msg.' Use o painel antigo até a virada.', erro: true);
 
         return false;
     }

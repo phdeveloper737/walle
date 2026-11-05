@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-infra",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0051-backend-da-configuracao-e-historico-dos",
     "pr":  67,
     "base":  "de40bbd29bdc910aaf4936941ffc25375c6524ca",
@@ -40,6 +40,11 @@
                         "quando":  "2026-11-04 15:22:24",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: Corrigir revisão independente da configuração dos robôs"
+                    },
+                    {
+                        "quando":  "2026-11-04 21:30:19",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0051: telas do Sactus e mensagens seguem a chave do painel"
                     }
                 ]
 }

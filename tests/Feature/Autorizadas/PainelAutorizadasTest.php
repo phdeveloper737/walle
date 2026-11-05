@@ -418,3 +418,13 @@ test('o admin vê o botão de consultar na Sefaz e quem não é admin não vê',
 
     Livewire::test(Chave::class)->set('entrada', $chave)->assertSee('Consultar na Sefaz');
 });
+
+test('rodar agora cita a chave do painel quando só ela está desligada', function () {
+    Queue::fake();
+    config(['walle.admins' => [$this->usuario->id], 'walle.autorizadas.ativo' => true]);
+    ConfiguracaoRobo::definirAtivo('autorizadas', false, 'teste');
+    session()->put('walle.senha_confirmada_em', now()->getTimestamp());
+
+    Livewire::test(Robo::class)->call('rodarAgora')->assertSee('chave "ativo" do painel');
+    Queue::assertNothingPushed();
+});

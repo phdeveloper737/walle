@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Ferramentas\ExecucaoDeQuery;
 use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
-use App\Models\RoboConfig;
 use App\Models\TaskSchedulerQuery;
 use App\Models\TaskSchedulerQueryLog;
 use App\Support\ConfiguracaoRobo;

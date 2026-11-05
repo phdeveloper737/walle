@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -33,6 +34,15 @@ class Sactus extends Component
 
     public function render(): View
     {
-        return view('livewire.sactus');
+        $motivo = ConfiguracaoRobo::motivoInativo('sactus');
+
+        return view('livewire.sactus', [
+            'ligado' => $motivo === null,
+            'motivoDesligado' => match ($motivo) {
+                'env' => 'WALLE_SACTUS_ATIVO=false',
+                'local' => 'chave "ativo" desligada no painel',
+                default => null,
+            },
+        ]);
     }
 }

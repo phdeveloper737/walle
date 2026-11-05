@@ -9,6 +9,7 @@ use App\Livewire\Concerns\ConfirmaSenha;
 use App\Models\Auditoria;
 use App\Models\CicloAutorizadas;
 use App\Models\Usuario;
+use App\Support\ConfiguracaoRobo;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -73,7 +74,9 @@ class Robo extends Component
         $robo = app(RoboAutorizadas::class);
 
         if (! $robo->ligado()) {
-            $this->avisar('O robô está desligado neste servidor (WALLE_AUTORIZADAS_ATIVO=false).', erro: true);
+            $this->avisar(ConfiguracaoRobo::motivoInativo('autorizadas') === 'env'
+                ? 'O robô está desligado neste servidor (WALLE_AUTORIZADAS_ATIVO=false).'
+                : 'O robô está desligado na configuração local (chave "ativo" do painel).', erro: true);
 
             return;
         }
