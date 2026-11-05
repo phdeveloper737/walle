@@ -6,6 +6,7 @@ use App\Contingencias\RoboContingencias;
 use App\Models\Auditoria;
 use App\Models\ColetaContingencias;
 use App\Models\RoboConfig;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Log;
@@ -90,8 +91,39 @@ test('exceção inesperada continua indo para o relatório de erros e grava o de
 
     Exceptions::assertReportedCount(1);
     $detalhe = ColetaContingencias::query()->sole()->detalhe_tecnico;
-    expect($detalhe['classe'])->toBe(LogicException::class)->and($detalhe['mensagem'])->toBe('quebrou')->and($detalhe['codigo'])->toBeNull()
-        ->and($detalhe['anteriores'])->toBe([['classe' => RuntimeException::class, 'mensagem' => 'causa']]);
+    expect($detalhe['classe'])->toBe(LogicException::class)->and($detalhe['mensagem'])->not->toContain('quebrou')->and($detalhe['codigo'])->toBeNull()
+        ->and($detalhe['anteriores'])->toHaveCount(1)->and($detalhe['anteriores'][0]['classe'])->toBe(RuntimeException::class)
+        ->and(json_encode($detalhe))->not->toContain('causa');
+});
+
+test('erro de banco inesperado não deixa SQL nem binding no detalhe técnico', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    $chave = '52261112345678000199650010000000011000000019';
+    $erro = new QueryException('mysql', 'select * from sale where chave_acesso_nfce = ?', [$chave], new PDOException('SQLSTATE[42S02]: Base table or view not found'));
+    $this->mock(ConectorDeCliente::class)->shouldReceive('conectar')->once()->andThrow(new LogicException('x', 0, $erro));
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+    $bruto = json_encode(ColetaContingencias::query()->sole()->detalhe_tecnico);
+
+    expect($bruto)->not->toContain($chave)->not->toContain('select * from sale')->not->toContain('SQL:')
+        ->and($bruto)->toContain('QueryException')->toContain('SQLSTATE[42S02]');
+});
+
+test('a poda só protege o último sucesso, apaga em andamento órfã e mantém a recente', function () {
+    $this->travelTo(now()->setDate(2026, 11, 5)->setTime(12, 0));
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    $sucesso = coletaParaRetencao($cliente, 'sucesso');
+    $antigoSucesso = coletaParaRetencao($cliente, 'sucesso');
+    DB::table('contingencias_coletas')->where('id', $antigoSucesso)->update(['iniciado_em' => now()->subDay()]);
+    $recente = coletaParaRetencao($cliente, 'em_andamento');
+    $orfa = coletaParaRetencao($cliente, 'em_andamento');
+    DB::table('contingencias_coletas')->where('id', $orfa)->update(['iniciado_em' => now()->subSeconds(RoboContingencias::TRAVA_SEGUNDOS + 60)]);
+    servidorDoClienteForaDoAr();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $ids = DB::table('contingencias_coletas')->where('fk_c_cliente', $cliente)->pluck('id')->all();
+    expect($ids)->toContain($antigoSucesso)->toContain($recente)->not->toContain($orfa)->not->toContain($sucesso);
 });
 
 test('retenção guarda as 10 últimas falhas e o último sucesso, sem tocar em outro cliente', function () {

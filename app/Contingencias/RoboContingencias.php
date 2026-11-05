@@ -8,9 +8,11 @@ use App\Models\Auditoria;
 use App\Models\CicloContingencias;
 use App\Models\ColetaContingencias;
 use App\Support\ConfiguracaoRobo;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PDOException;
 use RuntimeException;
 use Throwable;
 
@@ -116,10 +118,11 @@ class RoboContingencias
             $falhas = DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)->where('status', 'falha')
                 ->orderByDesc('id')->limit((int) config('walle.contingencias.falhas_guardadas', self::FALHAS_GUARDADAS))
                 ->pluck('id')->all();
-            $ultimaBoa = DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)->where('status', '<>', 'falha')->max('id');
+            $ultimaBoa = DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)->where('status', 'sucesso')->max('id');
 
             DB::table('contingencias_coletas')->where('fk_c_cliente', $clienteId)
-                ->where('status', '<>', 'em_andamento')
+                ->where(fn ($consulta) => $consulta->where('status', '<>', 'em_andamento')
+                    ->orWhere('iniciado_em', '<', now()->subSeconds(self::TRAVA_SEGUNDOS)))
                 ->whereNotIn('id', [...$falhas, (int) $ultimaBoa])
                 ->delete();
         } catch (Throwable $erro) {
@@ -232,7 +235,7 @@ class RoboContingencias
         $cadeia = [];
 
         for ($anterior = $erro->getPrevious(); $anterior !== null && count($cadeia) < 5; $anterior = $anterior->getPrevious()) {
-            $cadeia[] = ['classe' => $anterior::class, 'mensagem' => $limpar($anterior->getMessage())];
+            $cadeia[] = ['classe' => $anterior::class, 'codigo' => (string) $anterior->getCode(), 'mensagem' => $this->mensagemSegura($anterior, $limpar)];
         }
 
         $falha = $erro instanceof FalhaConexaoCliente ? $erro : null;
@@ -240,12 +243,32 @@ class RoboContingencias
         return [
             'codigo' => $falha?->codigo,
             'classe' => $erro::class,
-            'mensagem' => $limpar($erro->getMessage()),
+            'mensagem' => $this->mensagemSegura($erro, $limpar),
             'detalhe' => $falha !== null ? $limpar($falha->detalhe) : null,
             'tentativa' => $falha !== null ? $this->limparRecursivo($falha->tentativa, $limpar) : [],
             'origem' => str_replace(base_path().DIRECTORY_SEPARATOR, '', $erro->getFile()).':'.$erro->getLine(),
             'anteriores' => $cadeia,
         ];
+    }
+
+    /**
+     * Só a falha de conexão tem texto próprio e seguro. Erros de banco guardam a mensagem do driver sem o trecho
+     * "(Connection: ..., SQL: ...)"; qualquer outra exceção vira texto genérico (a mensagem pode ter dados do cliente).
+     */
+    private function mensagemSegura(Throwable $erro, \Closure $limpar): string
+    {
+        if ($erro instanceof FalhaConexaoCliente) {
+            return $limpar($erro->getMessage());
+        }
+
+        if ($erro instanceof QueryException || $erro instanceof PDOException) {
+            $mensagem = $erro->getMessage();
+            $corte = strpos($mensagem, ' (Connection:');
+
+            return $limpar($corte === false ? $mensagem : substr($mensagem, 0, $corte));
+        }
+
+        return 'Erro inesperado; o texto original não é guardado por segurança.';
     }
 
     /**

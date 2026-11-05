@@ -20,6 +20,11 @@
                         "quando":  "2026-11-05 17:06:11",
                         "tipo":  "commit",
                         "detalhe":  "T-0063: Detalhes tecnicos das coletas para admin e retencao das coletas"
+                    },
+                    {
+                        "quando":  "2026-11-05 17:15:19",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0063: Detalhe tecnico sem SQL e poda das coletas em andamento orfas"
                     }
                 ]
 }
