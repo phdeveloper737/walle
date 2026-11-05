@@ -311,6 +311,25 @@ test('coleta ambos os softwares da loja sem depender de itens ou usar chave vazi
     $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_sactus' => 1, 'total_versatus' => 1]);
 });
 
+test('data de emissão zerada ou inválida grava NULL em data_fiscal_xml sem derrubar a coleta', function (string $dataRuim) {
+    config(['walle.contingencias.ativo' => true]);
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    DB::table('informacao_tecnica_painel_contingencias')->insert(['fk_c_cliente' => $cliente, 'tips_pdv' => 'V']);
+    $modoOriginal = DB::selectOne('SELECT @@SESSION.sql_mode AS modo')->modo;
+    DB::statement("SET SESSION sql_mode = ''");
+    criarContingenciaVersatus($cliente, ['cupom' => '100', 'chave' => str_repeat('1', 44), 'data_hora' => $dataRuim], []);
+    DB::statement('SET SESSION sql_mode = ?', [$modoOriginal]);
+    criarContingenciaVersatus($cliente, ['cupom' => '101', 'chave' => str_repeat('3', 44), 'data_hora' => '2026-10-20 10:00:00'], []);
+    servidorDoClienteNoBancoDeTestes();
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    expect(ColetaContingencias::query()->sole()->status)->toBe('sucesso');
+    $this->assertDatabaseCount('history_contingencia', 2);
+    expect(DB::table('history_contingencia')->where('numero', '100')->sole()->data_fiscal_xml)->toBeNull();
+    expect(DB::table('history_contingencia')->where('numero', '101')->sole()->data_fiscal_xml)->toBe('2026-10-20 10:00:00');
+})->with(['zerada' => '0000-00-00 00:00:00', 'inexistente' => '2026-02-30 10:00:00']);
+
 test('cliente sem cadastro técnico registra falha segura e preserva os dados válidos sem conectar', function () {
     config(['walle.contingencias.ativo' => true]);
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);

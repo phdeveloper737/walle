@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 18:55:38",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0066-data-de-emissao-zerada-nao-derruba-a-col a partir de cd437a4e87fc5d7a897e6c5ecad5a34be7ce5f5d"
+                    },
+                    {
+                        "quando":  "2026-11-05 19:00:02",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0066: Data de emissao zerada nao derruba a coleta de contingencias"
                     }
                 ]
 }

@@ -8,6 +8,7 @@ use App\Models\Auditoria;
 use App\Models\CicloContingencias;
 use App\Models\ColetaContingencias;
 use App\Support\ConfiguracaoRobo;
+use DateTime;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -367,13 +368,37 @@ class RoboContingencias
                         $indiceSemChave++;
                     }
 
-                    array_push($valores, $clienteId, $linha->pdv, $numero, $chave, $linha->emitidaEm, mb_substr($linha->motivo, 0, 256), $software);
+                    array_push($valores, $clienteId, $linha->pdv, $numero, $chave, self::dataFiscalOuNulo($linha->emitidaEm), mb_substr($linha->motivo, 0, 256), $software);
                 }
 
                 DB::statement('REPLACE INTO history_contingencia (fk_c_cliente, serie, numero, chave, data_fiscal_xml, motivo, software) VALUES '
                     .implode(',', array_fill(0, count($lote), '(?,?,?,?,?,?,?)')), $valores);
             }
         }
+    }
+
+    /**
+     * Data zerada ('0000-00-00...'), vazia ou inexistente vira NULL: a conexão do walle é estrita
+     * e uma linha ruim derrubaria o lote inteiro (o 220 perdia o lote em silêncio).
+     */
+    private static function dataFiscalOuNulo(string $valor): ?string
+    {
+        $valor = trim($valor);
+
+        if ($valor === '' || str_starts_with($valor, '0000-00-00')) {
+            return null;
+        }
+
+        foreach (['Y-m-d H:i:s', 'Y-m-d'] as $formato) {
+            $data = DateTime::createFromFormat('!'.$formato, $valor);
+            $erros = DateTime::getLastErrors();
+
+            if ($data !== false && ($erros === false || ($erros['warning_count'] === 0 && $erros['error_count'] === 0))) {
+                return $valor;
+            }
+        }
+
+        return null;
     }
 
     private function erroSeguro(Throwable $erro): string
