@@ -5,7 +5,7 @@
     "tipo":  "bug",
     "dono":  "walle-robos",
     "estado":  "em_revisao",
-    "ciclos":  1,
+    "ciclos":  2,
     "branch":  "tarefa/T-0067-versatus-coletado-mesmo-com-falha-no-ser",
     "pr":  83,
     "base":  "8f9526542a98ff4da229cbd343ae4bd1e83951f1",
@@ -30,6 +30,11 @@
                         "quando":  "2026-11-05 19:42:33",
                         "tipo":  "ciclo",
                         "detalhe":  "correcao 1 de 2: T-0067: Painel preserva o Sactus e Versatus vazio e regravado na falha"
+                    },
+                    {
+                        "quando":  "2026-11-05 19:52:09",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 2 de 2: T-0067: Versatus vazio com falha de conexao nao grava nada parcial"
                     }
                 ]
 }

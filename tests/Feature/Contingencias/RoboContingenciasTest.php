@@ -377,7 +377,7 @@ test('falha de conexão com o cliente ainda grava o Versatus e preserva o Sactus
     'sem actus' => fn () => FalhaConexaoCliente::semBancoActus('sem banco'),
 ]);
 
-test('falha de conexão sem Versatus remove só o Versatus antigo e mantém o Sactus', function () {
+test('falha de conexão sem Versatus deixa histórico e painel exatamente como estavam', function () {
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     DB::table('history_contingencia')->insert([
         ['fk_c_cliente' => $cliente, 'chave' => str_repeat('8', 44), 'software' => 'SACTUS'],
@@ -388,9 +388,10 @@ test('falha de conexão sem Versatus remove só o Versatus antigo e mantém o Sa
 
     app(RoboContingencias::class)->coletarCliente($cliente);
 
-    $this->assertDatabaseCount('history_contingencia', 1);
+    $this->assertDatabaseCount('history_contingencia', 2);
     $this->assertDatabaseHas('history_contingencia', ['chave' => str_repeat('8', 44), 'software' => 'SACTUS']);
-    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 6, 'total_bot' => 6, 'total_sactus' => 6, 'total_versatus' => 0]);
+    $this->assertDatabaseHas('history_contingencia', ['chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 7, 'total_bot' => 7, 'total_sactus' => 6, 'total_versatus' => 1]);
     expect(ColetaContingencias::query()->sole()->status)->toBe('falha');
 });
 
