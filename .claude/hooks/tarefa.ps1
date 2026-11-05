@@ -164,9 +164,21 @@ function RelatorioDoCi($Estado, [string]$Head, [string]$Checks) {
 
 function Finalizar($Estado, [string]$Head) {
     if ((Repo @('branch', '--show-current')).texto -cne 'main') { Repo @('switch', '-q', 'main') | Out-Null }
+    $antes = (Repo @('rev-parse', 'HEAD') -PodeFalhar)
     Repo @('pull', '-q', '--ff-only', 'origin', 'main') | Out-Null
     GravarJson (Join-Path $pastaLocal 'integracao.json') ([ordered]@{ tarefa = $Tarefa; pr = $Estado.pr; commit = $Head; integrada_em = Agora })
     Write-Output "[tarefa] $Tarefa integrada: PR #$($Estado.pr) no main"
+    # Aviso (nunca migra nem muda o codigo de saida): migrations novas trazidas pelo merge.
+    try {
+        $depois = (Repo @('rev-parse', 'HEAD') -PodeFalhar)
+        if ($antes.codigo -eq 0 -and $depois.codigo -eq 0 -and $antes.texto -and $antes.texto -cne $depois.texto) {
+            $diff = Repo @('diff', '--name-only', '--diff-filter=A', $antes.texto, $depois.texto, '--', 'database/migrations') -PodeFalhar
+            $novas = @($diff.texto -split "`n" | Where-Object { $_.Trim() } | ForEach-Object { Split-Path -Leaf $_.Trim() })
+            if ($diff.codigo -eq 0 -and $novas.Count) {
+                Write-Output "[tarefa] Aviso: este merge trouxe $($novas.Count) migration(s) nova(s) ($($novas -join ', ')). Rode no banco de desenvolvimento: docker exec walle-app php artisan migrate"
+            }
+        }
+    } catch { }
     exit 0
 }
 
