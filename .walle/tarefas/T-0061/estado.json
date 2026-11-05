@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 14:34:42",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0061-clientes-com-erro-e-janela-de-coletas-no a partir de 79999a5b4c8bcbe300559de016ccfad9e88bd655"
+                    },
+                    {
+                        "quando":  "2026-11-05 15:15:44",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0061: clientes com erro e janela de coletas no painel de contingencias"
                     }
                 ]
 }
