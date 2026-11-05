@@ -1,0 +1,7 @@
+{
+    "titulo":  "Testes de navegador com Playwright e testes de fumaca",
+    "origem":  "pedido do usuario de 05/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal",
+    "resumo":  "pestphp/pest-plugin-browser (dev) e playwright (npm, versao fixa); Node e Chromium so na imagem de desenvolvimento (build arg); suite Browser no phpunit.xml com base propria que liga o Vite; ~10 testes de fumaca sem erro de JavaScript; CI com Node, build dos assets e Chromium. Aprovacao das dependencias dada pelo usuario."
+}
