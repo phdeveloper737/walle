@@ -1,0 +1,7 @@
+{
+    "titulo":  "Data de emissao zerada nao derruba a coleta de contingencias",
+    "origem":  "erro em producao visto pelo usuario nos detalhes tecnicos do cliente WD (05/11/2026)",
+    "tipo":  "bug",
+    "dono":  "walle-robos",
+    "resumo":  "contingencia do PDV com emitida_em 0000-00-00 00:00:00 faz o REPLACE em history_contingencia falhar em modo estrito (1292) e derruba a coleta do cliente. Decisao do usuario: data zerada ou invalida grava NULL em data_fiscal_xml. O 220 nao trata (lote some em silencio)."
+}
