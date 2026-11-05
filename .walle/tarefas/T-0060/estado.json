@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0060",
+    "titulo":  "Componente de janela modal do walle-ui",
+    "origem":  "pedido do usuario de 05/11/2026 (janela de erros das coletas de contingencias)",
+    "tipo":  "feature",
+    "dono":  "walle-telas",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0060-componente-de-janela-modal-do-walle-ui",
+    "pr":  0,
+    "base":  "3ef3158fdd9cae0d6c8e1ac56046dd98ad59cbea",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-05 14:12:05",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0060-componente-de-janela-modal-do-walle-ui a partir de 3ef3158fdd9cae0d6c8e1ac56046dd98ad59cbea"
+                    }
+                ]
+}
