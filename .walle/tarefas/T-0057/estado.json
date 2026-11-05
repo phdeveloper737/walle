@@ -5,7 +5,7 @@
     "tipo":  "plano",
     "dono":  "walle-infra, walle-robos e walle-telas",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0057-robos-usam-os-parametros-configurados-no",
     "pr":  73,
     "base":  "01040ba4587820d1abd84c8ca5c240b185f899b4",
@@ -25,6 +25,11 @@
                         "quando":  "2026-11-05 11:07:21",
                         "tipo":  "pr",
                         "detalhe":  "PR #73 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-05 11:29:44",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0057: clientes ignorados pelo painel, cfg_caminho e acoes so no .env e efetivo valida a fronteira"
                     }
                 ]
 }

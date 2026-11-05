@@ -7,6 +7,7 @@ use App\Models\RoboConfig;
 use App\Models\RoboConfigHistorico;
 use Closure;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Serviço único de configuração e histórico dos robôs do walle.
@@ -116,9 +117,14 @@ class ConfiguracaoRobo
      */
     private static function lerEfetivo(string $robo, string $parametro): mixed
     {
-        $persistido = self::persistido($robo, $parametro);
-        if ($persistido !== null) {
-            return $persistido;
+        $linha = RoboConfig::where('robo', $robo)->where('parametro', $parametro)->first();
+        if ($linha !== null && $linha->valor !== null) {
+            if (self::persistidoValido($robo, $parametro, $linha->valor)) {
+                return self::converterPeloTipo($robo, $parametro, $linha->valor);
+            }
+
+            // Valor gravado fora do gravar(): ignora e segue com config/catálogo (sem o valor no log)
+            Log::warning('Parâmetro de robô persistido inválido ignorado', ['robo' => $robo, 'parametro' => $parametro]);
         }
 
         // Sem persistência: config do walle.php (.env) quando existe
@@ -129,6 +135,32 @@ class ConfiguracaoRobo
 
         // Por fim: default do catálogo
         return self::catalogo()[$robo][$parametro]['default'] ?? null;
+    }
+
+    /**
+     * Confere o texto persistido contra o tipo e a fronteira do catálogo (mesmos critérios do gravar()).
+     */
+    private static function persistidoValido(string $robo, string $parametro, string $texto): bool
+    {
+        $tipo = self::catalogo()[$robo][$parametro]['fronteira']['tipo'] ?? null;
+
+        $valor = match ($tipo) {
+            'bool' => filter_var($texto, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            'array' => json_decode($texto, true),
+            default => $texto,
+        };
+
+        if ($valor === null || ($tipo === 'array' && ! is_array($valor))) {
+            return false;
+        }
+
+        try {
+            self::validarFronteira($robo, $parametro, $valor);
+        } catch (\InvalidArgumentException|\LogicException) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

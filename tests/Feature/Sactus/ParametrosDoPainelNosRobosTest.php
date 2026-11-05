@@ -176,6 +176,24 @@ test('Sactus usa as regras de ACL configuradas no painel', function () {
     expect($comandos)->toContain('/opt/outro.ini')->not->toContain('/var/sistema/config.ini');
 });
 
+test('Sactus não coleta o cliente listado em clientes_ignorados no painel', function () {
+    ligarRoboParaParametrosDoPainel('sactus');
+    config(['walle.sactus.erp.senha' => 'senha-do-220']);
+    $ignorado = criarClienteSactus(['ip_externo_servidor' => '200.1.2.3']);
+    criarClienteSactus(['ip_externo_servidor' => '200.1.2.4']);
+    $ssh = sshFalso();
+    foreach (['200.1.2.3', '200.1.2.4'] as $host) {
+        $ssh->servidor($host, 22, 'senha-ssh', ['/etc/sactus.cfg' => cfgSactus()]);
+    }
+    ConfiguracaoRobo::gravar('sactus', 'clientes_ignorados', [$ignorado], 'teste');
+
+    $ciclo = app(RoboSactus::class)->rodarCiclo();
+
+    expect($ciclo->coletados)->toBe(1)
+        ->and($ssh->comandosEm('200.1.2.3', 22))->toBe([])
+        ->and($ssh->comandosEm('200.1.2.4', 22))->not->toBe([]);
+});
+
 test('Sentinela congela os parâmetros no ciclo e solta no fim', function () {
     Http::preventStrayRequests();
     ligarRoboParaParametrosDoPainel('sentinela');

@@ -15,6 +15,7 @@ class ServidoresSactus
     public function todos(): array
     {
         $prefixoVpn = (string) ConfiguracaoRobo::efetivo('sactus', 'erp.vpn_prefixo');
+        $ignorados = array_map('intval', (array) ConfiguracaoRobo::efetivo('sactus', 'clientes_ignorados'));
 
         return DB::connection('help')
             ->table('informacao_tecnica_dataserver as i')
@@ -24,7 +25,7 @@ class ServidoresSactus
                 ->orWhereRaw("UPPER(TRIM(i.local_servidor)) = 'EMPRESA'")
                 ->orWhere(fn ($q) => $q->whereRaw('TRIM(i.ip_interno_servidor) LIKE ?', [$prefixoVpn.'%'])
                     ->whereRaw("UPPER(TRIM(i.atualizar_erp)) = 'S'")))
-            ->whereNotIn('c.id', config('walle.sactus.clientes_ignorados'))
+            ->whereNotIn('c.id', $ignorados)
             ->select('i.*', 'c.id as id_client')
             ->orderBy('c.id')
             ->get()

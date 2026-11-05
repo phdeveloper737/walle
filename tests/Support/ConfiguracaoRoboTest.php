@@ -233,8 +233,32 @@ test('definirAtivo recusa robo desconhecido sem efeitos', function () {
 });
 
 test('validarFronteira valida string', function () {
-    ConfiguracaoRobo::gravar('sactus', 'cfg_caminho', '/novo/caminho.cfg', 'admin');
-    expect(ConfiguracaoRobo::efetivo('sactus', 'cfg_caminho'))->toBe('/novo/caminho.cfg');
+    ConfiguracaoRobo::gravar('sactus', 'erp.origem', '10.0.0.5', 'admin');
+    expect(ConfiguracaoRobo::efetivo('sactus', 'erp.origem'))->toBe('10.0.0.5');
+});
+
+test('cfg_caminho e acoes ficam fora do catalogo (so config/.env)', function () {
+    $sactus = ParametroCatalogo::todos()['sactus'];
+    expect($sactus)->not->toHaveKey('cfg_caminho')
+        ->and(array_filter(array_keys($sactus), fn ($k) => str_starts_with($k, 'acoes')))->toBe([]);
+    expect(fn () => ConfiguracaoRobo::gravar('sactus', 'cfg_caminho', '/etc/shadow', 'admin'))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+test('persistido fora da fronteira gravado direto e ignorado: vale o config', function () {
+    RoboConfig::create(['robo' => 'autorizadas', 'parametro' => 'limite_ciclo', 'valor' => '0', 'valor_sanitizado' => '0']);
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(config('walle.autorizadas.limite_ciclo'));
+
+    RoboConfig::where('parametro', 'limite_ciclo')->update(['valor' => 'abc']);
+    expect(ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'))->toBe(config('walle.autorizadas.limite_ciclo'));
+
+    $foto = ConfiguracaoRobo::noCiclo('autorizadas', fn () => ConfiguracaoRobo::efetivo('autorizadas', 'limite_ciclo'));
+    expect($foto)->toBe(config('walle.autorizadas.limite_ciclo'));
+});
+
+test('persistido array invalido e ignorado', function () {
+    RoboConfig::create(['robo' => 'sactus', 'parametro' => 'clientes_ignorados', 'valor' => '{nao-json', 'valor_sanitizado' => 'x']);
+    expect(ConfiguracaoRobo::efetivo('sactus', 'clientes_ignorados'))->toBe(config('walle.sactus.clientes_ignorados'));
 });
 
 test('validarFronteira valida array', function () {
