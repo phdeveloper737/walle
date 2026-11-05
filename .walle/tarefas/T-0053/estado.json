@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0053",
+    "titulo":  "Nome e ajuda nos parametros do catalogo dos robos",
+    "origem":  "bloqueio da T-0052, opcao 1 recomendada",
+    "tipo":  "plano",
+    "dono":  "walle-infra",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0053-nome-e-ajuda-nos-parametros-do-catalogo",
+    "pr":  68,
+    "base":  "133ccc37b7464c50288f8332764770226dadae6f",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-04 22:01:00",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0053-nome-e-ajuda-nos-parametros-do-catalogo a partir de 133ccc37b7464c50288f8332764770226dadae6f"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:19:53",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0053: nome e ajuda nos parametros do catalogo dos robos"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:19:58",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #68 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-04 22:36:33",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0053: ajuda certa do intervalo e da pausa 656 das Autorizadas"
+                    }
+                ]
+}

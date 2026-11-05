@@ -24,6 +24,11 @@
                         "quando":  "2026-11-04 22:43:56",
                         "tipo":  "desbloqueada",
                         "detalhe":  "Decisao (04/11/2026, opcao 1 recomendada): o catalogo ganhou nome e ajuda em todos os 47 parametros na T-0053 (PR #68, integrada). Retomar, atualizar com o main e fazer as telas usando ParametroCatalogo::todos() como fonte unica de nome, unidade e ajuda."
+                    },
+                    {
+                        "quando":  "2026-11-04 22:44:00",
+                        "tipo":  "atualizada",
+                        "detalhe":  "origin/main 2c5b77b11c7804e8733b017470678209b36b24a2 incorporado; ciclos preservados em 0."
                     }
                 ],
     "notas_bloqueio":  "4ebcee11ea315468ff0d3e2a6af55924ab5258d359a7009d59357d6e23fdedb5"
