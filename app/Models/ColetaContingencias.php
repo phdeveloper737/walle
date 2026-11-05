@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $terminado_em
  * @property string $status
  * @property string|null $erro
+ * @property array<string, mixed>|null $detalhe_tecnico
  * @property int|null $total_cliente
  * @property int|null $total_bot
  * @property int|null $total_sactus
@@ -34,6 +35,7 @@ class ColetaContingencias extends Model
         'status' => 'em_andamento',
         'terminado_em' => null,
         'erro' => null,
+        'detalhe_tecnico' => null,
         'total_cliente' => null,
         'total_bot' => null,
         'total_sactus' => null,
@@ -45,6 +47,7 @@ class ColetaContingencias extends Model
         return [
             'iniciado_em' => 'datetime',
             'terminado_em' => 'datetime',
+            'detalhe_tecnico' => 'array',
         ];
     }
 

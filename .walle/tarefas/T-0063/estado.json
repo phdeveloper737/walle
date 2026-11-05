@@ -15,6 +15,11 @@
                         "quando":  "2026-11-05 16:45:45",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0063-detalhes-tecnicos-das-coletas-para-admin a partir de c8a75774002753070bb8db2593f3f6aa6c0cbe49"
+                    },
+                    {
+                        "quando":  "2026-11-05 17:06:11",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0063: Detalhes tecnicos das coletas para admin e retencao das coletas"
                     }
                 ]
 }

@@ -121,6 +121,78 @@ test('cliente sem coleta mostra o estado vazio na janela e valor inválido é ig
         ->assertSet('clienteColetas', null);
 });
 
+function semearFalhaComDetalhe(int $cliente): void
+{
+    $ciclo = CicloContingencias::create(['iniciado_em' => now()]);
+    ColetaContingencias::create([
+        'ciclo_id' => $ciclo->id, 'fk_c_cliente' => $cliente, 'iniciado_em' => now(), 'terminado_em' => now(),
+        'status' => 'falha', 'erro' => 'Não foi possível entrar no MySQL do cliente.',
+        'detalhe_tecnico' => [
+            'codigo' => 1045, 'classe' => 'PDOException', 'mensagem' => 'SQLSTATE[HY000] [1045] Access denied for user',
+            'detalhe' => null, 'origem' => 'Conector.php:42',
+            'tentativa' => [
+                'etapa' => 'login', 'host' => '10.99.88.77', 'porta' => 3306, 'usuario' => 'usuario_secreto_xyz',
+                'banco_cadastro' => 'banco_cad_xyz', 'local_servidor' => 'Goiânia', 'timeout_porta_segundos' => 3, 'timeout_pdo_segundos' => 5,
+                'erros' => [['banco' => 'banco_erro_abc', 'classe' => 'PDOException', 'codigo' => 1045, 'mensagem' => 'Acesso negado ABC']],
+            ],
+            'anteriores' => [['classe' => 'RuntimeException', 'mensagem' => 'causa anterior QWE']],
+        ],
+    ]);
+}
+
+test('admin vê os detalhes técnicos da falha, com a etapa traduzida', function () {
+    $usuario = Usuario::find(criarUsuarioHelpDesk());
+    $this->actingAs($usuario);
+    config(['walle.admins' => [$usuario->id]]);
+    $cliente = criarClienteHelpDesk(['razao_social' => 'MERCADO DETALHE']);
+    semearFalhaComDetalhe($cliente);
+
+    Livewire::test(Robo::class)->call('verColetas', $cliente)
+        ->assertSee('Detalhes técnicos')
+        ->assertSee('Entrada no MySQL')
+        ->assertSee('10.99.88.77:3306')
+        ->assertSee('usuario_secreto_xyz')
+        ->assertSee('banco_cad_xyz')
+        ->assertSee('3 s')
+        ->assertSee('SQLSTATE[HY000] [1045] Access denied for user')
+        ->assertSee('Acesso negado ABC')
+        ->assertSee('causa anterior QWE');
+});
+
+test('quem não é admin não recebe nenhum dado do detalhe técnico, nem no HTML nem no snapshot', function () {
+    $usuario = Usuario::find(criarUsuarioHelpDesk());
+    $this->actingAs($usuario);
+    config(['walle.admins' => []]);
+    $cliente = criarClienteHelpDesk(['razao_social' => 'MERCADO DETALHE']);
+    semearFalhaComDetalhe($cliente);
+
+    $teste = Livewire::test(Robo::class)->call('verColetas', $cliente)
+        ->assertSee('Não foi possível entrar no MySQL do cliente.')
+        ->assertDontSee('Detalhes técnicos');
+
+    $tudo = $teste->html().json_encode($teste->snapshot);
+    foreach (['10.99.88.77', 'usuario_secreto_xyz', 'banco_cad_xyz', 'Access denied', 'Acesso negado ABC', 'causa anterior QWE', 'Entrada no MySQL'] as $valor) {
+        expect(str_contains($tudo, $valor))->toBeFalse($valor);
+    }
+    expect($teste->instance()->coletasDoCliente->first()->getAttributes())->not->toHaveKey('detalhe_tecnico');
+});
+
+test('admin vê só o erro da coleta antiga, sem detalhe técnico', function () {
+    $usuario = Usuario::find(criarUsuarioHelpDesk());
+    $this->actingAs($usuario);
+    config(['walle.admins' => [$usuario->id]]);
+    $cliente = criarClienteHelpDesk(['razao_social' => 'MERCADO ANTIGO']);
+    semearSoColeta($cliente, 'falha', 'O servidor do cliente não respondeu.');
+
+    Livewire::test(Robo::class)->call('verColetas', $cliente)
+        ->assertSee('O servidor do cliente não respondeu.')
+        ->assertDontSee('Detalhes técnicos');
+});
+
+test('clienteColetas não pode ser alterado pelo navegador', function () {
+    Livewire::test(Robo::class)->set('clienteColetas', 5);
+})->throws(Exception::class, 'Cannot update locked property');
+
 test('sem coletas mostra o estado vazio e aba inválida volta para clientes', function () {
     Livewire::test(Robo::class)->assertSee('Nenhuma coleta ainda');
     Livewire::test(Contingencias::class, ['aba' => 'xyz'])->assertSet('aba', 'clientes');
