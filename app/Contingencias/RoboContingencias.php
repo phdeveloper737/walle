@@ -53,6 +53,8 @@ class RoboContingencias
 
     private const MENSAGEM_OCUPADO = 'O cliente está ocupado por outra coleta.';
 
+    private const MENSAGEM_INTERROMPIDO = 'O ciclo foi interrompido antes de terminar (queda ou reinício do serviço).';
+
     private const CODIGO_OCUPADO = 'CLIENTE_OCUPADO';
 
     public function __construct(private readonly ColetaIntegralContingencias $coletor) {}
@@ -77,6 +79,8 @@ class RoboContingencias
         if (! $this->ligado()) {
             return $this->vazio('O robô de contingências está desligado.');
         }
+
+        $this->interromperCiclosPresos();
 
         $ciclo = CicloContingencias::create(['iniciado_em' => now()]);
         $origem = $clienteId === null ? 'automatica' : 'manual';
@@ -109,6 +113,22 @@ class RoboContingencias
         }
 
         return $resultado;
+    }
+
+    /**
+     * Marca como interrompidos os ciclos que ficaram em andamento além da trava (queda do Horizon ou do serviço,
+     * em que o finally nunca rodou). O término fica nulo, pois não se sabe quando parou. Uma falha aqui não derruba o ciclo.
+     */
+    private function interromperCiclosPresos(): void
+    {
+        try {
+            CicloContingencias::query()
+                ->where('status', 'em_andamento')
+                ->where('iniciado_em', '<', now()->subSeconds(self::TRAVA_SEGUNDOS))
+                ->update(['status' => 'interrompido', 'erro' => self::MENSAGEM_INTERROMPIDO]);
+        } catch (Throwable $erro) {
+            Log::warning('Não foi possível encerrar os ciclos presos de contingências: '.$erro::class);
+        }
     }
 
     /** @return array{ResultadoContingencias, string} */

@@ -101,6 +101,33 @@ test('robô, job e coleta manual desligados não consultam clientes nem gravam c
     Http::assertNothingSent();
 });
 
+test('ciclo preso há mais de 3700 s vira interrompido ao rodar um ciclo, sem tocar nos demais', function () {
+    $this->travelTo(now()->setDate(2026, 11, 6)->setTime(10, 0));
+    $preso = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3701), 'coletados' => 4]);
+    $dentro = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3600)]);
+    $concluido = CicloContingencias::create(['iniciado_em' => now()->subDays(2), 'terminado_em' => now()->subDays(2)->addMinute(), 'status' => 'concluido']);
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    $preso->refresh();
+    expect($preso->status)->toBe('interrompido')
+        ->and($preso->erro)->toBe('O ciclo foi interrompido antes de terminar (queda ou reinício do serviço).')
+        ->and($preso->terminado_em)->toBeNull()
+        ->and($preso->coletados)->toBe(4);
+    expect($dentro->refresh()->status)->toBe('em_andamento')->and($dentro->erro)->toBeNull();
+    $concluido->refresh();
+    expect($concluido->status)->toBe('concluido')->and($concluido->erro)->toBeNull()->and($concluido->terminado_em)->not->toBeNull();
+});
+
+test('com o robô desligado nenhum ciclo preso é alterado', function () {
+    config(['walle.contingencias.ativo' => false]);
+    $preso = CicloContingencias::create(['iniciado_em' => now()->subSeconds(5000)]);
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    expect($preso->refresh()->status)->toBe('em_andamento')->and($preso->erro)->toBeNull();
+});
+
 test('coleta mais de mil registros sem o cache ou limite da projeção de tela', function (bool $comChave) {
     config(['walle.contingencias.ativo' => true]);
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
