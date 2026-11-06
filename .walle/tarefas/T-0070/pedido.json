@@ -1,0 +1,7 @@
+{
+    "titulo":  "Ciclos de contingencias presos fechados como interrompidos",
+    "origem":  "pedido do usuario de 06/11/2026",
+    "tipo":  "bug",
+    "dono":  "walle-robos (app/Contingencias/RoboContingencias.php e testes)",
+    "resumo":  "Quando o Horizon ou o WSL cai no meio de um ciclo, a linha de contingencias_ciclos fica para sempre com status em_andamento e terminado_em nulo (hoje: 205, 253 e 840). No inicio de cada ciclo, o robo marca como interrompido todo ciclo em_andamento iniciado ha mais de RoboContingencias::TRAVA_SEGUNDOS (3700 s, acima do timeout de 3600 s do job), com erro explicativo; nao fecha ciclos mais novos, porque a coleta manual de um cliente roda junto com o ciclo automatico e tambem abre ciclo. Sactus e Autorizadas nao tem coluna status nem ciclos presos: fora do escopo."
+}
