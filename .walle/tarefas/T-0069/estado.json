@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 06/11/2026",
     "tipo":  "bug",
     "dono":  "walle-infra (tests/Pest.php e tests/Support)",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0069-servidor-do-playwright-encerrado-no-fim",
-    "pr":  0,
+    "pr":  85,
     "base":  "27b870c239ca87face6efde7ffab88db498c7033",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-06 12:56:06",
                         "tipo":  "commit",
                         "detalhe":  "T-0069: Servidor do Playwright encerrado no fim dos testes de navegador"
+                    },
+                    {
+                        "quando":  "2026-11-06 13:03:00",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #85 aberto"
                     }
                 ]
 }
