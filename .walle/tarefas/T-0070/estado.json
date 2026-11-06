@@ -15,6 +15,11 @@
                         "quando":  "2026-11-06 13:20:48",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0070-ciclos-de-contingencias-presos-fechados a partir de 0c6fc90d0c643fb8fbc04cf5c206477a0a70671f"
+                    },
+                    {
+                        "quando":  "2026-11-06 13:23:55",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0070: Ciclos de contingencias presos fechados como interrompidos"
                     }
                 ]
 }
