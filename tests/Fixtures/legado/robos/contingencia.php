@@ -29,6 +29,12 @@ return [
         'painel_previo' => [
             'total_cliente' => 3, 'total_bot' => 3, 'total_sactus' => 2, 'total_versatus' => 1, 'data' => '2026-10-27 09:00:00',
         ],
+        // Decisão do usuário de 06/11/2026: Versatus é lido ao vivo do 220; sem dados lá, zera aqui também.
+        // Desvio do 220 (que apaga o histórico e zera o painel inteiro, "ZERAR TUDO LINUX"): o walle zera só o Versatus,
+        // recompõe total_cliente/total_bot = pendentes Sactus (3 - 1) + Versatus novo (0) e preserva total_sactus e as linhas SACTUS.
+        'painel_esperado' => [
+            'total_cliente' => 2, 'total_bot' => 2, 'total_sactus' => 2, 'total_versatus' => 0, 'data' => '2026-11-06 10:30:00',
+        ],
         'historico_previo' => [
             'serie' => '2', 'numero' => '501', 'chave' => '52261000000000000190650010000005019000000001',
             'data_fiscal_xml' => '2026-10-19 09:00:00', 'motivo' => 'Rejeição fictícia para teste de paridade', 'software' => 'SACTUS',

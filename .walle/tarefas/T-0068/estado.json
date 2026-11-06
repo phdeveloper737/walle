@@ -15,6 +15,11 @@
                         "quando":  "2026-11-06 08:28:19",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0068-versatus-lido-ao-vivo-do-220-e-clientes a partir de c6ad519cb0e29c0fcd6e6ab4832947319dcf76f9"
+                    },
+                    {
+                        "quando":  "2026-11-06 08:50:36",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0068: Versatus lido ao vivo do 220 e clientes V sem Sactus"
                     }
                 ]
 }

@@ -3,6 +3,7 @@
 use App\Contingencias\Cliente\ConectorDeCliente;
 use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
+use App\Contingencias\FalhaLeituraVersatus;
 use App\Contingencias\RoboContingencias;
 use App\Jobs\RodarCicloContingencias;
 use App\Models\Auditoria;
@@ -377,7 +378,7 @@ test('falha de conexão com o cliente ainda grava o Versatus e preserva o Sactus
     'sem actus' => fn () => FalhaConexaoCliente::semBancoActus('sem banco'),
 ]);
 
-test('falha de conexão sem Versatus deixa histórico e painel exatamente como estavam', function () {
+test('falha de conexão com o Versatus do 220 vazio zera o Versatus e mantém o Sactus', function () {
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     DB::table('history_contingencia')->insert([
         ['fk_c_cliente' => $cliente, 'chave' => str_repeat('8', 44), 'software' => 'SACTUS'],
@@ -388,11 +389,122 @@ test('falha de conexão sem Versatus deixa histórico e painel exatamente como e
 
     app(RoboContingencias::class)->coletarCliente($cliente);
 
-    $this->assertDatabaseCount('history_contingencia', 2);
+    $this->assertDatabaseCount('history_contingencia', 1);
     $this->assertDatabaseHas('history_contingencia', ['chave' => str_repeat('8', 44), 'software' => 'SACTUS']);
-    $this->assertDatabaseHas('history_contingencia', ['chave' => 'versatus_velho', 'software' => 'VERSATUS']);
-    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 7, 'total_bot' => 7, 'total_sactus' => 6, 'total_versatus' => 1]);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 6, 'total_bot' => 6, 'total_sactus' => 6, 'total_versatus' => 0]);
     expect(ColetaContingencias::query()->sole()->status)->toBe('falha');
+});
+
+/** Conexão para o 220 que recusa na hora (127.0.0.1, porta 1): imita o 220 fora do ar sem sair da máquina. */
+function versatusDo220ForaDoAr(): void
+{
+    config([
+        'database.connections.versatus_fora' => [...config('database.connections.mysql'), 'host' => '127.0.0.1', 'port' => 1, 'read' => null, 'write' => null],
+        'services.clientes.conexao_versatus' => 'versatus_fora',
+    ]);
+}
+
+test('lê o Versatus do 220 pela conexão legado220 e grava histórico e painel', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    criarContingenciaVersatus($cliente, ['cupom' => '100', 'chave' => str_repeat('1', 44)]);
+    criarContingenciaVersatus($cliente, ['cupom' => '101', 'motivo' => 'Nao Enviada para Sefaz']);
+    criarContingenciaSactus(['cupom' => '501']);
+    servidorDoClienteNoBancoDeTestes();
+    $conexoes = [];
+    DB::listen(function ($consulta) use (&$conexoes): void {
+        if (str_contains($consulta->sql, 'contingencias_versatus_venda')) {
+            $conexoes[] = $consulta->connectionName;
+        }
+    });
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    expect($conexoes)->toBe(['legado220'])
+        ->and(DB::table('history_contingencia')->where('software', 'VERSATUS')->count())->toBe(1);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_sactus' => 1, 'total_versatus' => 1]);
+    expect(ColetaContingencias::query()->sole()->status)->toBe('sucesso');
+});
+
+test('220 sem Versatus do cliente zera o Versatus no walle e mantém o Sactus', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    criarContingenciaSactus(['cupom' => '501']);
+    DB::table('history_contingencia')->insert(['fk_c_cliente' => $cliente, 'chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    DB::table('painel_contingency_crawler')->insert(['fk_c_cliente' => $cliente, 'total_cliente' => 3, 'total_bot' => 3, 'total_sactus' => 2, 'total_versatus' => 1]);
+    servidorDoClienteNoBancoDeTestes();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $this->assertDatabaseMissing('history_contingencia', ['chave' => 'versatus_velho']);
+    expect(DB::table('history_contingencia')->where('software', 'SACTUS')->count())->toBe(1);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 1, 'total_sactus' => 1, 'total_versatus' => 0]);
+    expect(ColetaContingencias::query()->sole()->status)->toBe('sucesso');
+});
+
+test('220 fora do ar preserva o Versatus do walle, grava o Sactus e registra a falha sem SQL', function () {
+    Exceptions::fake();
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    criarContingenciaSactus(['cupom' => '501']);
+    criarContingenciaSactus(['cupom' => '502']);
+    DB::table('history_contingencia')->insert(['fk_c_cliente' => $cliente, 'chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    DB::table('painel_contingency_crawler')->insert(['fk_c_cliente' => $cliente, 'total_cliente' => 4, 'total_bot' => 4, 'total_sactus' => 3, 'total_versatus' => 1]);
+    servidorDoClienteNoBancoDeTestes();
+    versatusDo220ForaDoAr();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $this->assertDatabaseHas('history_contingencia', ['chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    expect(DB::table('history_contingencia')->where('software', 'SACTUS')->count())->toBe(2);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 3, 'total_bot' => 3, 'total_sactus' => 2, 'total_versatus' => 1]);
+    $coleta = ColetaContingencias::query()->sole();
+    expect($coleta->status)->toBe('falha')->and($coleta->erro)->toBe('Não foi possível ler as contingências do Versatus no 220.')
+        ->and($coleta->total_sactus)->toBe(2)
+        ->and($coleta->detalhe_tecnico['classe'])->toBe(FalhaLeituraVersatus::class)
+        ->and(json_encode($coleta->detalhe_tecnico))->not->toContain('select ')->not->toContain('SQL:');
+    expect(CicloContingencias::query()->sole()->falhas)->toBe(1);
+});
+
+test('220 fora do ar com o Sactus também fora não grava nada', function () {
+    Exceptions::fake();
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
+    DB::table('history_contingencia')->insert(['fk_c_cliente' => $cliente, 'chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    DB::table('painel_contingency_crawler')->insert(['fk_c_cliente' => $cliente, 'total_cliente' => 4, 'total_bot' => 4, 'total_sactus' => 3, 'total_versatus' => 1]);
+    servidorDoClienteForaDoAr();
+    versatusDo220ForaDoAr();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $this->assertDatabaseHas('history_contingencia', ['chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 4, 'total_sactus' => 3, 'total_versatus' => 1]);
+    expect(ColetaContingencias::query()->sole()->status)->toBe('falha');
+});
+
+test('cliente só Versatus (V) não conecta no servidor, grava o Versatus e coleta com sucesso', function () {
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S'], ['servidor_multiempresa' => 'V', 'loja' => '']);
+    criarContingenciaVersatus($cliente, ['cupom' => '100', 'chave' => str_repeat('1', 44)]);
+    $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    expect(DB::table('history_contingencia')->where('software', 'VERSATUS')->count())->toBe(1);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_cliente' => 1, 'total_sactus' => 0, 'total_versatus' => 1]);
+    $coleta = ColetaContingencias::query()->sole();
+    expect($coleta->status)->toBe('sucesso')->and($coleta->erro)->toBeNull();
+    expect(CicloContingencias::query()->sole()->falhas)->toBe(0);
+});
+
+test('cliente V com o 220 fora do ar falha e preserva o que já estava', function () {
+    Exceptions::fake();
+    $cliente = criarClienteHelpDesk(['consultoria' => 'S'], ['servidor_multiempresa' => 'V']);
+    DB::table('history_contingencia')->insert(['fk_c_cliente' => $cliente, 'chave' => 'versatus_velho', 'software' => 'VERSATUS']);
+    DB::table('painel_contingency_crawler')->insert(['fk_c_cliente' => $cliente, 'total_cliente' => 1, 'total_bot' => 1, 'total_versatus' => 1]);
+    $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
+    versatusDo220ForaDoAr();
+
+    app(RoboContingencias::class)->coletarCliente($cliente);
+
+    $this->assertDatabaseHas('history_contingencia', ['chave' => 'versatus_velho']);
+    $this->assertDatabaseHas('painel_contingency_crawler', ['fk_c_cliente' => $cliente, 'total_versatus' => 1]);
+    expect(ColetaContingencias::query()->sole()->erro)->toBe('Não foi possível ler as contingências do Versatus no 220.');
 });
 
 test('falha de conexão sem Versatus e sem painel não cria linha no painel', function () {

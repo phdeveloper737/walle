@@ -9,15 +9,18 @@ use Throwable;
 use WeakMap;
 
 /**
- * Trava de leitura nas conexões com o Help Desk de produção (192.168.10.254), que o walle só consulta.
+ * Trava de leitura nas conexões com os bancos de produção que o walle só consulta: o Help Desk
+ * (192.168.10.254) e o banco "suporte" do sistema antigo (192.168.10.220, conexão legado220).
  *
  * Registrada em toda conexão criada (AppServiceProvider, evento ConnectionEstablished), roda no
  * Connection::beforeExecuting(): antes de cada consulta e antes de o Laravel abrir o PDO. Uma conexão é
  * protegida quando:
- * - o host dela está em walle.help_desk.hosts_producao (config viva ou config/database.php com o mesmo nome); ou
- * - o nome dela é "help" ou está em walle.help_desk.conexoes_somente_leitura, qualquer que seja o host.
+ * - o host dela é 192.168.10.254 ou 192.168.10.220 (sempre, qualquer que seja o config) ou está em
+ *   walle.help_desk.hosts_producao (config viva ou config/database.php com o mesmo nome); ou
+ * - o nome dela é "help", "legado220" ou está em walle.help_desk.conexoes_somente_leitura, qualquer que seja o host.
  *   A única isenção é nos testes, e só quando o banco da própria conexão é o de teste do Help Desk
- *   (walle_testes_help ou walle_testes_tNN_help), onde as fixtures precisam ser gravadas.
+ *   (walle_testes_help ou walle_testes_tNN_help), onde as fixtures precisam ser gravadas. A legado220 não tem
+ *   isenção: nos testes ela usa o banco de testes do walle e as fixtures são gravadas pela "mysql".
  *
  * Numa conexão protegida só passa leitura (ClassificadorSql); o resto fica na auditoria
  * (help_desk.escrita_barrada, sem SQL nem valores, gravada pela conexão "auditoria" para não ser desfeita
@@ -31,6 +34,18 @@ class TravaHelpDeskProducao
 
     /** A conexão do Help Desk é sempre somente leitura, mesmo que a lista do config venha vazia. */
     private const CONEXAO_HELP = 'help';
+
+    /** A conexão com o banco "suporte" do 220 de produção é sempre somente leitura, mesmo que a lista do config venha vazia. */
+    public const CONEXAO_LEGADO_220 = 'legado220';
+
+    /** Host do banco "suporte" do 220 de produção. */
+    private const HOST_LEGADO_220 = '192.168.10.220';
+
+    /**
+     * Hosts de produção protegidos mesmo que WALLE_HELP_HOSTS_PRODUCAO não os traga (o .env.example só tem o .254).
+     * A lista do config só acrescenta hosts.
+     */
+    private const HOSTS_SEMPRE_PROTEGIDOS = ['192.168.10.254', self::HOST_LEGADO_220];
 
     /**
      * Conexão onde a tentativa barrada é registrada: cópia da "mysql" numa sessão própria, para a auditoria
@@ -78,7 +93,7 @@ class TravaHelpDeskProducao
             $destino = $this->destinoProtegido($conexao);
 
             if ($destino !== null) {
-                $this->barrarEscrita($sql, $destino, self::nomeDaConexao($conexao));
+                $this->barrarEscrita($sql, $destino, self::nomeDaConexao($conexao), $conexao->getConfig('host'));
             }
         });
     }
@@ -145,7 +160,7 @@ class TravaHelpDeskProducao
      */
     public static function hostDeProducao(array $config): ?string
     {
-        $producao = array_map(self::normalizar(...), (array) config('walle.help_desk.hosts_producao', []));
+        $producao = array_map(self::normalizar(...), [...self::HOSTS_SEMPRE_PROTEGIDOS, ...(array) config('walle.help_desk.hosts_producao', [])]);
 
         $hosts = (array) ($config['host'] ?? []);
         foreach (['read', 'write'] as $tipo) {
@@ -175,7 +190,17 @@ class TravaHelpDeskProducao
         return 'desconhecida';
     }
 
-    private function barrarEscrita(string $sql, string $destino, ?string $conexao): void
+    /**
+     * Se a conexão (pelo nome) ou o host é o do banco "suporte" do 220 de produção, e não o Help Desk.
+     * Só escolhe a mensagem; a proteção vale igual para os dois.
+     */
+    public static function ehDoSistemaAntigo(?string $conexao, mixed $host): bool
+    {
+        return self::normalizar($conexao) === self::CONEXAO_LEGADO_220
+            || in_array(self::HOST_LEGADO_220, array_map(self::normalizar(...), (array) $host), true);
+    }
+
+    private function barrarEscrita(string $sql, string $destino, ?string $conexao, mixed $host): void
     {
         if ($this->classificador->ehLeitura($sql)) {
             return;
@@ -183,11 +208,16 @@ class TravaHelpDeskProducao
 
         self::registrarTentativa($conexao ?? 'desconhecida', $destino, self::instrucao($sql));
 
-        throw new EscritaNoHelpDeskDeProducao($destino);
+        throw new EscritaNoHelpDeskDeProducao(
+            $destino,
+            self::ehDoSistemaAntigo($conexao, [$destino, ...(array) $host])
+                ? EscritaNoHelpDeskDeProducao::SISTEMA_ANTIGO
+                : EscritaNoHelpDeskDeProducao::HELP_DESK,
+        );
     }
 
     /**
-     * Se a conexão é somente leitura pelo nome ("help" ou da lista walle.help_desk.conexoes_somente_leitura).
+     * Se a conexão é somente leitura pelo nome ("help", "legado220" ou da lista walle.help_desk.conexoes_somente_leitura).
      * Nos testes, a conexão da lista só fica livre quando o banco dela é o de teste do Help Desk
      * (walle_testes_help ou walle_testes_tNN_help, comparação exata); fora dos testes nunca há isenção.
      *
@@ -196,10 +226,15 @@ class TravaHelpDeskProducao
     private function somenteLeituraPeloNome(string $nome, mixed $banco): bool
     {
         $configurada = config('walle.help_desk.conexoes_somente_leitura', [self::CONEXAO_HELP]);
-        $lista = [self::CONEXAO_HELP, ...(is_string($configurada) ? explode(',', $configurada) : (array) $configurada)];
+        $lista = [self::CONEXAO_HELP, self::CONEXAO_LEGADO_220, ...(is_string($configurada) ? explode(',', $configurada) : (array) $configurada)];
 
         if (! in_array(self::normalizar($nome), array_map(self::normalizar(...), $lista), true)) {
             return false;
+        }
+
+        // A legado220 não tem isenção nos testes: lá ela lê o banco de testes do walle, cujas fixtures vão pela "mysql"
+        if (self::normalizar($nome) === self::CONEXAO_LEGADO_220) {
+            return true;
         }
 
         if ($this->emTestes && is_string($banco) && preg_match(self::BANCO_DE_TESTE_DO_HELP_DESK, $banco) === 1) {

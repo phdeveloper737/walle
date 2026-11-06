@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Contingências de um cliente (substitui consultorias/api/get.contingencias.php), SÓ LEITURA:
  *
- * - Versatus: tabelas contingencias_versatus_venda(+itens) do banco walle;
+ * - Versatus: tabelas contingencias_versatus_venda(+itens) do banco suporte do 220, lidas ao vivo (LeituraVersatus);
+ *   cliente com servidor_multiempresa = 'V' é só Versatus e o servidor dele não é consultado;
  * - Sactus/PDV Linux: tabela contingencias_pdv no servidor do cliente (mesmas faixas de motivo do sistema antigo);
  * - as que o robô já viu autorizadas na Sefaz (history_contingencia_auth) saem da lista de pendentes.
  *
@@ -26,7 +27,7 @@ class BuscaContingencias
     /** Faixas de motivo do sistema antigo: traz um pouco de cada tipo de erro, não só as mais recentes. */
     public const FAIXAS_DE_MOTIVO = ['CST', 'NCM', 'CFOP', 'CSOSN', 'schema', 'fiscal', ''];
 
-    public function __construct(private readonly ConectorDeCliente $conector) {}
+    public function __construct(private readonly ConectorDeCliente $conector, private readonly LeituraVersatus $leituraVersatus) {}
 
     public function buscar(int $clienteId): ResultadoContingencias
     {
@@ -49,25 +50,34 @@ class BuscaContingencias
     {
         $servidor = $this->servidorNoHelpDesk($clienteId) ?? throw FalhaConexaoCliente::semCadastroNoHelpDesk();
 
-        $contingencias = $this->versatus($clienteId);
+        $contingencias = [];
         $totalNoPdv = 0;
         $aviso = null;
 
         try {
-            $conexao = $this->conector->conectar($clienteId, $servidor);
-
-            try {
-                [$sactus, $totalNoPdv] = $this->sactus($conexao, (string) ($servidor['loja'] ?? ''));
-                array_push($contingencias, ...$sactus);
-            } finally {
-                $conexao->desconectar();
-            }
-        } catch (FalhaConexaoCliente $falha) {
+            $contingencias = $this->leituraVersatus->comItens($clienteId, self::LIMITE);
+        } catch (FalhaLeituraVersatus $falha) {
             report($falha);
             $aviso = $falha->getMessage();
-        } catch (QueryException $erro) {
-            report($erro);
-            $aviso = 'O servidor do cliente respondeu, mas a leitura das contingências do Sactus falhou (tabela com problema?).';
+        }
+
+        if (! LeituraVersatus::somenteVersatus($servidor)) {
+            try {
+                $conexao = $this->conector->conectar($clienteId, $servidor);
+
+                try {
+                    [$sactus, $totalNoPdv] = $this->sactus($conexao, (string) ($servidor['loja'] ?? ''));
+                    array_push($contingencias, ...$sactus);
+                } finally {
+                    $conexao->desconectar();
+                }
+            } catch (FalhaConexaoCliente $falha) {
+                report($falha);
+                $aviso = trim($aviso.' '.$falha->getMessage());
+            } catch (QueryException $erro) {
+                report($erro);
+                $aviso = trim($aviso.' O servidor do cliente respondeu, mas a leitura das contingências do Sactus falhou (tabela com problema?).');
+            }
         }
 
         $contingencias = array_slice($this->semRepetidas($contingencias), 0, self::LIMITE);
@@ -88,60 +98,6 @@ class BuscaContingencias
             ->first();
 
         return $linha ? array_map(fn ($valor) => is_string($valor) ? trim($valor) : $valor, (array) $linha) : null;
-    }
-
-    /** @return list<Contingencia> */
-    private function versatus(int $clienteId): array
-    {
-        $linhas = DB::table('contingencias_versatus_venda as v')
-            ->join('contingencias_versatus_venda_itens as vi', 'vi.fk_contingencias_versatus_venda', '=', 'v.id')
-            ->where('v.fk_contingencias_versatus', $clienteId)
-            ->orderByDesc('v.data_hora')
-            ->orderBy('vi.id')
-            ->limit(self::LIMITE)
-            ->get([
-                'v.fk_company', 'v.pdv', 'v.cupom', 'v.data_hora', 'v.codigo', 'v.motivo', 'v.chave',
-                'vi.cod_barras', 'vi.fk_produto', 'vi.nome', 'vi.unidade', 'vi.aliquota', 'vi.base_reducao', 'vi.aliquota_reduzida',
-                'vi.ncm', 'vi.cest', 'vi.cbenef', 'vi.cfop', 'vi.cst', 'vi.cst_ibscbs', 'vi.classtrib_ibs',
-            ]);
-
-        $vendas = [];
-
-        foreach ($linhas as $linha) {
-            $id = "{$linha->fk_company}_{$linha->pdv}_{$linha->cupom}";
-
-            $vendas[$id] ??= [
-                'software' => Contingencia::VERSATUS,
-                'loja' => $linha->fk_company,
-                'pdv' => $linha->pdv,
-                'cupom' => $linha->cupom,
-                'emitida_em' => $linha->data_hora,
-                'codigo_motivo' => $linha->codigo,
-                'motivo' => $linha->motivo,
-                'chave' => $linha->chave,
-                'itens' => [],
-            ];
-
-            $vendas[$id]['itens'][] = [
-                'codigo_barras' => $linha->cod_barras,
-                'id_produto' => $linha->fk_produto,
-                'nome' => $linha->nome,
-                'unidade' => $linha->unidade,
-                'aliquota' => $linha->aliquota,
-                'reducao' => $linha->base_reducao,
-                'aliquota_reduzida' => $linha->aliquota_reduzida,
-                'ncm' => $linha->ncm,
-                'cest' => $linha->cest,
-                'cbenef' => $linha->cbenef,
-                'cfop' => $linha->cfop,
-                'cst' => $linha->cst,
-                'cst_ibscbs' => $linha->cst_ibscbs,
-                'classtrib_ibs' => $linha->classtrib_ibs,
-                'chave' => $linha->chave,
-            ];
-        }
-
-        return array_values(array_map(Contingencia::deArray(...), $vendas));
     }
 
     /** @return array{0: list<Contingencia>, 1: int} contingências e total que o PDV tem pendente */
