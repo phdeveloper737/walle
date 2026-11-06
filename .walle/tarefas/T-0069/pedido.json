@@ -1,0 +1,7 @@
+{
+    "titulo":  "Servidor do Playwright encerrado no fim dos testes de navegador",
+    "origem":  "pedido do usuario de 06/11/2026",
+    "tipo":  "bug",
+    "dono":  "walle-infra (tests/Pest.php e tests/Support)",
+    "resumo":  "Cada rodada do Pest com tests/Browser deixa um node playwright run-server orfao no walle-app (adotado pelo PID 1, ~130 MB cada; 15 acumulados ate 06/11). Causa: Pest\\Browser\\Plugin::terminate() (vendor/pestphp/pest-plugin-browser 4.3.1, src/Plugin.php:141) faz return no catch do Error \u0027Must call resume() or throw() before calling suspend() again\u0027 antes de ServerManager::instance()-\u003eplaywright()-\u003estop(). Correcao no repositorio, sem editar vendor: no fim da execucao (processo principal, nao worker paralelo) encerrar o servidor do Playwright que esta propria execucao iniciou, sem matar servidores de outras sessoes paralelas."
+}
