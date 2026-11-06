@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0069",
+    "titulo":  "Servidor do Playwright encerrado no fim dos testes de navegador",
+    "origem":  "pedido do usuario de 06/11/2026",
+    "tipo":  "bug",
+    "dono":  "walle-infra (tests/Pest.php e tests/Support)",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0069-servidor-do-playwright-encerrado-no-fim",
+    "pr":  0,
+    "base":  "27b870c239ca87face6efde7ffab88db498c7033",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-06 12:41:15",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0069-servidor-do-playwright-encerrado-no-fim a partir de 27b870c239ca87face6efde7ffab88db498c7033"
+                    }
+                ]
+}
