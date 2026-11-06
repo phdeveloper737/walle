@@ -7,6 +7,9 @@ use App\Sactus\Prechecagem;
 use App\Sactus\Ssh\ConectorSsh;
 use App\Sefaz\ConsultaSituacao;
 use Illuminate\Support\Facades\DB;
+use Pest\Browser\Playwright\Servers\PlaywrightNpmServer;
+use Pest\Browser\ServerManager;
+use Pest\Plugins\Parallel;
 use Tests\Support\PrechecagemFalsa;
 use Tests\Support\ServidorSshFalso;
 use Tests\Support\SessaoSefazFalsa;
@@ -29,6 +32,50 @@ pest()->extend(TestCase::class)->in('Feature');
 | é exercitar o CSS e o JavaScript que o usuário recebe (o TestCase desliga o Vite para os outros testes).
 */
 pest()->extend(TestCase::class)->beforeEach(fn () => $this->withVite())->in('Browser');
+
+/**
+ * Contorno de bug do pest-plugin-browser 4.3.1 (vendor/pestphp/pest-plugin-browser/src/Plugin.php, terminate(), ~linhas 129-147):
+ * se http()->stop() ou Playwright::close() lançar o Error "Must call resume() or throw() before calling suspend() again",
+ * o catch dá return e playwright()->stop() nunca roda, deixando o "playwright run-server" órfão no contêiner.
+ * Aqui, no fim do processo principal, encerramos o servidor desta execução: o stop() do ServerManager e, como o
+ * processo node sobrevive mesmo assim, um SIGTERM ao "playwright run-server" da PORTA que esta execução escolheu
+ * (cada sessão tem a sua; servidores de outras sessões não são tocados). Sem teste de navegador nenhum processo
+ * usa a porta e nada acontece. Remover quando o plugin corrigir o terminate().
+ */
+register_shutdown_function(function (): void {
+    if (Parallel::isWorker()) {
+        return;
+    }
+
+    try {
+        $servidor = ServerManager::instance()->playwright();
+        $servidor->stop();
+
+        if (! $servidor instanceof PlaywrightNpmServer || ! function_exists('posix_kill')) {
+            return;
+        }
+
+        foreach (glob('/proc/[0-9]*/cmdline') ?: [] as $arquivo) {
+            $linha = str_replace("\0", ' ', (string) @file_get_contents($arquivo));
+
+            if (str_starts_with($linha, 'node ') && str_contains($linha, 'playwright run-server --host '.$servidor->host.' --port '.$servidor->port.' ')) {
+                $pid = (int) explode('/', $arquivo)[2];
+                posix_kill($pid, SIGTERM);
+
+                // Com o Chromium ainda aberto o node ignora o SIGTERM: dá 3 s e força.
+                for ($i = 0; $i < 30 && posix_kill($pid, 0); $i++) {
+                    usleep(100_000);
+                }
+
+                if (posix_kill($pid, 0)) {
+                    posix_kill($pid, SIGKILL);
+                }
+            }
+        }
+    } catch (Throwable) {
+        // Encerramento de melhor esforço: nunca muda o resultado da suíte.
+    }
+});
 
 /*
 |--------------------------------------------------------------------------
