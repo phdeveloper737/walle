@@ -114,6 +114,27 @@ return [
             ],
         ],
 
+        // Banco "suporte" do 220 de PRODUÇÃO (192.168.10.220): contingências do Versatus lidas ao vivo, até existir
+        // uma API própria. SOMENTE LEITURA: o usuário pode ter escrita, mas o walle só lê, pelo nome da conexão e
+        // pelo host (App\Support\HelpDesk\TravaHelpDeskProducao). Usuário e senha só do .env, sem padrão.
+        'legado220' => [
+            'driver' => 'mysql',
+            'host' => env('LEGADO220_DB_HOST', '192.168.10.220'),
+            'port' => env('LEGADO220_DB_PORT', '3306'),
+            'database' => env('LEGADO220_DB_DATABASE', 'suporte'),
+            'username' => env('LEGADO220_DB_USERNAME', ''),
+            'password' => env('LEGADO220_DB_SENHA', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_general_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => [
+                PDO::ATTR_TIMEOUT => 5,
+            ],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

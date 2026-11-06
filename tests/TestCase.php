@@ -2,6 +2,8 @@
 
 namespace Tests;
 
+use App\Support\HelpDesk\TravaHelpDeskProducao;
+use Illuminate\Database\MySqlConnection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +50,37 @@ abstract class TestCase extends BaseTestCase
 
         config(['database.connections.auditoria' => config('database.connections.mysql')]);
 
+        $this->apontarLegado220ParaOBancoDeTeste();
+
         config(['walle.sactus.clientes_ignorados' => []]);
+    }
+
+    /**
+     * Nos testes a conexão "legado220" (banco "suporte" do 220 de produção) usa o banco de testes do walle
+     * (walle_testes ou walle_testes_tNN), onde ficam as tabelas contingencias_versatus_venda(+itens), nunca o
+     * 192.168.10.220. Recusa a troca se o banco principal estiver num host de produção.
+     *
+     * Ela usa a mesma sessão MySQL da "mysql" (o PDO é o dela, aberto só na primeira consulta): as fixtures
+     * gravadas pela "mysql" dentro da transação do teste são lidas pela legado220, que segue somente leitura
+     * (TravaHelpDeskProducao, pelo nome) e não entra em $connectionsToTransact.
+     */
+    protected function apontarLegado220ParaOBancoDeTeste(): void
+    {
+        $configuracao = config('database.connections.mysql');
+
+        if (! is_array($configuracao) || TravaHelpDeskProducao::hostDeProducao($configuracao) !== null) {
+            throw new \RuntimeException('Nos testes, a conexão legado220 não pode apontar para um host de produção.');
+        }
+
+        config(['database.connections.'.TravaHelpDeskProducao::CONEXAO_LEGADO_220 => $configuracao]);
+
+        $bancos = $this->app->make('db');
+        $bancos->extend(TravaHelpDeskProducao::CONEXAO_LEGADO_220, fn (array $config, string $nome): MySqlConnection => new MySqlConnection(
+            fn () => $bancos->connection('mysql')->getPdo(),
+            (string) $config['database'],
+            (string) ($config['prefix'] ?? ''),
+            [...$config, 'name' => $nome],
+        ));
     }
 
     /**

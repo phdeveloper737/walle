@@ -148,6 +148,7 @@ test('Contingência falha de conexão preserva métrica e histórico válidos e 
         ['robo' => 'contingencias', 'parametro' => 'ativo'],
         ['valor' => 'true', 'valor_sanitizado' => 'true']
     );
+    $this->travelTo(Carbon::parse('2026-11-06 10:30:00'));
     $amostra = require base_path('tests/Fixtures/legado/robos/contingencia.php');
     $cliente = criarClienteHelpDesk(['consultoria' => 'S']);
     criarContingenciaSactus($amostra['entrada_sactus']['cabecalho'], [[]], $amostra['entrada_sactus']['chave']);
@@ -161,10 +162,10 @@ test('Contingência falha de conexão preserva métrica e histórico válidos e 
 
     app(RoboContingencias::class)->rodarCiclo();
 
-    // Painel preservado (não zerado, não apagado)
+    // Decisão do usuário de 06/11/2026: Versatus vazio no 220 zera o total_versatus aqui; Sactus preservado.
     $paineis = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $cliente)->get();
     expect($paineis)->toHaveCount(1)
-        ->and((array) $paineis->sole())->toEqual(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['painel_previo']]);
+        ->and((array) $paineis->sole())->toEqual(['fk_c_cliente' => $cliente, ...$amostra['erro_conexao']['painel_esperado']]);
 
     // Histórico preservado (não apagado) — data_clique e data_consulta_sefaz_bot são colunas do banco, ignoradas na comparação.
     $historico = DB::table('history_contingencia')->where('fk_c_cliente', $cliente)->get();

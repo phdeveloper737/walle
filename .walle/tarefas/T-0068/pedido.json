@@ -1,0 +1,7 @@
+{
+    "titulo":  "Versatus lido ao vivo do 220 e clientes V sem Sactus",
+    "origem":  "pedido do usuario de 06/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-seguranca (conexao somente leitura) e walle-robos (robo e busca)",
+    "resumo":  "Conexao nova legado220 (192.168.10.220, banco suporte, credenciais so nas variaveis de ambiente) somente leitura por nome e host. O robo e a busca de contingencias leem contingencias_versatus_venda(+itens) ao vivo do 220; se o 220 nao tiver contingencias do cliente, o walle zera as VERSATUS no historico e no painel; se o 220 estiver fora, nao zera. Clientes com servidor_multiempresa=V sao so Versatus: o robo nao tenta o Sactus. Futuro: API para o Versatus inserir direto no walle."
+}

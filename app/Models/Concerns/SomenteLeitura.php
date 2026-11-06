@@ -11,7 +11,8 @@ use LogicException;
  * Model somente leitura: qualquer tentativa de gravar ou apagar fica na auditoria
  * (help_desk.escrita_barrada, instrução eloquent_save ou eloquent_delete; gravada pela conexão "auditoria",
  * que não é desfeita junto com a transação em curso) e lança exceção.
- * Usado nas tabelas do Help Desk (192.168.10.254), que o walle só consulta.
+ * Usado nas tabelas do Help Desk (192.168.10.254) e do sistema antigo (192.168.10.220, conexão legado220),
+ * que o walle só consulta.
  */
 trait SomenteLeitura
 {
@@ -27,7 +28,9 @@ trait SomenteLeitura
                 $instrucao,
             );
 
-            throw new LogicException('A tabela '.$model->getTable().' é do Help Desk e é somente leitura no walle.');
+            $origem = TravaHelpDeskProducao::ehDoSistemaAntigo($conexao, $host) ? 'do sistema antigo (220)' : 'do Help Desk';
+
+            throw new LogicException('A tabela '.$model->getTable().' é '.$origem.' e é somente leitura no walle.');
         };
 
         static::saving($bloquear('eloquent_save'));

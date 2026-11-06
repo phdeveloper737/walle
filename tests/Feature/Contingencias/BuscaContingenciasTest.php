@@ -6,6 +6,7 @@ use App\Contingencias\Cliente\ConexaoComCliente;
 use App\Contingencias\Cliente\FalhaConexaoCliente;
 use App\Contingencias\Contingencia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 
 test('junta as contingências do Versatus (banco walle) e do Sactus (servidor do cliente), com os itens', function () {
     $cliente = criarClienteHelpDesk();
@@ -64,6 +65,47 @@ test('com o servidor do cliente fora do ar mostra o Versatus e avisa do Sactus',
 
     expect($resultado->pendentes)->toHaveCount(1)
         ->and($resultado->avisoSactus)->toContain('O servidor do cliente não respondeu');
+});
+
+test('lê o Versatus do 220 pela conexão legado220', function () {
+    $cliente = criarClienteHelpDesk();
+    criarContingenciaVersatus($cliente);
+    servidorDoClienteNoBancoDeTestes();
+    $conexoes = [];
+    DB::listen(function ($consulta) use (&$conexoes): void {
+        if (str_contains($consulta->sql, 'contingencias_versatus_venda')) {
+            $conexoes[] = $consulta->connectionName;
+        }
+    });
+
+    app(BuscaContingencias::class)->buscar($cliente);
+
+    expect($conexoes)->toBe(['legado220']);
+});
+
+test('cliente só Versatus (V) não conecta no servidor e não avisa de Sactus', function () {
+    $cliente = criarClienteHelpDesk([], ['servidor_multiempresa' => 'V']);
+    criarContingenciaVersatus($cliente);
+    $this->mock(ConectorDeCliente::class)->shouldNotReceive('conectar');
+
+    $resultado = app(BuscaContingencias::class)->buscar($cliente);
+
+    expect($resultado->pendentes)->toHaveCount(1)->and($resultado->avisoSactus)->toBeNull()->and($resultado->totalNoPdvSactus)->toBe(0);
+});
+
+test('com o 220 fora do ar a tela ainda mostra o Sactus e avisa do Versatus', function () {
+    Exceptions::fake();
+    $cliente = criarClienteHelpDesk();
+    criarContingenciaSactus(['cupom' => '500']);
+    servidorDoClienteNoBancoDeTestes();
+    config([
+        'database.connections.versatus_fora' => [...config('database.connections.mysql'), 'host' => '127.0.0.1', 'port' => 1, 'read' => null, 'write' => null],
+        'services.clientes.conexao_versatus' => 'versatus_fora',
+    ]);
+
+    $resultado = app(BuscaContingencias::class)->buscar($cliente);
+
+    expect($resultado->pendentes)->toHaveCount(1)->and($resultado->avisoSactus)->toBe('Não foi possível ler as contingências do Versatus no 220.');
 });
 
 test('cliente sem informação técnica no Help Desk dá erro claro', function () {

@@ -27,9 +27,16 @@ use Throwable;
  * Sactus zerado com Versatus positivo mantém o histórico Sactus anterior (set.history:439-448, 547).
  * Quando ambos zeram, limpa todo o histórico do cliente (set.history:566).
  *
- * Diferenças: se a conexão com o cliente falha e há Versatus, regrava só o Versatus (história VERSATUS e painel,
- * mantendo total_sactus e os pendentes Sactus anteriores) e marca a coleta como falha, sem apagar o Sactus; sem
- * Versatus preserva história e painel; o 220 zerava o Sactus e, sem Versatus, tudo; o walle não. Só falha de conexão faz isso: erro inesperado não grava nada parcial.
+ * Versatus é lido ao vivo do banco suporte do 220 (LeituraVersatus, conexão legado220, somente leitura; decisão de 06/11/2026).
+ *
+ * Diferenças: se a conexão com o cliente falha, regrava só o Versatus do 220 (história VERSATUS e painel, mantendo
+ * total_sactus e os pendentes Sactus anteriores) e marca a coleta como falha, sem apagar o Sactus; o 220 zerava o
+ * Sactus e o walle não. Versatus lido e vazio zera o Versatus aqui (apaga VERSATUS do histórico, total_versatus 0),
+ * inclusive com o Sactus fora. Leitura do 220 com falha NÃO zera nada: com Sactus coletado grava só o Sactus, preserva
+ * o Versatus e marca a coleta como falha ("Não foi possível ler as contingências do Versatus no 220."); sem Sactus
+ * (cliente V ou Sactus fora) é falha comum que preserva tudo. Cliente com servidor_multiempresa = 'V' é só Versatus:
+ * não conecta no servidor dele, total_sactus 0 e a coleta é sucesso se o 220 respondeu. Só falha de conexão faz o
+ * caminho parcial do Sactus: erro inesperado não grava nada parcial.
  * Mantém ciclos/coletas e auditoria locais, preserva métricas válidas em falhas,
  * não replica credenciais/configuração do legado nem altera CRT nos clientes (set.history:377-414).
  * Não escreve no Help Desk. A trava 3700s acompanha robos.retry_after e excede o Job de 3600s.
@@ -205,10 +212,15 @@ class RoboContingencias
             return [$resultado, 'sucesso'];
         } catch (Throwable $erro) {
             $versatus = [];
+            $sactus = [];
             $parcial = $erro instanceof FalhaSactusComVersatus;
+            $versatusNo220 = $erro instanceof FalhaVersatusNo220;
 
             if ($erro instanceof FalhaSactusComVersatus) {
                 $versatus = $erro->versatus;
+                $erro = $erro->falha;
+            } elseif ($erro instanceof FalhaVersatusNo220) {
+                $sactus = $erro->sactus;
                 $erro = $erro->falha;
             }
 
@@ -218,11 +230,20 @@ class RoboContingencias
                 report(new RuntimeException($mensagem));
             }
 
-            if ($parcial && $versatus !== [] && $coleta !== null) {
+            if ($parcial && $coleta !== null) {
                 try {
                     return $this->falharGravandoVersatus($clienteId, $origem, $coleta, $mensagem, $this->detalheTecnico($erro, $segredos), $versatus);
                 } catch (Throwable $falhaParcial) {
                     report(new RuntimeException('Não foi possível gravar o Versatus na falha do Sactus: '.$falhaParcial::class));
+                    $coleta->refresh();
+                }
+            }
+
+            if ($versatusNo220 && $coleta !== null) {
+                try {
+                    return $this->falharGravandoSactus($clienteId, $origem, $coleta, $mensagem, $this->detalheTecnico($erro, $segredos), $sactus);
+                } catch (Throwable $falhaParcial) {
+                    report(new RuntimeException('Não foi possível gravar o Sactus na falha do Versatus: '.$falhaParcial::class));
                     $coleta->refresh();
                 }
             }
@@ -262,12 +283,12 @@ class RoboContingencias
     }
 
     /**
-     * Conexão com o cliente falhou e há Versatus (banco local): o ramo Versatus é regravado sozinho, como no 220
-     * (set.history:299-346), sem tocar nas linhas SACTUS. No painel, total_sactus fica como estava (o 220 zerava; o
-     * walle não, para não esconder contingências reais com o servidor fora) e total_cliente/total_bot = pendentes
-     * Sactus anteriores (total_cliente - total_versatus anteriores, mínimo 0) + Versatus novo.
-     * Sem Versatus nada é gravado: história e painel ficam como estavam, preservação intencional alinhada ao contrato
-     * de paridade (tests/Feature/Paridade/RobosColetaTest.php); não copia o "ZERAR TUDO" do 220.
+     * Conexão com o cliente falhou, mas o Versatus do 220 foi lido (mesmo vazio): o ramo Versatus é regravado sozinho,
+     * como no 220 (set.history:299-346), sem tocar nas linhas SACTUS. Versatus vazio apaga as linhas VERSATUS e zera
+     * total_versatus (decisão de 06/11/2026: sem dados no 220, zera aqui também). No painel, total_sactus fica como
+     * estava (o 220 zerava; o walle não, para não esconder contingências reais com o servidor fora) e
+     * total_cliente/total_bot = pendentes Sactus anteriores (total_cliente - total_versatus anteriores, mínimo 0) +
+     * Versatus novo. Sem painel anterior e sem Versatus não cria linha no painel.
      * A coleta segue como falha, com total_versatus.
      *
      * @param  array<string, mixed>  $detalheTecnico
@@ -290,12 +311,50 @@ class RoboContingencias
                 'total_versatus' => $novoVersatus,
             ];
 
+            if ($anterior !== null || $novoVersatus > 0) {
+                DB::table('painel_contingency_crawler')->upsert([
+                    ['fk_c_cliente' => $clienteId, ...$totais, 'data' => now()],
+                ], ['fk_c_cliente'], [...array_keys($totais), 'data']);
+            }
+
+            $coleta->fill(['status' => 'falha', 'erro' => $mensagem, 'detalhe_tecnico' => $detalheTecnico, 'terminado_em' => now(),
+                'total_cliente' => null, 'total_bot' => null, 'total_sactus' => null, 'total_versatus' => $totais['total_versatus']])->save();
+            $this->auditar($coleta, $origem);
+        });
+
+        return [$resultado, 'falha'];
+    }
+
+    /**
+     * Sactus coletado, mas o 220 não respondeu: grava só o Sactus (mesma regra de regravação da coleta completa) e
+     * preserva as linhas VERSATUS e o total_versatus que já estavam no walle. A coleta fica como falha ("Não foi
+     * possível ler as contingências do Versatus no 220.") com total_sactus; o painel recompõe total_cliente/total_bot.
+     *
+     * @param  array<string, mixed>  $detalheTecnico
+     * @param  list<Contingencia>  $sactus
+     * @return array{ResultadoContingencias, string}
+     */
+    private function falharGravandoSactus(int $clienteId, string $origem, ColetaContingencias $coleta, string $mensagem, array $detalheTecnico, array $sactus): array
+    {
+        $resultado = new ResultadoContingencias($sactus, [], count($sactus), $mensagem, now()->format('H:i:s'));
+
+        DB::transaction(function () use ($clienteId, $resultado, $coleta, $mensagem, $origem, $detalheTecnico, $sactus): void {
+            $this->gravarHistorico($clienteId, $resultado, [Contingencia::SACTUS]);
+            $anterior = DB::table('painel_contingency_crawler')->where('fk_c_cliente', $clienteId)->lockForUpdate()->first();
+            $versatusPreservado = (int) ($anterior->total_versatus ?? 0);
+            $totais = [
+                'total_cliente' => count($sactus) + $versatusPreservado,
+                'total_bot' => count($sactus) + $versatusPreservado,
+                'total_sactus' => count($sactus),
+                'total_versatus' => $versatusPreservado,
+            ];
+
             DB::table('painel_contingency_crawler')->upsert([
                 ['fk_c_cliente' => $clienteId, ...$totais, 'data' => now()],
             ], ['fk_c_cliente'], [...array_keys($totais), 'data']);
 
             $coleta->fill(['status' => 'falha', 'erro' => $mensagem, 'detalhe_tecnico' => $detalheTecnico, 'terminado_em' => now(),
-                'total_cliente' => null, 'total_bot' => null, 'total_sactus' => null, 'total_versatus' => $totais['total_versatus']])->save();
+                'total_cliente' => null, 'total_bot' => null, 'total_sactus' => $totais['total_sactus'], 'total_versatus' => null])->save();
             $this->auditar($coleta, $origem);
         });
 
@@ -337,7 +396,7 @@ class RoboContingencias
      */
     private function mensagemSegura(Throwable $erro, \Closure $limpar): string
     {
-        if ($erro instanceof FalhaConexaoCliente) {
+        if ($erro instanceof FalhaConexaoCliente || $erro instanceof FalhaLeituraVersatus) {
             return $limpar($erro->getMessage());
         }
 
@@ -465,6 +524,10 @@ class RoboContingencias
 
     private function erroSeguro(Throwable $erro): string
     {
+        if ($erro instanceof FalhaLeituraVersatus) {
+            return FalhaLeituraVersatus::MENSAGEM;
+        }
+
         return match ($erro instanceof FalhaConexaoCliente ? $erro->codigo : '') {
             'ERRO_SEM_CADASTRO' => 'O cliente não tem cadastro técnico de servidor no Help Desk.',
             'ERRO_PARAMETROS' => 'O cadastro do servidor do cliente está incompleto.',
