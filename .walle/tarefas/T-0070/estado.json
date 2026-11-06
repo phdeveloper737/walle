@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 06/11/2026",
     "tipo":  "bug",
     "dono":  "walle-robos (app/Contingencias/RoboContingencias.php e testes)",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0070-ciclos-de-contingencias-presos-fechados",
-    "pr":  0,
+    "pr":  86,
     "base":  "0c6fc90d0c643fb8fbc04cf5c206477a0a70671f",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-06 13:23:55",
                         "tipo":  "commit",
                         "detalhe":  "T-0070: Ciclos de contingencias presos fechados como interrompidos"
+                    },
+                    {
+                        "quando":  "2026-11-06 13:24:01",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #86 aberto"
                     }
                 ]
 }
