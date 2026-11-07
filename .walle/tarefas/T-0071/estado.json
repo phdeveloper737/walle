@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 13:07:24",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0071-testes-do-fechamento-de-ciclos-presos-no a partir de 8eb1b524887fc7accd5591428459ef8af2595b0d"
+                    },
+                    {
+                        "quando":  "2026-11-07 13:12:54",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0071: Testes do fechamento de ciclos presos no limite e na falha"
                     }
                 ]
 }
