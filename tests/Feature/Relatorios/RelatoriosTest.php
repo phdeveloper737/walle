@@ -131,3 +131,122 @@ test('a aba clientes lista os clientes de consultoria e a contingencia lista o h
         ->set('cliente', 999999)
         ->assertSee('Nenhuma contingência para este cliente');
 });
+
+test('selecionar um motivo lista os clientes com o total de cada um, ordenados, e a soma bate com a linha do ranking', function () {
+    semearMotivo(1, 'Rejeicao: CST invalido (nItem:1)', '2026-10-19 08:00:00');
+    semearMotivo(1, 'rejeicao: cst invalido [nItem:2]', '2026-10-19 09:00:00');
+    semearMotivo(2, 'Rejeicao: CST invalido nItem:3', '2026-10-20 10:00:00');
+    semearMotivo(3, 'Rejeicao: CST invalido', '2026-10-21 11:00:00');
+
+    $componente = Livewire::test(Relatorios::class, ['aba' => 'motivos'])
+        ->set('de', '2026-10-19')
+        ->set('ate', '2026-10-25');
+
+    $motivoRanking = $componente->get('motivos')[0];
+    expect($motivoRanking)->toBe(['motivo' => 'REJEICAO: CST INVALIDO', 'total' => 4]);
+
+    $componente->assertSee('Ver clientes de REJEICAO: CST INVALIDO');
+
+    $componente->call('selecionarMotivo', 'REJEICAO: CST INVALIDO')
+        ->assertSet('motivo', 'REJEICAO: CST INVALIDO');
+
+    $clientes = $componente->get('clientesDoMotivo');
+    expect($clientes)->toBe([
+        ['cliente' => 1, 'nome' => 'Cliente #1', 'cnpj' => '', 'total' => 2],
+        ['cliente' => 2, 'nome' => 'Cliente #2', 'cnpj' => '', 'total' => 1],
+        ['cliente' => 3, 'nome' => 'Cliente #3', 'cnpj' => '', 'total' => 1],
+    ]);
+
+    $soma = array_sum(array_column($clientes, 'total'));
+    expect($soma)->toBe($motivoRanking['total']);
+});
+
+test('o detalhe do motivo ignora registros fora do periodo, de outro motivo ou de cliente fora do tipo escolhido', function () {
+    semearMotivo(1, 'Duplicidade', '2026-10-19 08:00:00'); // dentro
+    semearMotivo(1, 'Duplicidade', '2026-10-26 08:00:00'); // fora do período (depois)
+    semearMotivo(1, 'Duplicidade', '2026-10-18 23:59:59'); // fora do período (antes)
+    semearMotivo(1, 'Outro motivo', '2026-10-20 08:00:00'); // outro motivo
+    semearMotivo(2, 'Duplicidade', '2026-10-20 09:00:00', 'S'); // tipo S (filtro tipo é N)
+    semearMotivo(1, 'Duplicidade (nItem:2)', '2026-10-21 08:00:00'); // dentro (variante)
+
+    $componente = Livewire::test(Relatorios::class, ['aba' => 'motivos'])
+        ->set('de', '2026-10-19')
+        ->set('ate', '2026-10-25')
+        ->set('tipo', 'N')
+        ->call('selecionarMotivo', 'DUPLICIDADE');
+
+    expect($componente->get('clientesDoMotivo'))->toBe([
+        ['cliente' => 1, 'nome' => 'Cliente #1', 'cnpj' => '', 'total' => 2],
+    ]);
+});
+
+test('o nome do cliente cai para nome fantasia e depois para Cliente #id, e cliente sem CNPJ aparece', function () {
+    $c1 = criarClienteHelpDesk(['razao_social' => 'EMPRESA RAZAO SOCIAL LTDA', 'nome_fantasia' => 'FANTASIA A', 'cnpj' => '11.111.111/0001-11']);
+    $c2 = criarClienteHelpDesk(['razao_social' => '', 'nome_fantasia' => 'LOJA FANTASIA B', 'cnpj' => '22.222.222/0001-22']);
+    $c3 = criarClienteHelpDesk(['razao_social' => '', 'nome_fantasia' => '', 'cnpj' => '']);
+
+    semearMotivo($c1, 'Duplicidade', '2026-10-20 08:00:00');
+    semearMotivo($c2, 'Duplicidade', '2026-10-20 09:00:00');
+    semearMotivo($c3, 'Duplicidade', '2026-10-20 10:00:00');
+
+    foreach ([$c1, $c2, $c3] as $id) {
+        DB::connection('help')->table('informacao_tecnica_cleantaxbot')->insert(['fk_c_cliente' => $id, 'emissao_cupons' => 'N']);
+    }
+
+    $componente = Livewire::test(Relatorios::class, ['aba' => 'motivos'])
+        ->set('de', '2026-10-19')
+        ->set('ate', '2026-10-25')
+        ->call('selecionarMotivo', 'DUPLICIDADE');
+
+    $clientes = $componente->get('clientesDoMotivo');
+    expect($clientes)->toEqualCanonicalizing([
+        ['cliente' => $c1, 'nome' => 'EMPRESA RAZAO SOCIAL LTDA', 'cnpj' => '11.111.111/0001-11', 'total' => 1],
+        ['cliente' => $c2, 'nome' => 'LOJA FANTASIA B', 'cnpj' => '22.222.222/0001-22', 'total' => 1],
+        ['cliente' => $c3, 'nome' => "Cliente #{$c3}", 'cnpj' => '', 'total' => 1],
+    ]);
+
+    $componente->assertSee(route('relatorios', ['aba' => 'contingencia', 'cliente' => $c1]))
+        ->assertSee(route('relatorios', ['aba' => 'contingencia', 'cliente' => $c3]));
+});
+
+test('trocar periodo ou tipo limpa o motivo e o motivo aceita valor inicial na URL', function () {
+    semearMotivo(1, 'Duplicidade', '2026-10-20 08:00:00');
+
+    Livewire::test(Relatorios::class, ['aba' => 'motivos', 'motivo' => 'duplicidade (nItem:9)', 'de' => '2026-10-19', 'ate' => '2026-10-25'])
+        ->assertSet('motivo', 'DUPLICIDADE')
+        ->assertSee('Cliente #1');
+
+    $componente = Livewire::test(Relatorios::class, ['aba' => 'motivos', 'motivo' => 'DUPLICIDADE', 'de' => '2026-10-19', 'ate' => '2026-10-25'])
+        ->assertSet('motivo', 'DUPLICIDADE');
+
+    $componente->set('de', '2026-10-01')->assertSet('motivo', '');
+
+    $componente->call('selecionarMotivo', 'DUPLICIDADE')->assertSet('motivo', 'DUPLICIDADE');
+    $componente->set('tipo', 'S')->assertSet('motivo', '');
+
+    $componente->call('selecionarMotivo', 'DUPLICIDADE')->assertSet('motivo', 'DUPLICIDADE');
+    $componente->set('ate', '2026-10-30')->assertSet('motivo', '');
+});
+
+test('com o Help Desk fora do ar o detalhe do motivo mostra o erro sem quebrar a aba', function () {
+    semearMotivo(1, 'Duplicidade', '2026-10-20 10:00:00');
+    $bancoHelp = config('database.connections.help.database');
+
+    try {
+        config(['database.connections.help.database' => 'nao_existe_help']);
+        DB::purge('help');
+
+        Livewire::test(Relatorios::class, ['aba' => 'motivos', 'motivo' => 'DUPLICIDADE', 'de' => '2026-10-19', 'ate' => '2026-10-25'])
+            ->assertOk()
+            ->assertSee('O Help Desk (192.168.10.254) não respondeu e os clientes deste motivo não puderam ser carregados.');
+    } finally {
+        config(['database.connections.help.database' => $bancoHelp]);
+        DB::purge('help');
+    }
+});
+
+test('motivo sem clientes mostra o estado vazio no detalhe', function () {
+    Livewire::test(Relatorios::class, ['aba' => 'motivos', 'motivo' => 'INEXISTENTE', 'de' => '2026-10-19', 'ate' => '2026-10-25'])
+        ->assertOk()
+        ->assertSee('Nenhum cliente com este motivo no período');
+});

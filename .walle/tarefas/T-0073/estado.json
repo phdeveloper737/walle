@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0073",
+    "titulo":  "Clientes de cada motivo no relatorio de motivos",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-telas (app/Livewire/Relatorios.php, views de relatorios e tests/Feature/Relatorios), pelo OpenCode",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0073-clientes-de-cada-motivo-no-relatorio-de",
+    "pr":  89,
+    "base":  "5c8099577f88e805ca0079d538f45dbe4c4fd067",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-07 18:25:21",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0073-clientes-de-cada-motivo-no-relatorio-de a partir de 5c8099577f88e805ca0079d538f45dbe4c4fd067"
+                    },
+                    {
+                        "quando":  "2026-11-07 18:53:28",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0073: Clientes de cada motivo no relatorio de motivos"
+                    },
+                    {
+                        "quando":  "2026-11-07 18:53:34",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #89 aberto"
+                    }
+                ]
+}

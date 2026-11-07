@@ -1,0 +1,7 @@
+{
+    "titulo":  "Clientes de cada motivo no relatorio de motivos",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-telas (app/Livewire/Relatorios.php, views de relatorios e tests/Feature/Relatorios), pelo OpenCode",
+    "resumo":  "Na aba Motivos dos Relatorios, clicar numa linha do ranking mostra os clientes que tiveram aquele motivo e o total de cada um. Mesmo periodo (data_clique) e tipo (emissao_cupons) do ranking; casamento pelo motivo normalizado exato (normalizarMotivo), para a soma dos clientes bater com o total da linha. Nome e CNPJ do cliente ao vivo do Help Desk (c_cliente, so leitura). Desvio do 220 (get.motivos.contingencias.php:50-112): la o detalhe usa LIKE no texto depois do \u0027:\u0027 e ignora o periodo."
+}
