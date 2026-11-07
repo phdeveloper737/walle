@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 07/11/2026",
     "tipo":  "feature",
     "dono":  "walle-telas (app/Livewire/Contingencias.php, app/Livewire/Contingencias/Dashboard.php, views e tests/Feature/Contingencias), pelo OpenCode",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0074-dashboard-de-contingencias-em-cards",
-    "pr":  0,
+    "pr":  90,
     "base":  "0fe4b1f2ec67dd5049d50902445de571eba1a89c",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-07 20:44:50",
                         "tipo":  "commit",
                         "detalhe":  "T-0074: Dashboard de contingencias em cards"
+                    },
+                    {
+                        "quando":  "2026-11-07 20:45:00",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #90 aberto"
                     }
                 ]
 }
