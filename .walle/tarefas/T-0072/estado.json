@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 07/11/2026",
     "tipo":  "bug",
     "dono":  "walle-telas (app/Livewire/Relatorios.php, view e tests/Feature/Relatorios)",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0072-relatorio-de-motivos-com-o-help-desk-ao",
-    "pr":  0,
+    "pr":  88,
     "base":  "25ed82d8f98c1f6e33ec20fbd0d9382459325c04",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-07 14:01:42",
                         "tipo":  "commit",
                         "detalhe":  "T-0072: Relatorio de motivos com o Help Desk ao vivo"
+                    },
+                    {
+                        "quando":  "2026-11-07 14:01:48",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #88 aberto"
                     }
                 ]
 }
