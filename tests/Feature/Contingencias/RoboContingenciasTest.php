@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Liga o robô no banco local SEM gerar auditoria/histórico (preparação técnica).
@@ -117,6 +118,39 @@ test('ciclo preso há mais de 3700 s vira interrompido ao rodar um ciclo, sem to
     expect($dentro->refresh()->status)->toBe('em_andamento')->and($dentro->erro)->toBeNull();
     $concluido->refresh();
     expect($concluido->status)->toBe('concluido')->and($concluido->erro)->toBeNull()->and($concluido->terminado_em)->not->toBeNull();
+});
+
+test('limite de 3700 s: exatamente 3700 continua em andamento e 3701 vira interrompido', function () {
+    $this->travelTo(now()->setDate(2026, 11, 6)->setTime(10, 0));
+    expect(RoboContingencias::TRAVA_SEGUNDOS)->toBe(3700);
+    $noLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3700)]);
+    $alemDoLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3701)]);
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    expect($noLimite->refresh()->status)->toBe('em_andamento')->and($noLimite->erro)->toBeNull();
+    expect($alemDoLimite->refresh()->status)->toBe('interrompido');
+});
+
+test('falha ao encerrar ciclos presos registra aviso seguro e o ciclo novo roda normalmente', function () {
+    $this->travelTo(now()->setDate(2026, 11, 6)->setTime(10, 0));
+    $preso = CicloContingencias::create(['iniciado_em' => now()->subSeconds(5000)]);
+    Log::spy();
+    DB::beforeExecuting(function (string $consulta, array $parametros): void {
+        if (str_starts_with($consulta, 'update `contingencias_ciclos`') && in_array('interrompido', $parametros, true)) {
+            throw new RuntimeException('MARCADOR_SQL_SECRETO');
+        }
+    });
+
+    app(RoboContingencias::class)->rodarCiclo();
+
+    expect($preso->refresh()->status)->toBe('em_andamento');
+    $novo = CicloContingencias::query()->whereKeyNot($preso->id)->sole();
+    expect($novo->status)->toBe('concluido')->and($novo->terminado_em)->not->toBeNull();
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->with('Não foi possível encerrar os ciclos presos de contingências: '.RuntimeException::class);
+    Log::shouldNotHaveReceived('warning', [Mockery::on(fn (mixed $mensagem): bool => str_contains((string) $mensagem, 'MARCADOR_SQL_SECRETO'))]);
 });
 
 test('com o robô desligado nenhum ciclo preso é alterado', function () {

@@ -1,0 +1,35 @@
+{
+    "tarefa":  "T-0071",
+    "titulo":  "Testes do fechamento de ciclos presos no limite e na falha",
+    "origem":  "pedido do usuario de 07/11/2026 (sugestoes do arquiteto na T-0070)",
+    "tipo":  "bug",
+    "dono":  "walle-robos (tests/Feature/Contingencias/RoboContingenciasTest.php)",
+    "estado":  "em_revisao",
+    "ciclos":  1,
+    "branch":  "tarefa/T-0071-testes-do-fechamento-de-ciclos-presos-no",
+    "pr":  87,
+    "base":  "8eb1b524887fc7accd5591428459ef8af2595b0d",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-07 13:07:24",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0071-testes-do-fechamento-de-ciclos-presos-no a partir de 8eb1b524887fc7accd5591428459ef8af2595b0d"
+                    },
+                    {
+                        "quando":  "2026-11-07 13:12:54",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0071: Testes do fechamento de ciclos presos no limite e na falha"
+                    },
+                    {
+                        "quando":  "2026-11-07 13:13:00",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #87 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-07 13:18:40",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0071: Limite de 3700 s fixado por literais no teste"
+                    }
+                ]
+}

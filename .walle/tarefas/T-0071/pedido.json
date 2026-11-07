@@ -1,0 +1,7 @@
+{
+    "titulo":  "Testes do fechamento de ciclos presos no limite e na falha",
+    "origem":  "pedido do usuario de 07/11/2026 (sugestoes do arquiteto na T-0070)",
+    "tipo":  "bug",
+    "dono":  "walle-robos (tests/Feature/Contingencias/RoboContingenciasTest.php)",
+    "resumo":  "Completar a cobertura da T-0070 (RoboContingencias::interromperCiclosPresos): (a) limite exato de TRAVA_SEGUNDOS (3700 s): ciclo iniciado ha exatamente 3700 s continua em_andamento (o filtro e estritamente menor) e ha 3701 s vira interrompido; (b) falha no UPDATE: o ciclo novo roda e termina normalmente e o Log::warning leva so a classe da excecao, sem SQL, sem valores e sem a mensagem da excecao. So testes; codigo da aplicacao muda apenas se um teste revelar defeito."
+}
