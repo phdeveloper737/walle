@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 18:25:21",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0073-clientes-de-cada-motivo-no-relatorio-de a partir de 5c8099577f88e805ca0079d538f45dbe4c4fd067"
+                    },
+                    {
+                        "quando":  "2026-11-07 18:53:28",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0073: Clientes de cada motivo no relatorio de motivos"
                     }
                 ]
 }
