@@ -17,7 +17,7 @@ use Livewire\Component;
  *
  * @property-read list<object>|null $clientes null = Help Desk fora do ar
  * @property-read list<object> $historico
- * @property-read list<array{motivo: string, total: int}> $motivos
+ * @property-read list<array{motivo: string, total: int}>|null $motivos null = Help Desk fora do ar
  */
 #[Title('Relatórios')]
 class Relatorios extends Component
@@ -126,18 +126,35 @@ class Relatorios extends Component
      * Ranking de motivos do período. Mesma regra do get.motivos.contingencias.php do 220: motivo aparado e em
      * maiúsculas, cortado em "(", "[" e "NITEM", e "SEM COMUNICACAO COM ..." unificado; ordenado do maior para o menor.
      *
-     * @return list<array{motivo: string, total: int}>
+     * Desvio do 220: lá os clientes elegíveis e o emissao_cupons vinham de informacao_tecnica_painel_contingencias,
+     * um cache do Help Desk. O walle não copia tabelas do Help Desk, então os ids vêm ao vivo da conexão help
+     * (informacao_tecnica_dataserver com informacao_tecnica_cleantaxbot.emissao_cupons, só leitura) e filtram o
+     * history_contingencia com whereIn. Com tipo S ou N, cliente sem linha no cleantaxbot fica fora, como no 220.
+     *
+     * @return list<array{motivo: string, total: int}>|null null = Help Desk fora do ar
      */
     #[Computed]
-    public function motivos(): array
+    public function motivos(): ?array
     {
-        $consulta = DB::table('history_contingencia as h')
-            ->join('informacao_tecnica_painel_contingencias as c', 'c.id', '=', 'h.fk_c_cliente')
-            ->whereNotNull('h.motivo');
+        try {
+            $consultaClientes = DB::connection('help')->table('informacao_tecnica_dataserver as i')
+                ->leftJoin('informacao_tecnica_cleantaxbot as ic', 'ic.fk_c_cliente', '=', 'i.fk_c_cliente')
+                ->whereNotNull('i.fk_c_cliente');
 
-        if ($this->tipo !== '') {
-            $consulta->where('c.emissao_cupons', $this->tipo);
+            if ($this->tipo !== '') {
+                $consultaClientes->where('ic.emissao_cupons', $this->tipo);
+            }
+
+            $clienteIds = $consultaClientes->distinct()->pluck('i.fk_c_cliente')->all();
+        } catch (QueryException $e) {
+            report($e);
+
+            return null;
         }
+
+        $consulta = DB::table('history_contingencia as h')
+            ->whereIn('h.fk_c_cliente', $clienteIds)
+            ->whereNotNull('h.motivo');
 
         if ($de = $this->dataValida($this->de)) {
             $consulta->where('h.data_clique', '>=', $de->startOfDay());

@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 13:51:15",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0072-relatorio-de-motivos-com-o-help-desk-ao a partir de 25ed82d8f98c1f6e33ec20fbd0d9382459325c04"
+                    },
+                    {
+                        "quando":  "2026-11-07 14:01:42",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0072: Relatorio de motivos com o Help Desk ao vivo"
                     }
                 ]
 }
