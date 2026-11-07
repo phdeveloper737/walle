@@ -1,0 +1,7 @@
+{
+    "titulo":  "Relatorio de motivos com o Help Desk ao vivo",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "bug",
+    "dono":  "walle-telas (app/Livewire/Relatorios.php, view e tests/Feature/Relatorios)",
+    "resumo":  "A aba Motivos dos Relatorios sai sempre vazia: Relatorios::motivos() faz INNER JOIN de history_contingencia com informacao_tecnica_painel_contingencias (c.id = h.fk_c_cliente), igual ao get.motivos.contingencias.php do 220, mas no walle essa tabela fica vazia (no 220 ela e um cache do Help Desk preenchido pelo set.history.cont.php; o walle consulta o Help Desk ao vivo, decisao de 25/10). Correcao: os clientes elegiveis e o emissao_cupons vem ao vivo da conexao help, como o 220 monta o cache: informacao_tecnica_dataserver i LEFT JOIN informacao_tecnica_cleantaxbot ic ON ic.fk_c_cliente = i.fk_c_cliente; tipo S/N filtra ic.emissao_cupons, tipo vazio usa todos os clientes do dataserver; o ranking continua contado no history_contingencia do walle. Help Desk fora: estado de erro na aba, sem quebrar a tela."
+}

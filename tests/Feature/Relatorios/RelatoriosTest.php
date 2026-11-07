@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Relatorios;
-use App\Models\InformacaoTecnicaPainelContingencias;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -10,13 +9,19 @@ beforeEach(function () {
     $this->actingAs(Usuario::find(criarUsuarioHelpDesk()));
 });
 
-/** Contingência no histórico com motivo e data do clique, para um cliente que está no painel do robô. */
-function semearMotivo(int $clienteId, string $motivo, string $dataClique, string $emissaoCupons = 'N'): void
+/**
+ * Contingência no histórico com motivo e data do clique, de um cliente do dataserver no Help Desk.
+ * $emissaoCupons null = cliente sem linha no cleantaxbot; $noDataserver false = cliente fora do dataserver.
+ */
+function semearMotivo(int $clienteId, string $motivo, string $dataClique, ?string $emissaoCupons = 'N', bool $noDataserver = true): void
 {
-    InformacaoTecnicaPainelContingencias::query()->firstOrCreate(
-        ['id' => $clienteId],
-        ['fk_c_cliente' => $clienteId, 'emissao_cupons' => $emissaoCupons],
-    );
+    if ($noDataserver && ! DB::connection('help')->table('informacao_tecnica_dataserver')->where('fk_c_cliente', $clienteId)->exists()) {
+        DB::connection('help')->table('informacao_tecnica_dataserver')->insert(['fk_c_cliente' => $clienteId]);
+
+        if ($emissaoCupons !== null) {
+            DB::connection('help')->table('informacao_tecnica_cleantaxbot')->insert(['fk_c_cliente' => $clienteId, 'emissao_cupons' => $emissaoCupons]);
+        }
+    }
 
     DB::table('history_contingencia')->insert([
         'fk_c_cliente' => $clienteId,
@@ -61,6 +66,51 @@ test('periodo sem dados mostra o vazio e aba invalida volta para clientes', func
 
     Livewire::test(Relatorios::class, ['aba' => 'inexistente'])->assertSet('aba', 'clientes');
     Livewire::test(Relatorios::class)->set('aba', 'xyz')->assertSet('aba', 'clientes');
+});
+
+test('o ranking vem dos clientes do dataserver no Help Desk, mesmo com o painel do robô vazio', function () {
+    expect(DB::table('informacao_tecnica_painel_contingencias')->count())->toBe(0);
+    semearMotivo(10, 'Duplicidade', '2026-10-20 10:00:00');
+
+    $componente = Livewire::test(Relatorios::class, ['aba' => 'motivos'])->set('de', '2026-10-19')->set('ate', '2026-10-25');
+
+    expect($componente->get('motivos'))->toBe([['motivo' => 'DUPLICIDADE', 'total' => 1]]);
+});
+
+test('o tipo filtra pelo emissao_cupons do cleantaxbot; sem linha fica fora de N e S e entra em todos; fora do dataserver nunca entra', function () {
+    semearMotivo(1, 'Motivo n', '2026-10-20 10:00:00', 'N');
+    semearMotivo(2, 'Motivo s', '2026-10-20 10:00:00', 'S');
+    semearMotivo(3, 'Motivo sem cleantax', '2026-10-20 10:00:00', null);
+    semearMotivo(4, 'Motivo fora do dataserver', '2026-10-20 10:00:00', 'N', false);
+
+    $motivos = fn (string $tipo): array => array_column(
+        Livewire::test(Relatorios::class, ['aba' => 'motivos'])->set('de', '2026-10-19')->set('ate', '2026-10-25')->set('tipo', $tipo)->get('motivos'),
+        'motivo',
+    );
+
+    expect($motivos('N'))->toBe(['MOTIVO N']);
+    expect($motivos('S'))->toBe(['MOTIVO S']);
+    expect($motivos(''))->toEqualCanonicalizing(['MOTIVO N', 'MOTIVO S', 'MOTIVO SEM CLEANTAX']);
+});
+
+test('com o Help Desk fora do ar a aba motivos mostra o erro, e não o vazio, sem quebrar', function () {
+    semearMotivo(1, 'Duplicidade', '2026-10-20 10:00:00');
+    $bancoHelp = config('database.connections.help.database');
+
+    try {
+        config(['database.connections.help.database' => 'nao_existe_help']);
+        DB::purge('help');
+
+        Livewire::test(Relatorios::class, ['aba' => 'motivos'])
+            ->set('de', '2026-10-19')
+            ->set('ate', '2026-10-25')
+            ->assertOk()
+            ->assertSee('O Help Desk (192.168.10.254) não respondeu')
+            ->assertDontSee('Nenhum motivo de contingência no período');
+    } finally {
+        config(['database.connections.help.database' => $bancoHelp]);
+        DB::purge('help');
+    }
 });
 
 test('a aba clientes lista os clientes de consultoria e a contingencia lista o historico do cliente', function () {

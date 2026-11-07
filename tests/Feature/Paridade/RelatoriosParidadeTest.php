@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Relatorios;
-use App\Models\InformacaoTecnicaPainelContingencias;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -72,8 +71,8 @@ test('motivos aplicam data_clique, desvio aprovado da 6.1, para amostra capturad
     $amostra = json_decode(file_get_contents(base_path('tests/Fixtures/legado/relatorios/motivos-semana-com-contingencias.json')), true, flags: JSON_THROW_ON_ERROR);
 
     foreach ($amostra['clientes'] as $cliente) {
-        InformacaoTecnicaPainelContingencias::query()->create([
-            'id' => $cliente['id'],
+        DB::connection('help')->table('informacao_tecnica_dataserver')->insert(['fk_c_cliente' => $cliente['id']]);
+        DB::connection('help')->table('informacao_tecnica_cleantaxbot')->insert([
             'fk_c_cliente' => $cliente['id'],
             'emissao_cupons' => $cliente['emissao_cupons'],
         ]);
@@ -100,11 +99,8 @@ test('semana sem contingências mostra zero como 220', function () {
         'total_220' => 0,
     ];
 
-    InformacaoTecnicaPainelContingencias::query()->create([
-        'id' => 39001,
-        'fk_c_cliente' => 39001,
-        'emissao_cupons' => 'N',
-    ]);
+    DB::connection('help')->table('informacao_tecnica_dataserver')->insert(['fk_c_cliente' => 39001]);
+    DB::connection('help')->table('informacao_tecnica_cleantaxbot')->insert(['fk_c_cliente' => 39001, 'emissao_cupons' => 'N']);
     DB::table('history_contingencia')->insert([
         'fk_c_cliente' => 39001,
         'chave' => 'CHAVE-FICTICIA-FORA-SEMANA',
