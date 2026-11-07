@@ -31,6 +31,7 @@ class Contingencias extends Component
 
     public const ABAS = [
         'clientes' => ['rotulo' => 'Clientes', 'icone' => 'groups'],
+        'dashboard' => ['rotulo' => 'Dashboard', 'icone' => 'dashboard'],
         'robo' => ['rotulo' => 'Robô', 'icone' => 'smart_toy'],
         'configuracao' => ['rotulo' => 'Configuração', 'icone' => 'tune'],
         'historico' => ['rotulo' => 'Histórico', 'icone' => 'history'],

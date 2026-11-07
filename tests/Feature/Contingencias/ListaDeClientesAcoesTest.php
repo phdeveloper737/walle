@@ -1,6 +1,7 @@
 <?php
 
 use App\Contingencias\BuscaContingencias;
+use App\Contingencias\ListaDeClientes;
 use App\Contingencias\RemocaoDeCliente;
 use App\Livewire\Contingencias;
 use App\Models\Auditoria;
@@ -193,7 +194,11 @@ test('caminho completo: pede senha, confirma e remove', function () {
 
 test('admin vê o botão de remover da lista de contingências e quem não é admin não vê', function (bool $admin) {
     adminDaLista(admin: $admin);
+
     $cliente = criarClienteHelpDesk();
+    while (in_array($cliente, ListaDeClientes::CLIENTES_OCULTOS, true)) {
+        $cliente = criarClienteHelpDesk();
+    }
 
     $teste = Livewire::test(Contingencias::class)->call('selecionar', $cliente);
 

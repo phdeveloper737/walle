@@ -1,0 +1,7 @@
+{
+    "titulo":  "Dashboard de contingencias em cards",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-telas (app/Livewire/Contingencias.php, app/Livewire/Contingencias/Dashboard.php, views e tests/Feature/Contingencias), pelo OpenCode",
+    "resumo":  "Aba nova \u0027Dashboard\u0027 em Contingencias, sem mexer na aba Robo, equivalente ao contingency.dash.php do 220: um card por cliente do painel_contingency_crawler (total_cliente, total_bot, total_sactus, total_versatus, data), com etiqueta OK ou Tem contingencia, nome, CNPJ e ID; relogio de frescor (ate 5 min ou mais antigo); atualizacao automatica a cada 10 s com pausa; filtros por tipo (kits automaticos S/N), busca por nome, CNPJ ou ID e contadores OK/Tem contingencia que filtram; clicar no card abre o historico de contingencias do cliente nos Relatorios. Nome, CNPJ e emissao_cupons ao vivo do Help Desk (no 220 vinham do cache informacao_tecnica_painel_contingencias)."
+}
