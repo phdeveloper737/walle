@@ -122,8 +122,9 @@ test('ciclo preso há mais de 3700 s vira interrompido ao rodar um ciclo, sem to
 
 test('limite de 3700 s: exatamente 3700 continua em andamento e 3701 vira interrompido', function () {
     $this->travelTo(now()->setDate(2026, 11, 6)->setTime(10, 0));
-    $noLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(RoboContingencias::TRAVA_SEGUNDOS)]);
-    $alemDoLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(RoboContingencias::TRAVA_SEGUNDOS + 1)]);
+    expect(RoboContingencias::TRAVA_SEGUNDOS)->toBe(3700);
+    $noLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3700)]);
+    $alemDoLimite = CicloContingencias::create(['iniciado_em' => now()->subSeconds(3701)]);
 
     app(RoboContingencias::class)->rodarCiclo();
 
