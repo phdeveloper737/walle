@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 19:35:37",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0074-dashboard-de-contingencias-em-cards a partir de 0fe4b1f2ec67dd5049d50902445de571eba1a89c"
+                    },
+                    {
+                        "quando":  "2026-11-07 20:44:50",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0074: Dashboard de contingencias em cards"
                     }
                 ]
 }

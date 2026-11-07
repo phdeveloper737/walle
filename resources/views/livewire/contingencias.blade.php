@@ -7,6 +7,8 @@
     <livewire:robos.configuracao robo="contingencias" key="aba-configuracao" />
 @elseif ($aba === 'historico')
     <livewire:robos.historico robo="contingencias" key="aba-historico" />
+@elseif ($aba === 'dashboard')
+    <livewire:contingencias.dashboard key="aba-dashboard" />
 @else
 <div class="flex flex-col gap-3 lg:flex-row lg:items-start">
     {{-- Lista de clientes (Help Desk) --}}
