@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0071",
+    "titulo":  "Testes do fechamento de ciclos presos no limite e na falha",
+    "origem":  "pedido do usuario de 07/11/2026 (sugestoes do arquiteto na T-0070)",
+    "tipo":  "bug",
+    "dono":  "walle-robos (tests/Feature/Contingencias/RoboContingenciasTest.php)",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0071-testes-do-fechamento-de-ciclos-presos-no",
+    "pr":  0,
+    "base":  "8eb1b524887fc7accd5591428459ef8af2595b0d",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-07 13:07:24",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0071-testes-do-fechamento-de-ciclos-presos-no a partir de 8eb1b524887fc7accd5591428459ef8af2595b0d"
+                    }
+                ]
+}
