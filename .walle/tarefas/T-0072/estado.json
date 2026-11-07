@@ -5,7 +5,7 @@
     "tipo":  "bug",
     "dono":  "walle-telas (app/Livewire/Relatorios.php, view e tests/Feature/Relatorios)",
     "estado":  "em_revisao",
-    "ciclos":  0,
+    "ciclos":  1,
     "branch":  "tarefa/T-0072-relatorio-de-motivos-com-o-help-desk-ao",
     "pr":  88,
     "base":  "25ed82d8f98c1f6e33ec20fbd0d9382459325c04",
@@ -25,6 +25,11 @@
                         "quando":  "2026-11-07 14:01:48",
                         "tipo":  "pr",
                         "detalhe":  "PR #88 aberto"
+                    },
+                    {
+                        "quando":  "2026-11-07 14:09:55",
+                        "tipo":  "ciclo",
+                        "detalhe":  "correcao 1 de 2: T-0072: Paridade dos motivos semeada no Help Desk de teste"
                     }
                 ]
 }
