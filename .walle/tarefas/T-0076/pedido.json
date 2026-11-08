@@ -1,0 +1,7 @@
+{
+    "titulo":  "Mapa e ramificacoes no cerebro do RAG",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal (app/Rag, app/Livewire/Conhecimento.php, views do conhecimento e do grafico, tests/Feature/ConhecimentoTest.php); nenhum implementador do OpenCode pode editar app/Rag nem o teste do conhecimento",
+    "resumo":  "O usuario achou o visual do Cerebro do RAG fraco e quer nivel enterprise, vendo as ramificacoes das ligacoes. Trocar o circulo de 24 nos por um mapa com layout de forca calculado no servidor (memorias parecidas ficam perto), ate 300 memorias do filtro, arestas curvas com espessura pela similaridade, tamanho do no pelo numero de ligacoes, grupos destacados, zoom, arrastar e destaque das ligacoes no hover (Alpine, sem biblioteca JS), limiar de similaridade escolhido na tela, e uma arvore radial de ramificacoes da memoria selecionada em dois niveis, com navegacao clicando nos ramos. Mantem tabela com os mesmos numeros, cores so grafico-1, grafico-2 e grafico-contexto e o indice somente leitura."
+}

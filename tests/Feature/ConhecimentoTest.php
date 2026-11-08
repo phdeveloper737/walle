@@ -3,6 +3,7 @@
 use App\Livewire\Conhecimento;
 use App\Models\Usuario;
 use App\Rag\IndiceConhecimento;
+use App\Rag\MapaConhecimento;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -71,8 +72,9 @@ test('o índice calcula cosseno e preserva o banco somente leitura', function ()
         $indice = app(IndiceConhecimento::class);
         $dados = $indice->carregar();
         expect($dados['total'])->toBe(3)->and($dados['documentos'])->toBe(3);
-        expect($dados['conexoes'])->toHaveCount(1);
-        expect($dados['conexoes'][0])->toMatchArray(['origem' => 1, 'destino' => 2, 'similaridade' => 1.0]);
+        $mapa = $indice->mapa();
+        expect($mapa['conexoes'])->toHaveCount(1);
+        expect($mapa['conexoes'][0])->toMatchArray(['origem' => 1, 'destino' => 2, 'similaridade' => 1.0]);
         expect(fn () => $indice->conexao()->delete('DELETE FROM knowledge'))->toThrow(QueryException::class, 'readonly');
     } finally {
         unlink($arquivo);
@@ -115,11 +117,11 @@ test('paginação limita o grafo e permite explorar trechos antigos', function (
     try {
         $dados = app(IndiceConhecimento::class)->carregar();
         expect($dados['nos'])->toHaveCount(24);
-        expect($dados['conexoes'])->toHaveCount(120);
-        Livewire::test(Conhecimento::class)->assertDontSee('Trecho antigo 65')
-            ->call('irParaPagina', 3)->assertSee('Trecho antigo 65')
+        expect(app(IndiceConhecimento::class)->mapa()['nos'])->toHaveCount(65);
+        Livewire::test(Conhecimento::class)->assertDontSee('Ler memória #65')
+            ->call('irParaPagina', 3)->assertSee('Ler memória #65')
             ->call('irParaPagina', -1)->assertSet('pagina', 1)
-            ->set('pagina', 9999)->assertSee('Trecho antigo 65')
+            ->set('pagina', 9999)->assertSee('Ler memória #65')
             ->set('categoria', 'padroes')->assertSet('pagina', 1)->assertSee('Outra convenção');
     } finally {
         unlink($arquivo);
@@ -140,6 +142,93 @@ test('índice vazio ou corrompido apresenta estados claros', function () {
         $this->get('/conhecimento')->assertOk()->assertSee('Nenhuma memória encontrada');
         file_put_contents($arquivo, 'indice corrompido');
         $this->get('/conhecimento')->assertOk()->assertSee('O índice do RAG não está disponível');
+    } finally {
+        unlink($arquivo);
+    }
+});
+
+/** Vetor de 384 posições a partir das primeiras, como o embedding do RAG. */
+function vetorDeTeste(array $inicio): array
+{
+    return array_map('floatval', array_pad($inicio, 384, 0));
+}
+
+test('o mapa liga só acima do limiar, aproxima as memórias parecidas e separa os grupos', function () {
+    $memorias = [];
+    foreach (range(1, 5) as $i) {
+        $memorias[] = ['id' => $i, 'agente' => 'walle-robos', 'categoria' => 'padroes', 'vetor' => vetorDeTeste([1, 0.05 * $i, 0])];
+        $memorias[] = ['id' => 10 + $i, 'agente' => 'walle-telas', 'categoria' => 'arquitetura', 'vetor' => vetorDeTeste([0, 0.05 * $i, 1])];
+    }
+
+    $mapa = app(MapaConhecimento::class)->montar($memorias, 0.65);
+    $nos = collect($mapa['nos'])->keyBy('id');
+    $distancia = fn (int $a, int $b): float => hypot($nos[$a]['x'] - $nos[$b]['x'], $nos[$a]['y'] - $nos[$b]['y']);
+
+    expect($mapa['conexoes'])->not->toBeEmpty();
+    foreach ($mapa['conexoes'] as $conexao) {
+        expect($conexao['similaridade'])->toBeGreaterThanOrEqual(0.65)
+            ->and($conexao['origem'] < 10)->toBe($conexao['destino'] < 10);
+    }
+    expect($nos->filter(fn (array $no): bool => $no['id'] < 10)->pluck('grupo')->unique())->toHaveCount(1)
+        ->and($nos[1]['grupo'])->not->toBe($nos[11]['grupo'])
+        ->and($mapa['grupos'])->toHaveCount(2)
+        ->and($mapa['grupos'][0])->toMatchArray(['total' => 5])
+        ->and($distancia(1, 2))->toBeLessThan($distancia(1, 11));
+    foreach ($nos as $no) {
+        expect($no['x'])->toBeGreaterThanOrEqual(0)->toBeLessThanOrEqual(MapaConhecimento::LARGURA)
+            ->and($no['y'])->toBeGreaterThanOrEqual(0)->toBeLessThanOrEqual(MapaConhecimento::ALTURA)
+            ->and($no['grau'])->toBe(4);
+    }
+    expect(app(MapaConhecimento::class)->montar($memorias, 0.65))->toBe($mapa);
+});
+
+test('cada memória leva ao mapa só as suas ligações mais fortes', function () {
+    $memorias = array_map(fn (int $i): array => ['id' => $i, 'agente' => 'walle-dados', 'categoria' => 'padroes', 'vetor' => vetorDeTeste([1, 0.01 * $i])], range(1, 12));
+
+    $mapa = app(MapaConhecimento::class)->montar($memorias, 0.65);
+
+    expect(count($mapa['conexoes']))->toBeLessThanOrEqual(12 * MapaConhecimento::LIGACOES_POR_NO)
+        ->and(count($mapa['conexoes']))->toBeLessThan(12 * 11 / 2)
+        ->and($mapa['vizinhos'][1])->toHaveCount(MapaConhecimento::VIZINHOS_GUARDADOS)
+        ->and($mapa['vizinhos'][1][0]['id'])->toBe(2);
+    foreach ($mapa['nos'] as $no) {
+        expect($no['grau'])->toBeGreaterThanOrEqual(MapaConhecimento::LIGACOES_POR_NO);
+    }
+});
+
+test('as ramificações seguem as ligações em dois níveis sem repetir memória', function () {
+    $vizinhos = [
+        1 => [['id' => 2, 'similaridade' => 0.9], ['id' => 3, 'similaridade' => 0.8]],
+        2 => [['id' => 1, 'similaridade' => 0.9], ['id' => 4, 'similaridade' => 0.85], ['id' => 3, 'similaridade' => 0.7]],
+        3 => [['id' => 1, 'similaridade' => 0.8], ['id' => 4, 'similaridade' => 0.75], ['id' => 5, 'similaridade' => 0.7]],
+    ];
+
+    $arvore = app(MapaConhecimento::class)->ramificacoes($vizinhos, 1);
+
+    expect(array_map(fn (array $no): array => [$no['id'], $no['nivel'], $no['pai']], $arvore))
+        ->toBe([[1, 0, null], [2, 1, 1], [4, 2, 2], [3, 1, 1], [5, 2, 3]])
+        ->and(app(MapaConhecimento::class)->ramificacoes($vizinhos, 99))->toBe([]);
+});
+
+test('a tela abre as ramificações e as ligações da memória selecionada e corrige o limiar inválido', function () {
+    $arquivo = indiceRagDeTeste();
+    $usuario = Usuario::find(criarUsuarioHelpDesk());
+    $this->actingAs($usuario);
+    config(['walle.admins' => [$usuario->id]]);
+
+    try {
+        Livewire::withQueryParams(['limiar' => 40])->test(Conhecimento::class)
+            ->assertSet('limiar', 65)
+            ->assertSee(['Mapa do cérebro', 'Ligações no mapa', 'Grupos de assunto'])
+            ->assertDontSee('Ramificações da memória')
+            ->call('selecionar', 1)
+            ->assertSet('memoria', 1)
+            ->assertSee(['Ramificações da memória #1', 'Ligações mais fortes', 'Seguir para a memória #2', '100,0%', 'memoria-1.md'])
+            ->call('selecionar', 3)
+            ->assertSee('Nenhuma memória do recorte chega a 65%')
+            ->assertDontSee('Ramificações da memória')
+            ->set('limiar', 85)->assertSet('limiar', 85)
+            ->set('limiar', 50)->assertSet('limiar', 65);
     } finally {
         unlink($arquivo);
     }

@@ -1,0 +1,30 @@
+{
+    "tarefa":  "T-0076",
+    "titulo":  "Mapa e ramificacoes no cerebro do RAG",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal (app/Rag, app/Livewire/Conhecimento.php, views do conhecimento e do grafico, tests/Feature/ConhecimentoTest.php); nenhum implementador do OpenCode pode editar app/Rag nem o teste do conhecimento",
+    "estado":  "em_revisao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0076-mapa-e-ramificacoes-no-cerebro-do-rag",
+    "pr":  92,
+    "base":  "a09d54dd6a10068a1b9b843ebec86fb7fc4e520e",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-07 21:35:45",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0076-mapa-e-ramificacoes-no-cerebro-do-rag a partir de a09d54dd6a10068a1b9b843ebec86fb7fc4e520e"
+                    },
+                    {
+                        "quando":  "2026-11-07 21:45:01",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0076: Mapa e ramificacoes no cerebro do RAG"
+                    },
+                    {
+                        "quando":  "2026-11-07 21:45:12",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #92 aberto"
+                    }
+                ]
+}
