@@ -53,7 +53,7 @@
             @else
                 <div class="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
                     <x-grafico.cartao titulo="Mapa do cérebro"
-                        :descricao="$mapa === null ? null : 'As '.count($mapa['nos']).' memórias mais recentes do filtro (de '.$mapa['encontrados'].' encontradas). Memórias parecidas ficam perto; o tamanho do ponto mostra quantas ligações ele tem e os contornos marcam os grupos de assunto. Cada memória mostra até '.\App\Rag\MapaConhecimento::LIGACOES_POR_NO.' ligações, as mais fortes.'"
+                        :descricao="$mapa === null ? null : 'As '.count($mapa['nos']).' memórias mais recentes do filtro (de '.$mapa['encontrados'].' encontradas). Memórias parecidas ficam perto; o tamanho do ponto mostra quantas ligações ele tem e você pode arrastar as memórias para reorganizar o mapa. Cada memória mostra até '.\App\Rag\MapaConhecimento::LIGACOES_POR_NO.' ligações, as mais fortes.'"
                         :legenda="[['nome' => 'Memória', 'cor' => 'grafico-1'], ['nome' => 'Selecionada e ligações dela', 'cor' => 'grafico-2'], ['nome' => 'Ligação (mais grossa = mais parecida)', 'cor' => 'grafico-contexto', 'forma' => 'linha']]">
                         @if ($mapa === null)
                             <x-ui.aviso tipo="erro">Não foi possível montar o mapa agora. A lista de memórias abaixo continua disponível.</x-ui.aviso>

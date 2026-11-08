@@ -88,6 +88,7 @@ walle/
 ### Gráficos (`components/grafico/`)
 
 - Sem biblioteca de JS: `<x-grafico.colunas>`, `<x-grafico.linhas>` e `<x-grafico.barras>` são HTML/SVG gerados no servidor, dentro de `<x-grafico.cartao>`.
+- Exceção (decisão do usuário de 07/11/2026): o mapa do cérebro do RAG (`<x-grafico.memoria>`) roda a física de forças no navegador, com JS próprio dentro do componente e sem biblioteca, no estilo do gráfico do Obsidian. O servidor continua mandando o SVG com as posições iniciais, e as demais regras de gráfico continuam valendo: tabela com os mesmos números, as três cores e teclado. Com `prefers-reduced-motion`, o mapa fica parado. A exceção não se estende a outros gráficos.
 - Todo gráfico tem a tabela com os mesmos números (`<x-slot:tabela>` com `<x-grafico.tabela>`): a dica do mouse nunca é o único jeito de ler um valor.
 - Cores só `grafico-1`, `grafico-2` e `grafico-contexto` (definidas em `@theme static` no `app.css`), sempre sobre o `surface-container-low`. Elas foram validadas para daltonismo e contraste nesse fundo; trocar cor exige validar de novo.
 - Duas séries ou mais: legenda no cartão. Uma série: sem legenda, o título diz o que é. Nunca dois eixos Y no mesmo gráfico.

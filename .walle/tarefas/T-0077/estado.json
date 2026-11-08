@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 23:25:56",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0077-mapa-do-cerebro-do-rag-no-estilo-obsidia a partir de 7f97e2f7f2340c62d73064673253515b66b2f279"
+                    },
+                    {
+                        "quando":  "2026-11-08 00:02:14",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0077: Mapa do cerebro do RAG no estilo Obsidian"
                     }
                 ]
 }
