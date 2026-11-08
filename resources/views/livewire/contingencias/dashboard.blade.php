@@ -58,53 +58,47 @@
             <x-ui.botao variante="tonal" wire:click="limparFiltros" icone="filter_alt_off">Limpar filtros</x-ui.botao>
         </div>
     @else
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-2">
             @foreach ($this->visiveis as $cliente)
                 @php
                     $temContingencia = $cliente['totalCliente'] > 0;
                     $url = route('relatorios', ['aba' => 'contingencia', 'cliente' => $cliente['id']]);
                 @endphp
-                <a href="{{ $url }}" wire:navigate wire:key="card-{{ $cliente['id'] }}" class="group block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-                    <x-ui.card class="flex h-full flex-col justify-between transition group-hover:bg-surface-container-highest">
-                    <div class="flex flex-col gap-3">
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <h3 class="font-medium text-on-surface group-hover:underline">{{ $cliente['nome'] }}</h3>
-                                <p class="text-xs text-on-surface-variant">{{ $cliente['cnpj'] ?? 'CNPJ não cadastrado' }} · ID: {{ $cliente['id'] }}</p>
-                            </div>
+                <a href="{{ $url }}" wire:navigate wire:key="card-{{ $cliente['id'] }}" class="group block min-w-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                    {{-- Compacto: px/py sobrepõem o p-4 do card para caber mais cards por linha. --}}
+                    <x-ui.card class="flex h-full flex-col gap-2 px-3 py-2.5 transition group-hover:bg-surface-container-highest">
+                        <div class="min-w-0">
+                            <h3 class="truncate text-sm font-medium text-on-surface group-hover:underline" title="{{ $cliente['nome'] }}">{{ $cliente['nome'] }}</h3>
+                            <p class="truncate text-xs text-on-surface-variant">{{ $cliente['cnpj'] ?? 'Sem CNPJ' }} · ID: {{ $cliente['id'] }}</p>
+                        </div>
+
+                        <dl class="grid grid-cols-4 gap-1 text-center">
+                            @foreach ([
+                                ['Tabela ', 'Cliente', $cliente['totalCliente']],
+                                ['Tabela ', 'Motivos', $cliente['totalBot']],
+                                ['Total ', 'Sactus', $cliente['totalSactus']],
+                                ['Total ', 'Versatus', $cliente['totalVersatus']],
+                            ] as [$prefixo, $rotulo, $valor])
+                                <div class="min-w-0 rounded-sm bg-surface-container-low px-1 py-1" title="{{ $prefixo.$rotulo }}">
+                                    <dt class="truncate text-[11px] text-on-surface-variant"><span class="sr-only">{{ $prefixo }}</span>{{ $rotulo }}</dt>
+                                    <dd class="truncate text-sm font-medium tabular-nums text-on-surface">{{ \App\Support\Numero::inteiro($valor) }}</dd>
+                                </div>
+                            @endforeach
+                        </dl>
+
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="flex min-w-0 items-center gap-1 text-[11px] text-on-surface-variant" title="Data da última coleta">
+                                <x-ui.icone nome="schedule" @class([
+                                    'text-[14px]',
+                                    'text-primary' => $cliente['recente'],
+                                    'text-error' => ! $cliente['recente'],
+                                ]) />
+                                <span class="truncate tabular-nums">{{ $cliente['data']->format('d/m/Y H:i') }}</span>
+                            </span>
                             <x-ui.etiqueta :cor="$temContingencia ? 'erro' : 'sucesso'">
                                 {{ $temContingencia ? 'Tem contingência' : 'OK' }}
                             </x-ui.etiqueta>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-2 text-sm text-on-surface-variant">
-                            <div class="flex items-center gap-1.5">
-                                <x-ui.icone nome="receipt_long" class="text-[18px] text-secondary" />
-                                <span>Tabela Cliente: <strong class="text-on-surface">{{ \App\Support\Numero::inteiro($cliente['totalCliente']) }}</strong></span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <x-ui.icone nome="warning" class="text-[18px] text-secondary" />
-                                <span>Tabela Motivos: <strong class="text-on-surface">{{ \App\Support\Numero::inteiro($cliente['totalBot']) }}</strong></span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <x-ui.icone nome="dns" class="text-[18px] text-secondary" />
-                                <span>Total Sactus: <strong class="text-on-surface">{{ \App\Support\Numero::inteiro($cliente['totalSactus']) }}</strong></span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <x-ui.icone nome="storage" class="text-[18px] text-secondary" />
-                                <span>Total Versatus: <strong class="text-on-surface">{{ \App\Support\Numero::inteiro($cliente['totalVersatus']) }}</strong></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex items-center gap-1.5 border-t border-outline-variant pt-3 text-xs text-on-surface-variant">
-                        <x-ui.icone nome="schedule" @class([
-                            'text-[16px]',
-                            'text-primary' => $cliente['recente'],
-                            'text-error' => ! $cliente['recente'],
-                        ]) />
-                        <span>Coletado em {{ $cliente['data']->format('d/m/Y H:i') }}</span>
-                    </div>
                     </x-ui.card>
                 </a>
             @endforeach

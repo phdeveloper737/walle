@@ -15,6 +15,11 @@
                         "quando":  "2026-11-07 21:25:47",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0075-cards-compactos-no-dashboard-de-continge a partir de 63857c360bf53fa4c4d349ffa4713882d958adaf"
+                    },
+                    {
+                        "quando":  "2026-11-07 21:27:40",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0075: Cards compactos no dashboard de contingencias"
                     }
                 ]
 }
