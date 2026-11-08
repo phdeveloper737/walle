@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 07/11/2026",
     "tipo":  "feature",
     "dono":  "walle-harness (excecao na regra de graficos em .ai/guidelines/walle.md, CLAUDE.md e AGENTS.md) e walle-telas (resources/views/components/grafico/memoria.blade.php, resources/views/livewire/conhecimento.blade.php, app/Livewire/Conhecimento.php, tests/Browser)",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0077-mapa-do-cerebro-do-rag-no-estilo-obsidia",
-    "pr":  0,
+    "pr":  93,
     "base":  "7f97e2f7f2340c62d73064673253515b66b2f279",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-08 00:02:14",
                         "tipo":  "commit",
                         "detalhe":  "T-0077: Mapa do cerebro do RAG no estilo Obsidian"
+                    },
+                    {
+                        "quando":  "2026-11-08 00:02:19",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #93 aberto"
                     }
                 ]
 }
