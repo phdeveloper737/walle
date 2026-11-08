@@ -1,0 +1,7 @@
+{
+    "titulo":  "Cards compactos no dashboard de contingencias",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal (resources/views/livewire/contingencias/dashboard.blade.php)",
+    "resumo":  "Os cards da aba Dashboard de Contingencias ficaram grandes demais. Reduzir para caber o maximo possivel na tela sem perder nenhuma informacao: nome, CNPJ, ID, situacao, os quatro totais e o relogio com a data da coleta. Mudanca so de layout."
+}
