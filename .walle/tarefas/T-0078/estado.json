@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0078",
+    "titulo":  "Memorias mais espalhadas no mapa do cerebro",
+    "origem":  "pedido do usuario de 08/11/2026",
+    "tipo":  "bug",
+    "dono":  "sessao principal (resources/views/components/grafico/memoria.blade.php), com ajuste visual conferido por print do navegador",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0078-memorias-mais-espalhadas-no-mapa-do-cere",
+    "pr":  0,
+    "base":  "28c3aa89033d0d4df936ed98321fbdfab31ba82c",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-08 11:08:34",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0078-memorias-mais-espalhadas-no-mapa-do-cere a partir de 28c3aa89033d0d4df936ed98321fbdfab31ba82c"
+                    }
+                ]
+}
