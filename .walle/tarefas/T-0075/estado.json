@@ -4,10 +4,10 @@
     "origem":  "pedido do usuario de 07/11/2026",
     "tipo":  "feature",
     "dono":  "sessao principal (resources/views/livewire/contingencias/dashboard.blade.php)",
-    "estado":  "em_execucao",
+    "estado":  "em_revisao",
     "ciclos":  0,
     "branch":  "tarefa/T-0075-cards-compactos-no-dashboard-de-continge",
-    "pr":  0,
+    "pr":  91,
     "base":  "63857c360bf53fa4c4d349ffa4713882d958adaf",
     "notas_bloqueio":  "",
     "eventos":  [
@@ -20,6 +20,11 @@
                         "quando":  "2026-11-07 21:27:40",
                         "tipo":  "commit",
                         "detalhe":  "T-0075: Cards compactos no dashboard de contingencias"
+                    },
+                    {
+                        "quando":  "2026-11-07 21:27:51",
+                        "tipo":  "pr",
+                        "detalhe":  "PR #91 aberto"
                     }
                 ]
 }
