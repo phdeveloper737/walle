@@ -1,0 +1,7 @@
+{
+    "titulo":  "Memorias mais espalhadas no mapa do cerebro",
+    "origem":  "pedido do usuario de 08/11/2026",
+    "tipo":  "bug",
+    "dono":  "sessao principal (resources/views/components/grafico/memoria.blade.php), com ajuste visual conferido por print do navegador",
+    "resumo":  "Depois da T-0077 o usuario achou as memorias juntas demais no mapa. A fisica do navegador comprime os pontos (repulsao 1/d2, molas curtas e area presa). Trocar pela repulsao no estilo d3 (1/d), colisao entre pontos, molas pela similaridade, sem prender os pontos na area, com o layout calculado antes de desenhar e a vista enquadrada automaticamente nos pontos."
+}
