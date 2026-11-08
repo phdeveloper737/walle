@@ -15,6 +15,11 @@
                         "quando":  "2026-11-08 11:08:34",
                         "tipo":  "aberta",
                         "detalhe":  "branch tarefa/T-0078-memorias-mais-espalhadas-no-mapa-do-cere a partir de 28c3aa89033d0d4df936ed98321fbdfab31ba82c"
+                    },
+                    {
+                        "quando":  "2026-11-08 11:17:51",
+                        "tipo":  "commit",
+                        "detalhe":  "T-0078: Memorias mais espalhadas no mapa do cerebro"
                     }
                 ]
 }

@@ -16,7 +16,7 @@
     $porId = collect($nos)->keyBy('id');
     $haSelecao = $porId->has($selecionada);
     $rotulados = collect($nos)->sortByDesc('grau')->take(14)->pluck('id')->flip();
-    $raio = fn (array $no): float => min(9.0, 2.5 + 1.6 * sqrt($no['grau']));
+    $raio = fn (array $no): float => min(12.0, 3.5 + 2 * sqrt($no['grau']));
     $resumir = function (string $conteudo): string {
         $texto = trim((string) preg_replace('/\s+/u', ' ', strip_tags($conteudo)));
         return mb_strlen($texto) > 28 ? mb_substr($texto, 0, 27).'…' : $texto;
@@ -32,6 +32,7 @@
             'x' => (float) $no['x'],
             'y' => (float) $no['y'],
             'grau' => (int) $no['grau'],
+            'grupo' => (int) ($no['grupo'] ?? 0),
             'rotulo' => $resumir($no['resumo'] ?? ''),
             'descricao' => "#{$no['id']} · {$no['agente']} · ".($categorias[$no['categoria']] ?? $no['categoria'])." · {$no['grau']} ligações · ".($no['resumo'] ?? ''),
         ], $nos),
@@ -56,7 +57,7 @@
             this.reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
             this.svg = this.$refs.svg
             this.grupo = this.$refs.mundo
-            this.nos = this.dados.nos.map(n => ({ ...n, x: n.x, y: n.y, xInicial: n.x, yInicial: n.y, vx: 0, vy: 0 }))
+            this.nos = this.dados.nos.map(n => ({ ...n, x: n.x, y: n.y, xInicial: n.x, yInicial: n.y, vx: 0, vy: 0, r: Math.min(12, 3.5 + 2 * Math.sqrt(n.grau)) }))
             this.porId = {}
             this.nos.forEach(n => { this.porId[n.id] = n })
             this.rotulados = new Set(this.dados.rotulados)
@@ -72,9 +73,29 @@
             })
             this.linhas = Array.prototype.slice.call(this.svg.querySelectorAll('[data-aresta]'))
             this.selecionada = Number(this.dados.selecionada) || 0
-            this.aplicar()
+            this.acomodar()
+            this.desenhar()
+            this.enquadrar()
             ligacao.$watch('memoria', (v) => { this.selecionada = Number(v) || 0; this.aplicar() })
-            if (!this.reduzido && this.nos.length > 1) { this.reaquecer(0.1) }
+        },
+        {{-- Roda a simulação inteira antes de desenhar (cerca de 300 passos): a tela já abre com as memórias espalhadas. --}}
+        acomodar() {
+            this.alfa = 1
+            while (this.alfa > 0.001) { this.passo(); this.alfa *= 0.977 }
+            this.alfa = 0
+        },
+        {{-- Ajusta zoom e posição para todas as memórias caberem na área, com margem. --}}
+        enquadrar() {
+            const nos = Alpine.raw(this.nos)
+            if (nos.length === 0) return
+            let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+            for (const no of nos) { x0 = Math.min(x0, no.x); y0 = Math.min(y0, no.y); x1 = Math.max(x1, no.x); y1 = Math.max(y1, no.y) }
+            const margem = 50, largura = this.dados.largura, altura = this.dados.altura
+            const escala = Math.min(2, Math.max(0.1, Math.min(largura / (x1 - x0 + 2 * margem || 1), altura / (y1 - y0 + 2 * margem || 1))))
+            this.escala = escala; this.escalaBase = escala
+            this.panX = largura / 2 - (x0 + x1) / 2 * escala
+            this.panY = altura / 2 - (y0 + y1) / 2 * escala
+            this.aplicar()
         },
         ponto(e) {
             const r = this.svg.getBoundingClientRect()
@@ -89,7 +110,7 @@
             return { x: (p.x - this.panX) / this.escala, y: (p.y - this.panY) / this.escala }
         },
         zoom(fator, cx = this.dados.largura / 2, cy = this.dados.altura / 2) {
-            const nova = Math.min(8, Math.max(0.4, this.escala * fator))
+            const nova = Math.min(8, Math.max(0.1, this.escala * fator))
             const k = nova / this.escala
             this.panX = cx - (cx - this.panX) * k
             this.panY = cy - (cy - this.panY) * k
@@ -123,8 +144,8 @@
                 this.movido = Math.max(this.movido, Math.hypot(e.clientX - this.inicioX, e.clientY - this.inicioY))
                 const p = this.mundo(e)
                 const no = this.porId[this.arrastando]
-                no.x = Math.min(this.dados.largura - 14, Math.max(14, p.x + this.deslocamento.x))
-                no.y = Math.min(this.dados.altura - 20, Math.max(20, p.y + this.deslocamento.y))
+                no.x = p.x + this.deslocamento.x
+                no.y = p.y + this.deslocamento.y
                 no.vx = 0; no.vy = 0
                 if (!this.reduzido) this.reaquecer(0.3)
                 this.desenhar()
@@ -145,11 +166,11 @@
             this.panInicio = null
             if (this.svg.hasPointerCapture && this.svg.hasPointerCapture(e.pointerId)) this.svg.releasePointerCapture(e.pointerId)
         },
-        ajustar() { this.escala = 1; this.panX = 0; this.panY = 0; this.aplicar() },
+        ajustar() { this.enquadrar() },
         telaCheia() { document.fullscreenElement ? document.exitFullscreen() : this.$root.requestFullscreen() },
         reorganizar() {
-            this.nos.forEach(n => { n.x = n.xInicial; n.y = n.yInicial; n.vx = 0; n.vy = 0 })
-            this.alfa = 0.3; this.desenhar(); this.aplicar(); this.agendar()
+            Alpine.raw(this.nos).forEach(n => { n.x = n.xInicial; n.y = n.yInicial; n.vx = 0; n.vy = 0 })
+            this.acomodar(); this.desenhar(); this.enquadrar()
         },
         escolher(id) { this.livewire.selecionar(id) },
         sobre(e) {
@@ -174,46 +195,70 @@
         animar() {
             if (this.alfa < 0.005 || this.reduzido) { this.animando = false; return }
             this.passo()
-            this.alfa *= 0.97
+            this.alfa *= 0.977
             this.desenhar()
             requestAnimationFrame(() => this.animar())
         },
         passo() {
             {{-- Objetos crus: pelo proxy reativo do Alpine, os ~45 mil pares por quadro ficam lentos. --}}
             const nos = Alpine.raw(this.nos), porId = Alpine.raw(this.porId), conexoes = Alpine.raw(this.dados).conexoes, arrastando = this.arrastando
+            {{--
+                Forças no estilo do d3/Obsidian: repulsão que cai com 1/d (até REPULSAO_ALCANCE), mola em cada
+                ligação (mais curta quanto mais parecida, força dividida pelo grau para os hubs não esmagarem
+                o grupo), gravidade fraca para o centro e colisão que impede pontos encostados. Sem limite de
+                área: a vista é que se ajusta aos pontos (enquadrar).
+            --}}
+            const REPULSAO = 200, REPULSAO_ALCANCE = 500, MOLA_MIN = 35, MOLA_MAX = 90, ENTRE_GRUPOS = 3, GRAVIDADE_X = 0.018, GRAVIDADE_Y = 0.045, GRUPO = 0.2, FOLGA = 14
             const n = nos.length, alfa = this.alfa
-            const largura = this.dados.largura, altura = this.dados.altura
-            for (let i = 0; i < n; i++) { nos[i].fx = 0; nos[i].fy = 0 }
+            const cx = this.dados.largura / 2, cy = this.dados.altura / 2
+            const alcance2 = REPULSAO_ALCANCE * REPULSAO_ALCANCE
             for (let i = 0; i < n; i++) {
                 const a = nos[i]
                 for (let j = i + 1; j < n; j++) {
                     const b = nos[j]
                     let dx = b.x - a.x, dy = b.y - a.y
                     let d2 = dx * dx + dy * dy
-                    if (d2 < 0.01) { dx = 0.1; dy = 0.1; d2 = 0.02 }
-                    const d = Math.sqrt(d2)
-                    const f = 900 * alfa / d2
-                    const fx = dx / d * f, fy = dy / d * f
-                    a.fx -= fx; a.fy -= fy; b.fx += fx; b.fy += fy
+                    if (d2 < 0.01) { dx = (Math.random() - 0.5) || 0.1; dy = (Math.random() - 0.5) || 0.1; d2 = dx * dx + dy * dy }
+                    if (d2 < alcance2) {
+                        const w = REPULSAO * alfa / d2
+                        a.vx -= dx * w; a.vy -= dy * w; b.vx += dx * w; b.vy += dy * w
+                    }
+                    const minimo = a.r + b.r + FOLGA
+                    if (d2 < minimo * minimo) {
+                        const d = Math.sqrt(d2), s = (minimo - d) / d * 0.25
+                        a.x -= dx * s; a.y -= dy * s; b.x += dx * s; b.y += dy * s
+                    }
                 }
             }
             for (const aresta of conexoes) {
                 const a = porId[aresta.a], b = porId[aresta.b]
                 if (!a || !b) continue
-                const dx = b.x - a.x, dy = b.y - a.y
+                const dx = b.x + b.vx - a.x - a.vx, dy = b.y + b.vy - a.y - a.vy
                 const d = Math.max(0.1, Math.sqrt(dx * dx + dy * dy))
-                const alvo = 24 + (1 - aresta.forca) * 60
-                const f = (d - alvo) * 0.09 * alfa / d
-                a.fx += dx * f; a.fy += dy * f
-                b.fx -= dx * f; b.fy -= dy * f
+                const mesmoGrupo = a.grupo && a.grupo === b.grupo
+                const alvo = (MOLA_MIN + (1 - aresta.forca) * (MOLA_MAX - MOLA_MIN)) * (mesmoGrupo ? 1 : ENTRE_GRUPOS)
+                const l = (d - alvo) / d * alfa * (mesmoGrupo ? 0.8 : 0.25) / Math.max(1, Math.min(a.grau, b.grau))
+                a.vx += dx * l; a.vy += dy * l; b.vx -= dx * l; b.vy -= dy * l
             }
-            const cx = largura / 2, cy = altura / 2
+            {{-- Puxão leve para o centro do grupo de assunto (grupo 0 = sem grupo): os aglomerados ficam visíveis. --}}
+            const centros = {}
+            for (const no of nos) {
+                if (!no.grupo) continue
+                const c = centros[no.grupo] ??= { x: 0, y: 0, n: 0 }
+                c.x += no.x; c.y += no.y; c.n++
+            }
+            for (const no of nos) {
+                const c = no.grupo ? centros[no.grupo] : null
+                if (!c || c.n < 2) continue
+                no.vx += (c.x / c.n - no.x) * GRUPO * alfa
+                no.vy += (c.y / c.n - no.y) * GRUPO * alfa
+            }
             for (const no of nos) {
                 if (no.id === arrastando) { no.vx = 0; no.vy = 0; continue }
-                no.vx = (no.vx + no.fx) * 0.62 + (cx - no.x) * 0.004 * alfa
-                no.vy = (no.vy + no.fy) * 0.62 + (cy - no.y) * 0.004 * alfa
-                no.x = Math.min(largura - 14, Math.max(14, no.x + no.vx))
-                no.y = Math.min(altura - 20, Math.max(20, no.y + no.vy))
+                no.vx = (no.vx + (cx - no.x) * GRAVIDADE_X * alfa) * 0.6
+                no.vy = (no.vy + (cy - no.y) * GRAVIDADE_Y * alfa) * 0.6
+                no.x += no.vx
+                no.y += no.vy
             }
         },
         desenhar() {
@@ -241,7 +286,9 @@
                     if (c.b === foco) vizinhos.add(c.a)
                 }
             }
-            const rampa = Math.min(1, Math.max(0, (this.escala - 1.6) / 0.6))
+            const relativa = this.escala / (this.escalaBase || 1)
+            const rampa = Math.min(1, Math.max(0, (relativa - 1.6) / 0.6))
+            const fonte = Math.min(40, 13 / this.escala)
             for (const no of this.nos) {
                 const el = this.noEl[no.id], ponto = this.pontoEl[no.id], halo = this.haloEl[no.id], anel = this.anelEl[no.id], rotulo = this.rotuloEl[no.id]
                 if (!el) continue
@@ -259,6 +306,8 @@
                     let op = this.rotulados.has(no.id) ? 1 : rampa
                     if (aceso) op = 1
                     rotulo.style.opacity = String(op)
+                    rotulo.setAttribute('font-size', fonte.toFixed(1))
+                    rotulo.setAttribute('y', (no.r + 2 + fonte).toFixed(1))
                 }
             }
             for (const linha of this.linhas) {
@@ -266,7 +315,7 @@
                 const forca = Number(linha.dataset.forca) || 0
                 const tocaFoco = this.foco !== null && (a === this.foco || b === this.foco)
                 const tocaSelecao = this.selecionada > 0 && (a === this.selecionada || b === this.selecionada)
-                let cor = 'grafico-contexto', opacidade = 0.25 + 0.25 * forca, espessura = 0.5 + forca
+                let cor = 'grafico-contexto', opacidade = 0.18 + 0.27 * forca, espessura = 0.6 + 0.9 * forca
                 if (tocaFoco) { cor = 'grafico-2'; opacidade = 0.9; espessura = 1.4 }
                 else if (this.foco !== null) { opacidade = 0.12 }
                 else if (tocaSelecao) { cor = 'grafico-2'; opacidade = 0.8 }
@@ -297,7 +346,7 @@
 
     <svg x-ref="svg" viewBox="0 0 {{ $largura }} {{ $altura }}"
         class="block w-full touch-none select-none"
-        x-bind:class="(cheio ? 'min-h-0 flex-1' : 'h-[36rem]') + ' ' + (arrastando !== null ? 'cursor-grabbing' : 'cursor-grab')"
+        x-bind:class="(cheio ? 'min-h-0 flex-1' : 'h-[42rem]') + ' ' + (arrastando !== null ? 'cursor-grabbing' : 'cursor-grab')"
         x-on:wheel.prevent="roda($event)"
         x-on:pointerdown="pegar($event)"
         x-on:pointermove="mover($event)"
@@ -321,8 +370,8 @@
                     x1="{{ $a['x'] }}" y1="{{ $a['y'] }}" x2="{{ $b['x'] }}" y2="{{ $b['y'] }}"
                     stroke="var(--color-{{ $daSelecao ? 'grafico-2' : 'grafico-contexto' }})"
                     stroke-width="{{ round(($daSelecao ? 1.4 : 0.6) + 1.4 * $forca, 2) }}"
-                    stroke-opacity="{{ $haSelecao && ! $daSelecao ? 0.2 : round(0.25 + 0.25 * $forca, 2) }}"
-                    class="transition-opacity motion-reduce:transition-none" aria-hidden="true" />
+                    stroke-opacity="{{ $haSelecao && ! $daSelecao ? 0.2 : round(0.18 + 0.27 * $forca, 2) }}"
+                    vector-effect="non-scaling-stroke" class="transition-opacity motion-reduce:transition-none" aria-hidden="true" />
             @endforeach
 
             @foreach ($nos as $no)
