@@ -1,0 +1,7 @@
+{
+    "titulo":  "Mapa do cerebro do RAG no estilo Obsidian",
+    "origem":  "pedido do usuario de 07/11/2026",
+    "tipo":  "feature",
+    "dono":  "walle-harness (excecao na regra de graficos em .ai/guidelines/walle.md, CLAUDE.md e AGENTS.md) e walle-telas (resources/views/components/grafico/memoria.blade.php, resources/views/livewire/conhecimento.blade.php, app/Livewire/Conhecimento.php, tests/Browser)",
+    "resumo":  "O usuario quer o mapa do Cerebro do RAG com o visual do grafico do Obsidian e aprovou uma excecao a regra de graficos gerados no servidor so para esse mapa: fisica de forca ao vivo no navegador, em JS proprio sem biblioteca, partindo das posicoes calculadas no servidor. Pontos pequenos com halo, linhas finas, rotulos que aparecem conforme o zoom, vizinhas acesas no hover, arrastar uma memoria e as vizinhas acompanharem, sem os circulos de grupo. Mantem tabela com os mesmos numeros, cores so grafico-1, grafico-2 e grafico-contexto sobre o surface-container-low, teclado e prefers-reduced-motion."
+}
