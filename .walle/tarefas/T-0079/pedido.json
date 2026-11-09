@@ -1,0 +1,7 @@
+{
+    "titulo":  "Ligacoes quase pretas no mapa do cerebro",
+    "origem":  "pedido do usuario de 09/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal (resources/views/components/grafico/memoria.blade.php, legenda em resources/views/livewire/conhecimento.blade.php e o texto da excecao em .ai/guidelines/walle.md, CLAUDE.md e AGENTS.md)",
+    "resumo":  "O usuario quer as linhas de ligacao do mapa do cerebro do RAG num cinza bem escuro, quase preto, para ficarem mais nitidas. Trocar grafico-contexto pelo token surface-container-lowest nas ligacoes em repouso (as da memoria em foco ou selecionada continuam grafico-2), com opacidade maior, ajustar a legenda e registrar a decisao na excecao do mapa nas regras."
+}

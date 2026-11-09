@@ -1,0 +1,20 @@
+{
+    "tarefa":  "T-0079",
+    "titulo":  "Ligacoes quase pretas no mapa do cerebro",
+    "origem":  "pedido do usuario de 09/11/2026",
+    "tipo":  "feature",
+    "dono":  "sessao principal (resources/views/components/grafico/memoria.blade.php, legenda em resources/views/livewire/conhecimento.blade.php e o texto da excecao em .ai/guidelines/walle.md, CLAUDE.md e AGENTS.md)",
+    "estado":  "em_execucao",
+    "ciclos":  0,
+    "branch":  "tarefa/T-0079-ligacoes-quase-pretas-no-mapa-do-cerebro",
+    "pr":  0,
+    "base":  "6390f7c4ea14cdac25063a11132a12c977df1a3a",
+    "notas_bloqueio":  "",
+    "eventos":  [
+                    {
+                        "quando":  "2026-11-09 09:56:27",
+                        "tipo":  "aberta",
+                        "detalhe":  "branch tarefa/T-0079-ligacoes-quase-pretas-no-mapa-do-cerebro a partir de 6390f7c4ea14cdac25063a11132a12c977df1a3a"
+                    }
+                ]
+}
